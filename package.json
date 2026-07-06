@@ -1,0 +1,34 @@
+{
+  "name": "blue-water-shopping-village-1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adamzak360-spec/Blue-Water-Shopping-Village-1.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/adamzak360-spec/Blue-Water-Shopping-Village-1/issues"
+  },
+  "homepage": "https://github.com/adamzak360-spec/Blue-Water-Shopping-Village-1#readme",
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.110.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.1.3"
+  },
+  "dependencies": {
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  }
+}
