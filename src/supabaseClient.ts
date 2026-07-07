@@ -7,13 +7,19 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey)
 
 // Export error message if not configured
-export const supabaseConfigError = !supabaseUrl 
-  ? 'Missing VITE_SUPABASE_URL environment variable' 
-  : !supabaseAnonKey 
+export const supabaseConfigError = !supabaseUrl
+  ? 'Missing VITE_SUPABASE_URL environment variable'
+  : !supabaseAnonKey
   ? 'Missing VITE_SUPABASE_ANON_KEY environment variable'
   : null
 
-// Create client only if configured, otherwise export null
-export const supabase = isSupabaseConfigured 
-  ? createClient(supabaseUrl!, supabaseAnonKey!)
+// Create client with proper options for session persistence
+export const supabase = isSupabaseConfigured
+  ? createClient(supabaseUrl!, supabaseAnonKey!, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    })
   : null
