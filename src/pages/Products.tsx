@@ -130,8 +130,12 @@ export default function Products() {
                   alt={product.name}
                   className="product-image"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none'
-                    (e.target as HTMLImageElement).parentElement!.querySelector('.product-image-placeholder')!.classList.add('visible')
+                    const target = e.target as HTMLImageElement
+                    target.style.display = 'none'
+                    const placeholder = target.parentElement?.querySelector('.product-image-placeholder')
+                    if (placeholder) {
+                      placeholder.classList.add('visible')
+                    }
                   }}
                 />
               ) : null}
