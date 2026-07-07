@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getAllProducts, getActiveProducts } from '../services/productService'
+import { getAllProducts } from '../services/productService'
 import type { Product } from '../types'
 import './Products.css'
 

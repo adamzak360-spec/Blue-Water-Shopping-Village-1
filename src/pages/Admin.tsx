@@ -27,7 +27,7 @@ const defaultFormState = {
   price: '',
   category: '',
   stock_quantity: '',
-  status: 'active' as const,
+  status: 'active' as 'active' | 'inactive' | 'out-of-stock',
   image: null as File | null,
   existingImageUrl: '',
 }

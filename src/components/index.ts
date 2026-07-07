@@ -1,5 +1,5 @@
-export { default as ProtectedRoute } from './ProtectedRoute'
-export { default as LogoutButton } from './Logout'
+export { ProtectedRoute } from './ProtectedRoute'
+export { LogoutButton } from './Logout'
 export { default as LoadingSpinner } from './LoadingSpinner'
 export { default as EmptyState } from './EmptyState'
 export { default as ProductCard } from './ProductCard'

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getActiveProducts, getAllProducts } from '../services/productService'
+import { getAllProducts } from '../services/productService'
 import type { Product } from '../types'
 import { Link } from 'react-router-dom'
 import './Home.css'
