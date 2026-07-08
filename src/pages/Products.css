@@ -119,12 +119,12 @@
   font-size: 0.9rem;
 }
 
-.product-image-placeholder.hidden {
-  display: none;
-}
-
 .product-image-placeholder.visible {
   display: flex !important;
+}
+
+.product-image-placeholder.hidden {
+  display: none;
 }
 
 .product-info {
