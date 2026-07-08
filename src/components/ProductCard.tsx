@@ -9,9 +9,26 @@ export default function ProductCard({ product, showStock = true }: ProductCardPr
   return (
     <div className="product-card">
       {product.image_url ? (
-        <img src={product.image_url} alt={product.name} className="product-image" />
+        <>
+          <img 
+            src={product.image_url} 
+            alt={product.name} 
+            className="product-image" 
+            onError={(e) => {
+              const target = e.target as HTMLImageElement
+              target.style.display = 'none'
+              const placeholder = target.nextElementSibling
+              if (placeholder) {
+                placeholder.classList.add('visible')
+              }
+            }}
+          />
+          <div className="product-image-placeholder">
+            <span>No image</span>
+          </div>
+        </>
       ) : (
-        <div className="product-image-placeholder">
+        <div className="product-image-placeholder visible">
           <span>No image</span>
         </div>
       )}

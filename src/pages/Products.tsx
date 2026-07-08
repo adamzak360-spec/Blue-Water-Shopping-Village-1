@@ -125,23 +125,29 @@ export default function Products() {
           {filteredProducts.map(product => (
             <div key={product.id} className="product-card">
               {product.image_url ? (
-                <img
-                  src={product.image_url}
-                  alt={product.name}
-                  className="product-image"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    target.style.display = 'none'
-                    const placeholder = target.parentElement?.querySelector('.product-image-placeholder')
-                    if (placeholder) {
-                      placeholder.classList.add('visible')
-                    }
-                  }}
-                />
-              ) : null}
-              <div className="product-image-placeholder">
-                <span>No image</span>
-              </div>
+                <>
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    className="product-image"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                      const placeholder = target.nextElementSibling
+                      if (placeholder) {
+                        placeholder.classList.add('visible')
+                      }
+                    }}
+                  />
+                  <div className="product-image-placeholder">
+                    <span>No image</span>
+                  </div>
+                </>
+              ) : (
+                <div className="product-image-placeholder visible">
+                  <span>No image</span>
+                </div>
+              )}
               <div className="product-info">
                 <span className="product-category">{product.category}</span>
                 <h3 className="product-name">{product.name}</h3>
