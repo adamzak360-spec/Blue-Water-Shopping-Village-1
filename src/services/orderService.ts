@@ -1,8 +1,16 @@
 import { supabase } from '../supabaseClient'
 import { Order } from '../types'
 
+// Guard: Supabase must be configured for order operations
+const getSupabase = () => {
+  if (!supabase) {
+    throw new Error('Supabase is not configured. Please check your environment variables.')
+  }
+  return supabase
+}
+
 export const createOrder = async (orderData: Omit<Order, 'id' | 'created_at'>) => {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('orders')
     .insert([orderData])
     .select()
@@ -15,7 +23,7 @@ export const createOrder = async (orderData: Omit<Order, 'id' | 'created_at'>) =
 }
 
 export const getAllOrders = async () => {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('orders')
     .select('*')
     .order('created_at', { ascending: false })
@@ -28,7 +36,7 @@ export const getAllOrders = async () => {
 }
 
 export const updateOrderStatus = async (orderId: string, status: Order['status']) => {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('orders')
     .update({ status })
     .eq('id', orderId)
@@ -42,7 +50,7 @@ export const updateOrderStatus = async (orderId: string, status: Order['status']
 }
 
 export const updatePaymentStatus = async (orderId: string, payment_status: Order['payment_status']) => {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('orders')
     .update({ payment_status })
     .eq('id', orderId)
