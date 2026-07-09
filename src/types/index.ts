@@ -28,3 +28,25 @@ export type DashboardStats = {
 }
 
 export type ProductStatus = Product['status']
+
+export interface CartItem extends Product {
+  quantity: number
+}
+
+export interface Order {
+  id?: string
+  customer_name: string
+  customer_email: string
+  customer_phone: string
+  delivery_address: string
+  city: string
+  region: string
+  notes?: string
+  items: CartItem[]
+  subtotal: number
+  delivery_fee: number
+  total: number
+  status: 'pending' | 'confirmed' | 'processing' | 'out-of-delivery' | 'delivered' | 'cancelled'
+  payment_status: 'pending' | 'paid' | 'failed'
+  created_at?: string
+}

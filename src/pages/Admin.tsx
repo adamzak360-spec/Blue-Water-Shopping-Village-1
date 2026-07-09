@@ -8,10 +8,14 @@ import {
   uploadProductImage,
   getDashboardStats,
 } from '../services/productService'
-import type { Product, DashboardStats } from '../types'
+import {
+  getAllOrders,
+  updateOrderStatus,
+} from '../services/orderService'
+import type { Product, DashboardStats, Order } from '../types'
 import './Admin.css'
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders'
 
 interface ProductFormErrors {
   name?: string
@@ -36,8 +40,11 @@ export default function Admin() {
   const { user, signOut } = useAuth()
   const [view, setView] = useState<AdminView>('dashboard')
   const [products, setProducts] = useState<Product[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
   const [stats, setStats] = useState<DashboardStats>({ total: 0, active: 0, outOfStock: 0 })
   const [searchTerm, setSearchTerm] = useState('')
+  const [orderSearchTerm, setOrderSearchTerm] = useState('')
+  const [orderFilterStatus, setOrderFilterStatus] = useState('')
   const [filterCategory, setFilterCategory] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -56,12 +63,14 @@ export default function Admin() {
     setIsLoading(true)
     setError('')
     try {
-      const [allProducts, statsData] = await Promise.all([
+      const [allProducts, statsData, allOrders] = await Promise.all([
         getAllProducts(),
         getDashboardStats(),
+        getAllOrders(),
       ])
       setProducts(allProducts)
       setStats(statsData)
+      setOrders(allOrders)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data')
     } finally {
@@ -162,6 +171,25 @@ export default function Admin() {
 
   const categories = [...new Set(products.map(p => p.category))]
 
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = 
+      order.customer_name.toLowerCase().includes(orderSearchTerm.toLowerCase()) ||
+      order.customer_email.toLowerCase().includes(orderSearchTerm.toLowerCase()) ||
+      (order.id && order.id.toLowerCase().includes(orderSearchTerm.toLowerCase()))
+    const matchesStatus = !orderFilterStatus || order.status === orderFilterStatus
+    return matchesSearch && matchesStatus
+  })
+
+  const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
+    try {
+      await updateOrderStatus(orderId, newStatus)
+      showNotification('Order status updated successfully!')
+      await loadData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update status')
+    }
+  }
+
   if (isLoading && products.length === 0) {
     return (
       <div className="admin-page">
@@ -219,6 +247,12 @@ export default function Admin() {
           onClick={() => { setView('add'); setFormData(defaultFormState); setFormErrors({}); }}
         >
           + Add Product
+        </button>
+        <button
+          className={`tab ${view === 'orders' ? 'active' : ''}`}
+          onClick={() => setView('orders')}
+        >
+          Orders ({orders.length})
         </button>
       </div>
 
@@ -374,6 +408,94 @@ export default function Admin() {
                         >
                           Delete
                         </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Orders Management */}
+      {view === 'orders' && (
+        <div className="orders-list-content">
+          <div className="search-filter-bar">
+            <input
+              type="text"
+              placeholder="Search orders by customer or ID..."
+              value={orderSearchTerm}
+              onChange={(e) => setOrderSearchTerm(e.target.value)}
+              className="search-input"
+            />
+            <select
+              value={orderFilterStatus}
+              onChange={(e) => setOrderFilterStatus(e.target.value)}
+              className="filter-select"
+            >
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="processing">Processing</option>
+              <option value="out-of-delivery">Out for Delivery</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+
+          {filteredOrders.length === 0 ? (
+            <div className="empty-state">
+              <h3>{orders.length === 0 ? 'No orders yet' : 'No orders match your search'}</h3>
+              <p>{orders.length === 0 ? 'Orders will appear here once customers place them.' : 'Try adjusting your search or filters.'}</p>
+            </div>
+          ) : (
+            <div className="orders-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredOrders.map(order => (
+                    <tr key={order.id}>
+                      <td className="order-id-cell">
+                        <span className="order-id" title={order.id}>
+                          {order.id?.substring(0, 8)}...
+                        </span>
+                      </td>
+                      <td>
+                        <div className="customer-info">
+                          <div className="customer-name">{order.customer_name}</div>
+                          <div className="customer-email">{order.customer_email}</div>
+                        </div>
+                      </td>
+                      <td>{order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
+                      <td>${order.total.toFixed(2)}</td>
+                      <td>
+                        <span className={`status-badge status-${order.status}`}>
+                          {order.status.replace('-', ' ')}
+                        </span>
+                      </td>
+                      <td className="actions-cell">
+                        <select
+                          value={order.status}
+                          onChange={(e) => handleStatusChange(order.id!, e.target.value as Order['status'])}
+                          className="status-select"
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="confirmed">Confirmed</option>
+                          <option value="processing">Processing</option>
+                          <option value="out-of-delivery">Out for Delivery</option>
+                          <option value="delivered">Delivered</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
                       </td>
                     </tr>
                   ))}

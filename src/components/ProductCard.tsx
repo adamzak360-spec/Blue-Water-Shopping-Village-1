@@ -1,4 +1,5 @@
 import type { Product } from '../types'
+import { useCart } from '../context/CartContext'
 
 interface ProductCardProps {
   product: Product
@@ -6,6 +7,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, showStock = true }: ProductCardProps) {
+  const { addToCart } = useCart()
   return (
     <div className="product-card">
       {product.image_url ? (
@@ -48,6 +50,13 @@ export default function ProductCard({ product, showStock = true }: ProductCardPr
               : <span className="in-stock-badge">{product.stock_quantity} in stock</span>
           )}
         </div>
+        <button 
+          className="add-to-cart-btn"
+          onClick={() => addToCart(product)}
+          disabled={product.stock_quantity === 0}
+        >
+          {product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+        </button>
       </div>
     </div>
   )

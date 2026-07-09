@@ -553,3 +553,79 @@ table tr:hover {
     overflow-x: auto;
   }
 }
+
+/* Orders List Styles */
+.orders-table {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.order-id-cell {
+  font-family: monospace;
+  color: #6b7280;
+}
+
+.customer-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.customer-name {
+  font-weight: 600;
+  color: #111827;
+}
+
+.customer-email {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.status-badge.status-pending { background-color: #fef3c7; color: #d97706; }
+.status-badge.status-confirmed { background-color: #dbeafe; color: #2563eb; }
+.status-badge.status-processing { background-color: #e0e7ff; color: #4338ca; }
+.status-badge.status-out-of-delivery { background-color: #fae8ff; color: #a21caf; }
+.status-badge.status-delivered { background-color: #dcfce7; color: #16a34a; }
+.status-badge.status-cancelled { background-color: #f3f4f6; color: #6b7280; }
+
+.status-select {
+  padding: 0.375rem 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: white;
+  cursor: pointer;
+}
+
+.status-select:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .admin-tabs {
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    width: 100%;
+  }
+  
+  .admin-tabs .tab {
+    white-space: nowrap;
+  }
+  
+  .search-filter-bar {
+    flex-direction: column;
+  }
+  
+  .filter-select {
+    width: 100%;
+  }
+}

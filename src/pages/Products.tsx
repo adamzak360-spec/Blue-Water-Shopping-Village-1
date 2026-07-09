@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { getAllProducts } from '../services/productService'
 import type { Product } from '../types'
+import { useCart } from '../context/CartContext'
 import './Products.css'
 
 export default function Products() {
+  const { addToCart } = useCart()
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -162,6 +164,13 @@ export default function Products() {
                     <span className="in-stock-badge">{product.stock_quantity} in stock</span>
                   )}
                 </div>
+                <button 
+                  className="add-to-cart-btn"
+                  onClick={() => addToCart(product)}
+                  disabled={product.stock_quantity === 0 || product.status === 'inactive'}
+                >
+                  {product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+                </button>
               </div>
             </div>
           ))}
