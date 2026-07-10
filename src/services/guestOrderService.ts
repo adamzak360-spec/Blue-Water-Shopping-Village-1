@@ -1,5 +1,4 @@
 import { supabase, isSupabaseConfigured } from '../supabaseClient'
-import { Order } from '../types'
 
 /**
  * Guest Order Service
