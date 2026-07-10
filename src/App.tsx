@@ -32,7 +32,7 @@ function AppNav() {
         <Link to="/admin" className={location.pathname.startsWith('/admin') ? 'active' : ''}>Admin</Link>
       )}
       {isAdminRoute && user && <LogoutButton />}
-      {!user && !isLoading && !isAdminRoute && <Link to="/login" className="login-link">Login</Link>}
+      {!user && !isLoading && !isAdminRoute && <Link to={`/login?redirect=${encodeURIComponent(location.pathname)}`} className="login-link">Login</Link>}
     </nav>
   )
 }

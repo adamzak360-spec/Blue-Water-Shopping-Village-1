@@ -11,10 +11,18 @@ export default function Login() {
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  // If already authenticated, redirect to admin
+  // If already authenticated, redirect to admin (unless coming from checkout)
   useEffect(() => {
     if (user) {
-      navigate('/admin', { replace: true })
+      // Check if we should redirect to admin or just stay where we are
+      // If the user just logged in, they might want to go back to products or checkout
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get('redirect');
+      if (redirect) {
+        navigate(redirect, { replace: true });
+      } else {
+        navigate('/admin', { replace: true });
+      }
     }
   }, [user, navigate])
 
@@ -50,7 +58,9 @@ export default function Login() {
   }
 
   if (user) {
-    return <Navigate to="/admin" replace />
+    const params = new URLSearchParams(window.location.search);
+    const redirect = params.get('redirect') || '/admin';
+    return <Navigate to={redirect} replace />
   }
 
   return (

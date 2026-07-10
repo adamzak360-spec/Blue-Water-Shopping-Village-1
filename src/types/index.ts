@@ -35,6 +35,7 @@ export interface CartItem extends Product {
 
 export interface Order {
   id?: string
+  user_id?: string
   customer_name: string
   customer_email: string
   customer_phone: string

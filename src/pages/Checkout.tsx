@@ -1,20 +1,26 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
+import { createOrder } from '../services/orderService'
 import { createGuestOrder } from '../services/guestOrderService'
 import './Checkout.css'
 
+// Configuration for guest checkout - could be moved to a config file
+const GUEST_CHECKOUT_ENABLED = true
+
 export default function Checkout() {
   const { cart, cartSubtotal, clearCart } = useCart()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    region: '',
+    fullName: user?.user_metadata?.full_name || user?.email?.split('@')[0] || '',
+    email: user?.email || '',
+    phone: user?.user_metadata?.phone || '',
+    address: user?.user_metadata?.address || '',
+    city: user?.user_metadata?.city || '',
+    region: user?.user_metadata?.region || '',
     notes: ''
   })
 
@@ -47,8 +53,7 @@ export default function Checkout() {
       console.log('[Checkout] Cart items:', cart.length)
       console.log('[Checkout] Total:', total)
 
-      // Prepare guest order payload
-      const guestOrderPayload = {
+      const orderPayload = {
         customer_name: formData.fullName,
         customer_email: formData.email,
         customer_phone: formData.phone,
@@ -60,10 +65,26 @@ export default function Checkout() {
         subtotal: cartSubtotal,
         delivery_fee: deliveryFee,
         total: total,
+        status: 'pending' as const,
+        payment_status: 'pending' as const,
       }
 
-      console.log('[Checkout] Calling createGuestOrder...')
-      const result = await createGuestOrder(guestOrderPayload)
+      let result;
+      if (user) {
+        // Authenticated customer checkout - use unified orderService
+        console.log('[Checkout] Authenticated user detected, using unified orderService')
+        result = await createOrder({
+          ...orderPayload,
+          user_id: user.id
+        })
+      } else if (GUEST_CHECKOUT_ENABLED) {
+        // Guest checkout - use guestOrderService
+        console.log('[Checkout] Guest user detected, using guestOrderService')
+        result = await createGuestOrder(orderPayload)
+      } else {
+        throw new Error('Guest checkout is disabled. Please log in to place an order.')
+      }
+
       console.log('[Checkout] Order created successfully:', result.id)
       
       clearCart()
@@ -73,7 +94,6 @@ export default function Checkout() {
       navigate('/')
     } catch (error: any) {
       console.error('[Checkout] Order submission failed:', error)
-      // Display the real error message for debugging guest checkout
       const errorMessage = error?.message || error?.error_description || 'Unknown error'
       alert(`Failed to place order: ${errorMessage}`)
     } finally {
