@@ -53,6 +53,8 @@ export default function Admin() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [editProduct, setEditProduct] = useState<Product | null>(null)
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [showOrderModal, setShowOrderModal] = useState(false)
 
   const showNotification = useCallback((message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type })
@@ -179,6 +181,11 @@ export default function Admin() {
     const matchesStatus = !orderFilterStatus || order.status === orderFilterStatus
     return matchesSearch && matchesStatus
   })
+
+  const handleViewOrder = (order: Order) => {
+    setSelectedOrder(order)
+    setShowOrderModal(true)
+  }
 
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
     try {
@@ -494,15 +501,148 @@ export default function Admin() {
                           <option value="processing">Processing</option>
                           <option value="out-of-delivery">Out for Delivery</option>
                           <option value="delivered">Delivered</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
-                      </td>
+	                          <option value="cancelled">Cancelled</option>
+	                        </select>
+	                        <button
+	                          onClick={() => handleViewOrder(order)}
+	                          className="btn-view"
+	                          title="View order details"
+	                        >
+	                          View Details
+	                        </button>
+	                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Order Details Modal */}
+      {showOrderModal && selectedOrder && (
+        <div className="modal-overlay" onClick={() => setShowOrderModal(false)}>
+          <div className="modal-content order-details-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Order Details</h3>
+              <button className="close-modal" onClick={() => setShowOrderModal(false)}>&times;</button>
+            </div>
+            
+            <div className="order-details-grid">
+              {/* Customer Section */}
+              <div className="details-section">
+                <h4>Customer Information</h4>
+                <div className="details-card">
+                  <div className="detail-item">
+                    <span className="detail-label">Full Name:</span>
+                    <span className="detail-value">{selectedOrder.customer_name}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Email:</span>
+                    <span className="detail-value">{selectedOrder.customer_email}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Phone:</span>
+                    <span className="detail-value">{selectedOrder.customer_phone}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Address:</span>
+                    <span className="detail-value">{selectedOrder.delivery_address}, {selectedOrder.city}, {selectedOrder.region}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Customer Type:</span>
+                    <span className={`detail-value type-badge ${selectedOrder.user_id ? 'registered' : 'guest'}`}>
+                      {selectedOrder.user_id ? 'Registered User' : 'Guest'}
+                    </span>
+                  </div>
+                  {selectedOrder.notes && (
+                    <div className="detail-item notes">
+                      <span className="detail-label">Notes:</span>
+                      <p className="detail-value">{selectedOrder.notes}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Order Summary Section */}
+              <div className="details-section">
+                <h4>Order Information</h4>
+                <div className="details-card">
+                  <div className="detail-item">
+                    <span className="detail-label">Order ID:</span>
+                    <span className="detail-value monospace">{selectedOrder.id}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Date:</span>
+                    <span className="detail-value">
+                      {selectedOrder.created_at ? new Date(selectedOrder.created_at).toLocaleString() : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Status:</span>
+                    <span className={`status-badge status-${selectedOrder.status}`}>
+                      {selectedOrder.status.replace('-', ' ')}
+                    </span>
+                  </div>
+                  <div className="detail-item summary-row">
+                    <span className="detail-label">Subtotal:</span>
+                    <span className="detail-value">${selectedOrder.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="detail-item summary-row">
+                    <span className="detail-label">Delivery Fee:</span>
+                    <span className="detail-value">${selectedOrder.delivery_fee.toFixed(2)}</span>
+                  </div>
+                  <div className="detail-item summary-row grand-total">
+                    <span className="detail-label">Grand Total:</span>
+                    <span className="detail-value">${selectedOrder.total.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Products Section */}
+            <div className="details-section products-section">
+              <h4>Products Ordered</h4>
+              <div className="order-items-list">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Image</th>
+                      <th>Product</th>
+                      <th>Quantity</th>
+                      <th>Unit Price</th>
+                      <th>Line Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedOrder.items.map((item, index) => (
+                      <tr key={index}>
+                        <td className="product-image-cell">
+                          {item.image_url ? (
+                            <img src={item.image_url} alt={item.name} className="product-thumb" />
+                          ) : (
+                            <div className="product-thumb-placeholder">No image</div>
+                          )}
+                        </td>
+                        <td>
+                          <div className="product-name">{item.name}</div>
+                          <div className="product-id-small">{item.id}</div>
+                        </td>
+                        <td>{item.quantity}</td>
+                        <td>${item.price.toFixed(2)}</td>
+                        <td>${(item.quantity * item.price).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button className="btn-close" onClick={() => setShowOrderModal(false)}>Close</button>
+            </div>
+          </div>
         </div>
       )}
 
