@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
-import { createOrder } from '../services/orderService'
-import { Order } from '../types'
+import { createGuestOrder } from '../services/guestOrderService'
 import './Checkout.css'
 
 export default function Checkout() {
@@ -44,7 +43,12 @@ export default function Checkout() {
     setIsSubmitting(true)
 
     try {
-      const orderData: Omit<Order, 'id' | 'created_at'> = {
+      console.log('[Checkout] Form submission started')
+      console.log('[Checkout] Cart items:', cart.length)
+      console.log('[Checkout] Total:', total)
+
+      // Prepare guest order payload
+      const guestOrderPayload = {
         customer_name: formData.fullName,
         customer_email: formData.email,
         customer_phone: formData.phone,
@@ -56,17 +60,19 @@ export default function Checkout() {
         subtotal: cartSubtotal,
         delivery_fee: deliveryFee,
         total: total,
-        status: 'pending',
-        payment_status: 'pending'
       }
 
-      await createOrder(orderData)
+      console.log('[Checkout] Calling createGuestOrder...')
+      const result = await createGuestOrder(guestOrderPayload)
+      console.log('[Checkout] Order created successfully:', result.id)
       
       clearCart()
+      console.log('[Checkout] Cart cleared')
+      
       alert('Order placed successfully! Thank you for shopping with us.')
       navigate('/')
     } catch (error: any) {
-      console.error('Checkout error:', error)
+      console.error('[Checkout] Order submission failed:', error)
       // Display the real error message for debugging guest checkout
       const errorMessage = error?.message || error?.error_description || 'Unknown error'
       alert(`Failed to place order: ${errorMessage}`)
