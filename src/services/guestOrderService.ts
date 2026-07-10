@@ -113,6 +113,7 @@ export async function createGuestOrder(
     total: payload.total,
     status: 'pending',
     payment_status: 'pending',
+    user_id: null,
   }
 
   console.log('[Guest Order] Preparing to insert order:', {
