@@ -65,9 +65,11 @@ export default function Checkout() {
       clearCart()
       alert('Order placed successfully! Thank you for shopping with us.')
       navigate('/')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Checkout error:', error)
-      alert('Failed to place order. Please try again.')
+      // Display the real error message for debugging guest checkout
+      const errorMessage = error?.message || error?.error_description || 'Unknown error'
+      alert(`Failed to place order: ${errorMessage}`)
     } finally {
       setIsSubmitting(false)
     }
