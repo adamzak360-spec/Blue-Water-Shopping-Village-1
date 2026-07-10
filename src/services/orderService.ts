@@ -10,16 +10,31 @@ const getSupabase = () => {
 }
 
 export const createOrder = async (orderData: Omit<Order, 'id' | 'created_at'>) => {
-  const { data, error } = await getSupabase()
+  console.log('Attempting to create order with data:', orderData);
+  
+  const { data, error, status, statusText } = await getSupabase()
     .from('orders')
     .insert([orderData])
     .select()
 
   if (error) {
-    console.error('Error creating order:', error)
-    throw error
+    console.error('Supabase error creating order:', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+      status,
+      statusText
+    });
+    throw error;
   }
-  return data[0]
+  
+  if (!data || data.length === 0) {
+    console.error('Order creation returned no data. Status:', status, statusText);
+    throw new Error('Order creation failed: No data returned from server');
+  }
+
+  return data[0];
 }
 
 export const getAllOrders = async () => {
