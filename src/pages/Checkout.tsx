@@ -53,24 +53,11 @@ export default function Checkout() {
       console.log('[Checkout] Cart items:', cart.length)
       console.log('[Checkout] Total:', total)
 
-      // Add debug logging for session and user
-      const { data: { session } } = await supabase.auth.getSession();
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-
-      console.log({
-        sessionExists: !!session,
-        userExists: !!authUser,
-        userId: authUser?.id,
-        email: authUser?.email
-      });
-
       // Determine which service to call
       if (user) {
-        console.log("Calling AuthenticatedOrderService");
+        console.log('[Checkout] Authenticated user detected')
       } else if (GUEST_CHECKOUT_ENABLED) {
-        console.log("Calling GuestOrderService");
-      } else {
-        console.log("Guest checkout disabled, requiring login.");
+        console.log('[Checkout] Guest user detected')
       }
 
       const orderPayload = {
@@ -114,7 +101,6 @@ export default function Checkout() {
       navigate('/')
     } catch (error: any) {
       console.error('[Checkout] Order submission failed:', error)
-      console.error("RAW ERROR FROM CHECKOUT CATCH:", error);
       const errorMessage = error?.message || error?.error_description || 'Unknown error'
       alert(`Failed to place order: ${errorMessage}`)
     } finally {
