@@ -141,19 +141,8 @@ export async function createGuestOrder(
       })
 
       // Provide more helpful error messages
-      if (error.code === '42501') {
-        throw new Error(
-          'Permission denied: Guest checkout is not allowed. The server may have RLS policies blocking guest orders. Please contact support.'
-        )
-      } else if (error.code === '23505') {
-        throw new Error('Duplicate order detected. Please try again.')
-      } else if (error.code === '23502') {
-        throw new Error('Missing required field in order data.')
-      } else if (error.code === '23514') {
-        throw new Error('Invalid data in order. Please check your input.')
-      }
-
-      throw new Error(`Failed to create order: ${error.message}`)
+      console.error("RAW SUPABASE ERROR:", error);
+      throw error;
     }
 
     if (!data || data.length === 0) {
@@ -172,12 +161,7 @@ export async function createGuestOrder(
   } catch (error: any) {
     console.error('[Guest Order] Unexpected error during order creation:', error)
     
-    // If it's already our custom error, re-throw it
-    if (error.message && error.message.includes('Failed to create order:')) {
-      throw error
-    }
-
-    // Otherwise, wrap the error
-    throw new Error(`Order creation error: ${error?.message || 'Unknown error'}`)
+    console.error("RAW SUPABASE ERROR (catch block):", error);
+    throw error;
   }
 }
