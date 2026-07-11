@@ -10,6 +10,14 @@ import Admin from './pages/Admin'
 import Login from './pages/Login'
 import Products from './pages/Products'
 import Checkout from './pages/Checkout'
+import About from './pages/About'
+import Contact from './pages/Contact'
+import FAQ from './pages/FAQ'
+import Delivery from './pages/Delivery'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import Terms from './pages/Terms'
+import Returns from './pages/Returns'
+import Footer from './components/Footer'
 
 function AppNav() {
   const { user, isLoading } = useAuth()
@@ -38,6 +46,8 @@ function AppNav() {
 }
 
 function App() {
+  const location = useLocation()
+  const isAdminRoute = location.pathname.startsWith('/admin')
   return (
     <Router>
       <div className="app-container">
@@ -54,6 +64,13 @@ function App() {
             <Route path="/products" element={<Products />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/delivery" element={<Delivery />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/returns" element={<Returns />} />
             <Route
               path="/admin/*"
               element={
@@ -65,9 +82,7 @@ function App() {
           </Routes>
         </main>
         <CartSidebar />
-        <footer className="app-footer">
-          <p>&copy; 2026 Blue Water Shopping Village. All rights reserved.</p>
-        </footer>
+        {!isAdminRoute && <Footer />}
       </div>
     </Router>
   )

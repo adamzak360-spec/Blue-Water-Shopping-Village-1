@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { formatCurrency } from '../utils/currency'
 import './CartSidebar.css'
 
 export const CartSidebar: React.FC = () => {
@@ -40,13 +41,13 @@ export const CartSidebar: React.FC = () => {
                 </div>
                 <div className="item-details">
                   <h3>{item.name}</h3>
-                  <p className="item-price">${item.price.toFixed(2)}</p>
+                  <p className="item-price">{formatCurrency(item.price)}</p>
                   <div className="quantity-controls">
                     <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>
                     <span>{item.quantity}</span>
                     <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
                   </div>
-                  <p className="line-total">Total: ${(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="line-total">Total: {formatCurrency(item.price * item.quantity)}</p>
                 </div>
                 <button className="remove-item" onClick={() => removeFromCart(item.id)} title="Remove item">
                   &times;
@@ -60,7 +61,7 @@ export const CartSidebar: React.FC = () => {
           <div className="cart-footer">
             <div className="subtotal">
               <span>Subtotal</span>
-              <span>${cartSubtotal.toFixed(2)}</span>
+              <span>{formatCurrency(cartSubtotal)}</span>
             </div>
             <button className="checkout-btn" onClick={handleCheckout}>Proceed to Checkout</button>
             <button className="clear-btn" onClick={clearCart}>Empty Cart</button>

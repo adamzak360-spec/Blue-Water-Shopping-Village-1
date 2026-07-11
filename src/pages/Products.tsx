@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { getAllProducts } from '../services/productService'
 import type { Product } from '../types'
 import { useCart } from '../context/CartContext'
+import { formatCurrency } from '../utils/currency'
 import './Products.css'
 
 export default function Products() {
@@ -155,7 +156,7 @@ export default function Products() {
                 <h3 className="product-name">{product.name}</h3>
                 <p className="product-description">{product.description}</p>
                 <div className="product-footer">
-                  <span className="product-price">${product.price.toFixed(2)}</span>
+                  <span className="product-price">{formatCurrency(product.price)}</span>
                   {product.stock_quantity === 0 ? (
                     <span className="out-of-stock-badge">Out of Stock</span>
                   ) : product.status === 'inactive' ? (

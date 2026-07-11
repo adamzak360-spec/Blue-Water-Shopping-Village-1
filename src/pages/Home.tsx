@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { getAllProducts } from '../services/productService'
 import type { Product } from '../types'
 import { Link } from 'react-router-dom'
+import { formatCurrency } from '../utils/currency'
 import './Home.css'
 
 export default function Home() {
@@ -89,7 +90,7 @@ export default function Home() {
                       : product.description}
                   </p>
                   <div className="product-footer">
-                    <span className="product-price">${product.price.toFixed(2)}</span>
+                    <span className="product-price">{formatCurrency(product.price)}</span>
                     {product.stock_quantity === 0 && (
                       <span className="out-of-stock-badge">Out of Stock</span>
                     )}

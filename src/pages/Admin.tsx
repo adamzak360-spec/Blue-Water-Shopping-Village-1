@@ -13,6 +13,7 @@ import {
   updateOrderStatus,
 } from '../services/orderService'
 import type { Product, DashboardStats, Order } from '../types'
+import { formatCurrency } from '../utils/currency'
 import './Admin.css'
 
 type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders'
@@ -317,7 +318,7 @@ export default function Admin() {
                       <tr key={product.id}>
                         <td>{product.name}</td>
                         <td>{product.category}</td>
-                        <td>${product.price.toFixed(2)}</td>
+<td>{formatCurrency(product.price)}</td>
                         <td>{product.stock_quantity}</td>
                         <td>
                           <span className={`status-badge ${product.status}`}>
@@ -393,7 +394,7 @@ export default function Admin() {
                       </td>
                       <td>{product.name}</td>
                       <td>{product.category}</td>
-                      <td>${product.price.toFixed(2)}</td>
+                      <td>{formatCurrency(product.price)}</td>
                       <td>{product.stock_quantity}</td>
                       <td>
                         <span className={`status-badge ${product.status}`}>
@@ -484,7 +485,7 @@ export default function Admin() {
                         </div>
                       </td>
                       <td>{order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
-                      <td>${order.total.toFixed(2)}</td>
+                      <td>{formatCurrency(order.total)}</td>
                       <td>
                         <span className={`status-badge status-${order.status}`}>
                           {order.status.replace('-', ' ')}
@@ -587,15 +588,15 @@ export default function Admin() {
                   </div>
                   <div className="detail-item summary-row">
                     <span className="detail-label">Subtotal:</span>
-                    <span className="detail-value">${selectedOrder.subtotal.toFixed(2)}</span>
+                    <span className="detail-value">{formatCurrency(selectedOrder.subtotal)}</span>
                   </div>
                   <div className="detail-item summary-row">
                     <span className="detail-label">Delivery Fee:</span>
-                    <span className="detail-value">${selectedOrder.delivery_fee.toFixed(2)}</span>
+                    <span className="detail-value">{formatCurrency(selectedOrder.delivery_fee)}</span>
                   </div>
                   <div className="detail-item summary-row grand-total">
                     <span className="detail-label">Grand Total:</span>
-                    <span className="detail-value">${selectedOrder.total.toFixed(2)}</span>
+                    <span className="detail-value">{formatCurrency(selectedOrder.total)}</span>
                   </div>
                 </div>
               </div>
@@ -630,8 +631,8 @@ export default function Admin() {
                           <div className="product-id-small">{item.id}</div>
                         </td>
                         <td>{item.quantity}</td>
-                        <td>${item.price.toFixed(2)}</td>
-                        <td>${(item.quantity * item.price).toFixed(2)}</td>
+                        <td>{formatCurrency(item.price)}</td>
+                        <td>{formatCurrency(item.quantity * item.price)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -700,7 +701,7 @@ export default function Admin() {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="product-price">Price ($) *</label>
+                <label htmlFor="product-price">Price (GH₵) *</label>
                 <input
                   id="product-price"
                   type="number"

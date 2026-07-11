@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { createOrder } from '../services/orderService'
 import { createGuestOrder } from '../services/guestOrderService'
+import { formatCurrency } from '../utils/currency'
 import './Checkout.css'
 
 // Configuration for guest checkout - could be moved to a config file
@@ -217,22 +218,22 @@ export default function Checkout() {
                     <span className="summary-item-name">{item.name}</span>
                     <span className="summary-item-qty">x {item.quantity}</span>
                   </div>
-                  <span className="summary-item-price">${(item.price * item.quantity).toFixed(2)}</span>
+                  <span className="summary-item-price">{formatCurrency(item.price * item.quantity)}</span>
                 </div>
               ))}
             </div>
             <div className="summary-totals">
               <div className="summary-row">
                 <span>Subtotal</span>
-                <span>${cartSubtotal.toFixed(2)}</span>
+                <span>{formatCurrency(cartSubtotal)}</span>
               </div>
               <div className="summary-row">
                 <span>Delivery Fee</span>
-                <span>${deliveryFee.toFixed(2)}</span>
+                <span>{formatCurrency(deliveryFee)}</span>
               </div>
               <div className="summary-row total">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>{formatCurrency(total)}</span>
               </div>
             </div>
           </div>

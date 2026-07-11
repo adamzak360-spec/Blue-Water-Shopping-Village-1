@@ -1,5 +1,6 @@
 import type { Product } from '../types'
 import { useCart } from '../context/CartContext'
+import { formatCurrency } from '../utils/currency'
 
 interface ProductCardProps {
   product: Product
@@ -43,7 +44,7 @@ export default function ProductCard({ product, showStock = true }: ProductCardPr
             : product.description}
         </p>
         <div className="product-footer">
-          <span className="product-price">${product.price.toFixed(2)}</span>
+          <span className="product-price">{formatCurrency(product.price)}</span>
           {showStock && (
             product.stock_quantity === 0
               ? <span className="out-of-stock-badge">Out of Stock</span>
