@@ -14,9 +14,10 @@ import {
 } from '../services/orderService'
 import type { Product, DashboardStats, Order } from '../types'
 import { formatCurrency } from '../utils/currency'
+import InventoryManagement from '../components/InventoryManagement'
 import './Admin.css'
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory'
 
 interface ProductFormErrors {
   name?: string
@@ -261,6 +262,12 @@ export default function Admin() {
           onClick={() => setView('orders')}
         >
           Orders ({orders.length})
+        </button>
+        <button
+          className={`tab ${view === 'inventory' ? 'active' : ''}`}
+          onClick={() => setView('inventory')}
+        >
+          Inventory
         </button>
       </div>
 
@@ -780,6 +787,11 @@ export default function Admin() {
             </div>
           </form>
         </div>
+      )}
+
+      {/* Inventory Management */}
+      {view === 'inventory' && (
+        <InventoryManagement />
       )}
     </div>
   )

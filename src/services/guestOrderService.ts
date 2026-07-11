@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from '../supabaseClient'
+import { validateCartStock } from './inventoryService'
 
 /**
  * Guest Order Service
@@ -56,6 +57,9 @@ function validateGuestOrder(payload: GuestOrderPayload): void {
   if (!payload.items || payload.items.length === 0) {
     errors.push('Cart is empty')
   }
+  
+  // Note: Stock validation will be performed separately in createGuestOrder
+  // to allow for async database queries
 
   // Validate amounts
   if (payload.subtotal < 0) {
@@ -97,6 +101,21 @@ export async function createGuestOrder(
   console.log('[Guest Order] Validating payload...')
   validateGuestOrder(payload)
   console.log('[Guest Order] Validation successful')
+  
+  // Validate stock availability before creating order
+  console.log('[Guest Order] Validating stock for order items')
+  const stockValidation = await validateCartStock(payload.items)
+  
+  if (!stockValidation.isValid) {
+    const errorMessage = stockValidation.insufficientStock.join('; ')
+    console.error('[Guest Order] Stock validation failed:', errorMessage)
+    throw new Error(`Stock validation failed: ${errorMessage}`)
+  }
+  
+  if (stockValidation.lowStockWarnings.length > 0) {
+    console.warn('[Guest Order] Low stock warnings:', stockValidation.lowStockWarnings)
+  }
+  console.log('[Guest Order] Stock validation successful')
 
   // Prepare order data for insertion
   const orderData = {
@@ -157,6 +176,7 @@ export async function createGuestOrder(
       customer_name: createdOrder.customer_name,
       total: createdOrder.total,
     })
+    console.log('[Guest Order] Stock reduction will be handled by database trigger.')
 
     return createdOrder
   } catch (error: any) {

@@ -1,5 +1,6 @@
 import { supabase } from '../supabaseClient'
-import { Order } from '../types'
+import { Order, CartItem } from '../types'
+import { validateCartStock } from './inventoryService'
 
 // Guard: Supabase must be configured for order operations
 const getSupabase = () => {
@@ -11,6 +12,20 @@ const getSupabase = () => {
 
 export const createOrder = async (orderData: Omit<Order, 'id' | 'created_at'>) => {
   console.log('Attempting to create order with data:', orderData);
+  
+  // Validate stock availability before creating order
+  console.log('[OrderService] Validating stock for order items');
+  const stockValidation = await validateCartStock(orderData.items as CartItem[]);
+  
+  if (!stockValidation.isValid) {
+    const errorMessage = stockValidation.insufficientStock.join('; ');
+    console.error('[OrderService] Stock validation failed:', errorMessage);
+    throw new Error(`Stock validation failed: ${errorMessage}`);
+  }
+  
+  if (stockValidation.lowStockWarnings.length > 0) {
+    console.warn('[OrderService] Low stock warnings:', stockValidation.lowStockWarnings);
+  }
   
   const { data, error, status, statusText } = await getSupabase()
     .from('orders')
@@ -34,6 +49,7 @@ export const createOrder = async (orderData: Omit<Order, 'id' | 'created_at'>) =
     throw new Error('Order creation failed: No data returned from server');
   }
 
+  console.log('[OrderService] Order created successfully. Stock reduction will be handled by database trigger.');
   return data[0];
 }
 
