@@ -5,15 +5,6 @@ import { Link } from 'react-router-dom'
 import { formatCurrency } from '../utils/currency'
 import './Home.css'
 
-const CATEGORIES = [
-  { name: 'Groceries', icon: '\uD83C\uDF3E', count: 0 },
-  { name: 'Electronics', icon: '\uD83D\uDCBB', count: 0 },
-  { name: 'Fashion', icon: '\uD83D\uDC57', count: 0 },
-  { name: 'Home & Garden', icon: '\uD83C\uDFE1', count: 0 },
-  { name: 'Sports', icon: '\u26BD', count: 0 },
-  { name: 'Health & Beauty', icon: '\uD83D\uDC84', count: 0 },
-]
-
 const TESTIMONIALS = [
   {
     name: 'Abena Mensah',
@@ -34,6 +25,35 @@ const TESTIMONIALS = [
     rating: 5,
   },
 ]
+
+const CATEGORY_ICONS: Record<string, string> = {
+  'New Cars Collection': '\uD83D\uDE97',
+  'Motorcycle': '\uD83C\uDFCD',
+  'Fruits': '\uD83C\uDF4E',
+  'Fruit': '\uD83C\uDF4C',
+  'Sponge': '\uD83E\uDDFD',
+  'Flask': '\uD83E\uDDEA',
+  'Software Developer/Engineer': '\uD83D\uDCBB',
+  'Groceries': '\uD83C\uDF3E',
+  'Electronics': '\uD83D\uDCBB',
+  'Fashion': '\uD83D\uDC57',
+  'Home & Garden': '\uD83C\uDFE1',
+  'Sports': '\u26BD',
+  'Health & Beauty': '\uD83D\uDC84',
+}
+
+function getCategoryIcon(name: string): string {
+  if (CATEGORY_ICONS[name]) return CATEGORY_ICONS[name]
+  const lower = name.toLowerCase()
+  if (lower.includes('fruit') || lower.includes('food')) return '\uD83C\uDF4E'
+  if (lower.includes('car') || lower.includes('vehicle') || lower.includes('bike') || lower.includes('motor')) return '\uD83D\uDE97'
+  if (lower.includes('electronics') || lower.includes('tech') || lower.includes('soft')) return '\uD83D\uDCBB'
+  if (lower.includes('fashion') || lower.includes('cloth')) return '\uD83D\uDC57'
+  if (lower.includes('home') || lower.includes('garden')) return '\uD83C\uDFE1'
+  if (lower.includes('sport')) return '\u26BD'
+  if (lower.includes('health') || lower.includes('beauty')) return '\uD83D\uDC84'
+  return '\uD83C\uDF1F'
+}
 
 export default function Home() {
   const [allProducts, setAllProducts] = useState<Product[]>([])
@@ -57,15 +77,20 @@ export default function Home() {
   const activeProducts = allProducts.filter(p => p.status === 'active')
   const featuredProducts = activeProducts.slice(0, 6)
   const newArrivals = activeProducts.slice(0, 4)
+
+  // Dynamically extract categories from database products
   const categoryCounts: Record<string, number> = {}
   activeProducts.forEach(p => {
     categoryCounts[p.category] = (categoryCounts[p.category] || 0) + 1
   })
-  const categoriesWithCounts = CATEGORIES.map(c => ({
-    ...c,
-    count: categoryCounts[c.name] || 0,
-  }))
-  const hasVisibleCategories = categoriesWithCounts.some(c => c.count > 0)
+  const dynamicCategories = Object.entries(categoryCounts)
+    .filter(([, count]) => count > 0)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => ({
+      name,
+      icon: getCategoryIcon(name),
+      count,
+    }))
 
   return (
     <div className="home-page">
@@ -103,9 +128,13 @@ export default function Home() {
                 <div key={i} className="category-card-skeleton" />
               ))}
             </div>
-          ) : hasVisibleCategories ? (
+          ) : dynamicCategories.length === 0 ? (
+            <div className="empty-categories">
+              <p>Categories will appear here once products are added.</p>
+            </div>
+          ) : (
             <div className="categories-grid">
-              {categoriesWithCounts.filter(c => c.count > 0).map(category => (
+              {dynamicCategories.map(category => (
                 <Link
                   key={category.name}
                   to={`/products?category=${encodeURIComponent(category.name)}`}
@@ -113,13 +142,9 @@ export default function Home() {
                 >
                   <span className="category-icon">{category.icon}</span>
                   <span className="category-name">{category.name}</span>
-                  <span className="category-count">{category.count} products</span>
+                  <span className="category-count">{category.count} product{category.count !== 1 ? 's' : ''}</span>
                 </Link>
               ))}
-            </div>
-          ) : (
-            <div className="empty-categories">
-              <p>Categories will appear here once products are added.</p>
             </div>
           )}
         </div>

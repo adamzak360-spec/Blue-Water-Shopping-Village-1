@@ -83,14 +83,7 @@
   cursor: pointer;
 }
 
-/* ── Products Grid ──
-   Large Desktop (1200px+): 4 per row
-   Desktop (1024-1199px): 4 per row
-   Desktop (768-1023px): 3 per row
-   Tablet (600-767px): 2 per row
-   Mobile (480-599px): 2 per row
-   Small (<480px): 1 per row
-   ── */
+/* ── Products Grid ── */
 .products-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -107,7 +100,6 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  /* Equal card heights in grid */
   height: 100%;
 }
 
@@ -117,11 +109,7 @@
   border-color: #bfdbfe;
 }
 
-/* ── Product Image Standardization ──
-   Fixed container with consistent aspect ratio.
-   object-fit: contain prevents stretching/distortion.
-   Neutral background ensures clean presentation.
-   ── */
+/* ── Product Image Standardization ── */
 .product-image {
   width: 100%;
   height: 200px;
@@ -176,7 +164,6 @@
   font-weight: 600;
   color: #111827;
   margin: 0 0 0.5rem 0;
-  /* Two-line max with ellipsis */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -198,10 +185,7 @@
   flex: 1;
 }
 
-/* ── Product Footer ──
-   Price and badge consistently aligned.
-   Button always at the bottom of the card.
-   ── */
+/* ── Product Footer ── */
 .product-footer {
   display: flex;
   justify-content: space-between;
@@ -261,7 +245,6 @@
   cursor: pointer;
   transition: background-color 0.2s, transform 0.15s;
   flex-shrink: 0;
-  /* Touch-friendly on mobile */
   min-height: 44px;
 }
 
@@ -305,14 +288,19 @@
   margin: 1rem 0;
 }
 
-/* ── Responsive Breakpoints ── */
+/* ── Responsive Breakpoints ──
+   Default (1024px+): 4 per row
+   768px–1023px: 3 per row
+   600px–767px: 2 per row
+   <600px: 2 per row (tight)
+   <400px: 1 per row
+   ── */
 
-/* Large Desktop 1200px+ — 4 per row (default) */
-
-/* Desktop 768-1199px — 3 per row */
-@media (max-width: 1199px) and (min-width: 768px) {
+/* Desktop 768-1023px — 3 per row */
+@media (max-width: 1023px) and (min-width: 768px) {
   .products-grid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
   }
 }
 
@@ -343,10 +331,27 @@
   .product-image-placeholder {
     height: 180px;
   }
+
+  .product-info {
+    padding: 1rem;
+  }
 }
 
-/* Mobile 480-599px — 2 per row */
-@media (max-width: 599px) and (min-width: 480px) {
+/* Mobile 400-599px — 2 per row */
+@media (max-width: 599px) and (min-width: 400px) {
+  .products-header h2 {
+    font-size: 1.35rem;
+  }
+
+  .products-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .controls-left {
+    flex-direction: column;
+  }
+
   .products-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
@@ -369,18 +374,34 @@
     min-height: 2.6em;
   }
 
+  .product-description {
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+  }
+
   .product-price {
     font-size: 1rem;
   }
 
+  .product-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
   .add-to-cart-btn {
     padding: 0.625rem;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    min-height: 40px;
   }
 }
 
-/* Very small <480px — 1 per row */
-@media (max-width: 479px) {
+/* Very small <400px — 1 per row */
+@media (max-width: 399px) {
+  .products-header h2 {
+    font-size: 1.25rem;
+  }
+
   .products-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
@@ -392,5 +413,9 @@
 
   .product-image-placeholder {
     height: 220px;
+  }
+
+  .product-info {
+    padding: 1rem;
   }
 }
