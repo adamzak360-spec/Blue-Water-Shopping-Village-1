@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { getCustomerProfile, updateCustomerProfile } from '../services/customerProfileService'
+import { getCustomerProfile, createOrUpdateCustomerProfile } from '../services/customerProfileService'
 import { CustomerProfile as CustomerProfileType } from '../types'
 import './CustomerProfile.css'
 
@@ -67,12 +67,15 @@ export default function CustomerProfile() {
       setError(null)
       setSuccess(null)
 
-      await updateCustomerProfile(user.id, formData)
+      // Use createOrUpdateCustomerProfile to handle both create and update
+      await createOrUpdateCustomerProfile(user.id, formData)
       setSuccess('Profile updated successfully!')
       
       // Reload profile
       const updatedProfile = await getCustomerProfile(user.id)
-      setProfile(updatedProfile)
+      if (updatedProfile) {
+        setProfile(updatedProfile)
+      }
 
       setTimeout(() => setSuccess(null), 3000)
     } catch (err: any) {

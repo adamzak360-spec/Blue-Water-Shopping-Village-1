@@ -11,17 +11,18 @@ export default function Login() {
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  // If already authenticated, redirect to admin (unless coming from checkout)
+  // If already authenticated, redirect appropriately
   useEffect(() => {
     if (user) {
-      // Check if we should redirect to admin or just stay where we are
+      // Check if we should redirect to a specific location
       // If the user just logged in, they might want to go back to products or checkout
       const params = new URLSearchParams(window.location.search);
       const redirect = params.get('redirect');
       if (redirect) {
         navigate(redirect, { replace: true });
       } else {
-        navigate('/admin', { replace: true });
+        // Default: redirect to customer dashboard
+        navigate('/customer', { replace: true });
       }
     }
   }, [user, navigate])
@@ -59,7 +60,7 @@ export default function Login() {
 
   if (user) {
     const params = new URLSearchParams(window.location.search);
-    const redirect = params.get('redirect') || '/admin';
+    const redirect = params.get('redirect') || '/customer';
     return <Navigate to={redirect} replace />
   }
 
@@ -67,7 +68,7 @@ export default function Login() {
     <div className="login-page">
       <div className="login-card">
         <div className="login-header">
-          <h2>Admin Login</h2>
+          <h2>Login</h2>
           <p>Blue Water Shopping Village</p>
         </div>
 
@@ -122,7 +123,7 @@ export default function Login() {
         </form>
 
         <div className="login-footer">
-          <p>Admin access only. Contact your administrator if you need access.</p>
+          <p>Enter your credentials to access your account.</p>
         </div>
       </div>
     </div>
