@@ -61,7 +61,9 @@ function AppShell() {
           {user && !isLoading && !isAdminRoute && (
             <>
               <Link to="/customer" className={pathname.startsWith('/customer') ? 'active' : ''}>My Account</Link>
-              <Link to="/admin" className={pathname.startsWith('/admin') ? 'active' : ''}>Admin</Link>
+              {useAuth().isAdmin && (
+                <Link to="/admin" className={pathname.startsWith('/admin') ? 'active' : ''}>Admin</Link>
+              )}
             </>
           )}
           {isAdminRoute && user && <LogoutButton />}
@@ -86,7 +88,7 @@ function AppShell() {
           <Route
             path="/admin/*"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute adminOnly>
                 <Admin />
               </ProtectedRoute>
             }

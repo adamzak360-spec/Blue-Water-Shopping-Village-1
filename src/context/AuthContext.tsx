@@ -12,6 +12,7 @@ interface AuthContextType {
   updateUserMetadata: (metadata: Record<string, any>) => Promise<{ error: Error | null }>
   changePassword: (newPassword: string) => Promise<{ error: Error | null }>
   resetPasswordEmail: (email: string) => Promise<{ error: Error | null }>
+  isAdmin: boolean
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -24,6 +25,7 @@ const AuthContext = createContext<AuthContextType>({
   updateUserMetadata: async () => ({ error: new Error('Supabase not configured') }),
   changePassword: async () => ({ error: new Error('Supabase not configured') }),
   resetPasswordEmail: async () => ({ error: new Error('Supabase not configured') }),
+  isAdmin: false,
 })
 
 export const useAuth = () => useContext(AuthContext)
@@ -32,6 +34,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  const checkIsAdmin = (u: User | null) => {
+    if (!u) return false
+    // Current admin identification logic based on migration files
+    return u.email === 'adamzak360@gmail.com'
+  }
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
@@ -42,7 +51,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
-      setUser(session?.user ?? null)
+      const u = session?.user ?? null
+      setUser(u)
+      setIsAdmin(checkIsAdmin(u))
       setIsLoading(false)
     })
 
@@ -51,7 +62,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
-      setUser(session?.user ?? null)
+      const u = session?.user ?? null
+      setUser(u)
+      setIsAdmin(checkIsAdmin(u))
     })
 
     return () => {
@@ -143,7 +156,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut, 
       updateUserMetadata, 
       changePassword,
-      resetPasswordEmail
+      resetPasswordEmail,
+      isAdmin
     }}>
       {children}
     </AuthContext.Provider>
