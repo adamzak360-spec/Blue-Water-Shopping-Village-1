@@ -12,6 +12,7 @@ import {
   getAllOrders,
   updateOrderStatus,
 } from '../services/orderService'
+import { handleOrderStatusChange } from '../api/emailNotificationHandler'
 import type { Product, DashboardStats, Order } from '../types'
 import { formatCurrency } from '../utils/currency'
 import InventoryManagement from '../components/InventoryManagement'
@@ -191,7 +192,36 @@ export default function Admin() {
 
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
     try {
+      // Find the order to get previous status and customer email
+      const order = orders.find(o => o.id === orderId)
+      if (!order) {
+        setError('Order not found')
+        return
+      }
+      
+      const previousStatus = order.status
+      
+      // Update order status in database
       await updateOrderStatus(orderId, newStatus)
+      
+      // Send email notification to customer
+      try {
+        await handleOrderStatusChange(
+          {
+            ...order,
+            id: order.id || '',
+            status: newStatus,
+          },
+          order.customer_email,
+          previousStatus,
+          false // Don't notify admin again
+        )
+        console.log('[Admin] Email notification sent for order status change')
+      } catch (emailError) {
+        console.warn('[Admin] Failed to send email notification:', emailError)
+        // Don't fail the status update if email fails
+      }
+      
       showNotification('Order status updated successfully!')
       await loadData()
     } catch (err) {

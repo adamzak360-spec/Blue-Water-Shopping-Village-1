@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { createOrder } from '../services/orderService'
 import { createGuestOrder } from '../services/guestOrderService'
 import { createOrUpdateCustomerProfile } from '../services/customerProfileService'
+import { handleNewOrder } from '../api/emailNotificationHandler'
 import { formatCurrency } from '../utils/currency'
 import './Checkout.css'
 
@@ -110,6 +111,22 @@ export default function Checkout() {
       }
 
       console.log('[Checkout] Order created successfully:', result.id)
+      
+      // Trigger email notifications
+      try {
+        const emailResult = await handleNewOrder(
+          {
+            ...orderPayload,
+            id: result.id,
+            created_at: new Date().toISOString(),
+          },
+          formData.email
+        )
+        console.log('[Checkout] Email notifications sent:', emailResult)
+      } catch (emailError) {
+        console.warn('[Checkout] Failed to send email notifications:', emailError)
+        // Don't fail the order if email fails
+      }
       
       clearCart()
       console.log('[Checkout] Cart cleared')
