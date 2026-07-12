@@ -34,6 +34,17 @@ export interface CartItem extends Product {
   quantity: number
 }
 
+export interface CustomerProfile {
+  id: string
+  full_name?: string
+  phone_number?: string
+  delivery_address?: string
+  city?: string
+  region?: string
+  created_at?: string
+  updated_at?: string
+}
+
 export interface Order {
   id?: string
   user_id?: string

@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { createOrder } from '../services/orderService'
 import { createGuestOrder } from '../services/guestOrderService'
+import { createOrUpdateCustomerProfile } from '../services/customerProfileService'
 import { formatCurrency } from '../utils/currency'
 import './Checkout.css'
 
@@ -85,6 +86,21 @@ export default function Checkout() {
           ...orderPayload,
           user_id: user.id
         })
+
+        // Save customer profile for future orders
+        try {
+          await createOrUpdateCustomerProfile(user.id, {
+            full_name: formData.fullName,
+            phone_number: formData.phone,
+            delivery_address: formData.address,
+            city: formData.city,
+            region: formData.region,
+          })
+          console.log('[Checkout] Customer profile saved')
+        } catch (profileError) {
+          console.warn('[Checkout] Failed to save customer profile:', profileError)
+          // Don't fail the order if profile save fails
+        }
       } else if (GUEST_CHECKOUT_ENABLED) {
         // Guest checkout - use guestOrderService
         console.log('[Checkout] Guest user detected, using guestOrderService')

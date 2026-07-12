@@ -18,6 +18,11 @@ import PrivacyPolicy from './pages/PrivacyPolicy'
 import Terms from './pages/Terms'
 import Returns from './pages/Returns'
 import Footer from './components/Footer'
+import CustomerDashboard from './pages/CustomerDashboard'
+import CustomerProfile from './pages/CustomerProfile'
+import CustomerOrders from './pages/CustomerOrders'
+import OrderDetails from './pages/OrderDetails'
+import CustomerSettings from './pages/CustomerSettings'
 
 function App() {
   return (
@@ -33,7 +38,8 @@ function AppShell() {
   // useLocation() is safe here because we're inside <Router>
   const pathname = window.location.pathname
 
-  const isAdminRoute = pathname.startsWith('/admin')
+      const isAdminRoute = pathname.startsWith('/admin')
+      const isCustomerRoute = pathname.startsWith('/customer')
 
   return (
     <div className="app-container">
@@ -45,13 +51,16 @@ function AppShell() {
         <nav className="app-nav">
           <Link to="/" className={pathname === '/' ? 'active' : ''}>Home</Link>
           <Link to="/products" className={pathname === '/products' ? 'active' : ''}>Products</Link>
-          {!isAdminRoute && (
+          {!isAdminRoute && !isCustomerRoute && (
             <button className="cart-toggle-btn" onClick={() => setIsCartOpen(true)}>
               Cart {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
             </button>
           )}
           {user && !isLoading && !isAdminRoute && (
-            <Link to="/admin" className={pathname.startsWith('/admin') ? 'active' : ''}>Admin</Link>
+            <>
+              <Link to="/customer" className={pathname.startsWith('/customer') ? 'active' : ''}>My Account</Link>
+              <Link to="/admin" className={pathname.startsWith('/admin') ? 'active' : ''}>Admin</Link>
+            </>
           )}
           {isAdminRoute && user && <LogoutButton />}
           {!user && !isLoading && !isAdminRoute && <Link to="/login" className="login-link">Login</Link>}
@@ -78,10 +87,50 @@ function AppShell() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/customer"
+            element={
+              <ProtectedRoute>
+                <CustomerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/customer/profile"
+            element={
+              <ProtectedRoute>
+                <CustomerProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/customer/orders"
+            element={
+              <ProtectedRoute>
+                <CustomerOrders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/customer/orders/:orderId"
+            element={
+              <ProtectedRoute>
+                <OrderDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/customer/settings"
+            element={
+              <ProtectedRoute>
+                <CustomerSettings />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
       <CartSidebar />
-      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && !isCustomerRoute && <Footer />}
     </div>
   )
 }

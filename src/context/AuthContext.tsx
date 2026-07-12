@@ -8,6 +8,8 @@ interface AuthContextType {
   isLoading: boolean
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<{ error: Error | null }>
+  updateUserMetadata: (metadata: Record<string, any>) => Promise<{ error: Error | null }>
+  changePassword: (newPassword: string) => Promise<{ error: Error | null }>
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -16,6 +18,8 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   signIn: async () => ({ error: new Error('Supabase not configured') }),
   signOut: async () => ({ error: new Error('Supabase not configured') }),
+  updateUserMetadata: async () => ({ error: new Error('Supabase not configured') }),
+  changePassword: async () => ({ error: new Error('Supabase not configured') }),
 })
 
 export const useAuth = () => useContext(AuthContext)
@@ -73,8 +77,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error }
   }
 
+  const updateUserMetadata = async (metadata: Record<string, any>) => {
+    if (!isSupabaseConfigured || !supabase) {
+      return { error: new Error('Supabase not configured') }
+    }
+
+    const { error } = await supabase.auth.updateUser({
+      data: metadata,
+    })
+
+    return { error }
+  }
+
+  const changePassword = async (newPassword: string) => {
+    if (!isSupabaseConfigured || !supabase) {
+      return { error: new Error('Supabase not configured') }
+    }
+
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    })
+
+    return { error }
+  }
+
   return (
-    <AuthContext.Provider value={{ session, user, isLoading, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, user, isLoading, signIn, signOut, updateUserMetadata, changePassword }}>
       {children}
     </AuthContext.Provider>
   )
