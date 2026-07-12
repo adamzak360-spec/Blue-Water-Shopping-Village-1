@@ -7,9 +7,11 @@ interface AuthContextType {
   user: User | null
   isLoading: boolean
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
+  signUp: (email: string, password: string, metadata: Record<string, any>) => Promise<{ error: Error | null }>
   signOut: () => Promise<{ error: Error | null }>
   updateUserMetadata: (metadata: Record<string, any>) => Promise<{ error: Error | null }>
   changePassword: (newPassword: string) => Promise<{ error: Error | null }>
+  resetPasswordEmail: (email: string) => Promise<{ error: Error | null }>
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -17,9 +19,11 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
   signIn: async () => ({ error: new Error('Supabase not configured') }),
+  signUp: async () => ({ error: new Error('Supabase not configured') }),
   signOut: async () => ({ error: new Error('Supabase not configured') }),
   updateUserMetadata: async () => ({ error: new Error('Supabase not configured') }),
   changePassword: async () => ({ error: new Error('Supabase not configured') }),
+  resetPasswordEmail: async () => ({ error: new Error('Supabase not configured') }),
 })
 
 export const useAuth = () => useContext(AuthContext)
@@ -68,6 +72,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error }
   }
 
+  const signUp = async (email: string, password: string, metadata: Record<string, any>) => {
+    if (!isSupabaseConfigured || !supabase) {
+      return { error: new Error('Supabase not configured') }
+    }
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: metadata,
+      },
+    })
+
+    return { error }
+  }
+
   const signOut = async () => {
     if (!isSupabaseConfigured || !supabase) {
       return { error: new Error('Supabase not configured') }
@@ -101,8 +121,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error }
   }
 
+  const resetPasswordEmail = async (email: string) => {
+    if (!isSupabaseConfigured || !supabase) {
+      return { error: new Error('Supabase not configured') }
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/customer/settings`,
+    })
+
+    return { error }
+  }
+
   return (
-    <AuthContext.Provider value={{ session, user, isLoading, signIn, signOut, updateUserMetadata, changePassword }}>
+    <AuthContext.Provider value={{ 
+      session, 
+      user, 
+      isLoading, 
+      signIn, 
+      signUp, 
+      signOut, 
+      updateUserMetadata, 
+      changePassword,
+      resetPasswordEmail
+    }}>
       {children}
     </AuthContext.Provider>
   )

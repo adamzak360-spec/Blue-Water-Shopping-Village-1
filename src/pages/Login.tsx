@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import './Login.css'
 
@@ -9,7 +9,15 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('registered')) {
+      setSuccess('Registration successful! Please sign in.');
+    }
+  }, []);
 
   // If already authenticated, redirect appropriately
   useEffect(() => {
@@ -79,6 +87,12 @@ export default function Login() {
           </div>
         )}
 
+        {success && (
+          <div className="success-banner" style={{ backgroundColor: '#d4edda', color: '#155724', padding: '10px', borderRadius: '4px', marginBottom: '20px', textAlign: 'center' }}>
+            <span>{success}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label htmlFor="email">Email Address</label>
@@ -94,7 +108,10 @@ export default function Login() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <div className="label-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label htmlFor="password">Password</label>
+              <Link to="/forgot-password" style={{ fontSize: '0.85rem', color: '#0066cc', textDecoration: 'none' }}>Forgot Password?</Link>
+            </div>
             <input
               id="password"
               type="password"
@@ -123,7 +140,7 @@ export default function Login() {
         </form>
 
         <div className="login-footer">
-          <p>Enter your credentials to access your account.</p>
+          <p>Don't have an account? <Link to="/register">Create Account</Link></p>
         </div>
       </div>
     </div>

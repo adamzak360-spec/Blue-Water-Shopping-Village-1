@@ -8,6 +8,8 @@ import './App.css'
 import Home from './pages/Home'
 import Admin from './pages/Admin'
 import Login from './pages/Login'
+import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
 import Products from './pages/Products'
 import Checkout from './pages/Checkout'
 import About from './pages/About'
@@ -72,6 +74,8 @@ function AppShell() {
           <Route path="/products" element={<Products />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/faq" element={<FAQ />} />
