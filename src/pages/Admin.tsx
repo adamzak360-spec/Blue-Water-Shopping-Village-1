@@ -12,7 +12,7 @@ import {
   getAllOrders,
   updateOrderStatus,
 } from '../services/orderService'
-import { handleOrderStatusChange } from '../api/emailNotificationHandler'
+import { handleOrderStatusChange, testEmailSending } from '../api/emailNotificationHandler'
 import type { Product, DashboardStats, Order } from '../types'
 import { formatCurrency } from '../utils/currency'
 import InventoryManagement from '../components/InventoryManagement'
@@ -58,6 +58,7 @@ export default function Admin() {
   const [editProduct, setEditProduct] = useState<Product | null>(null)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [showOrderModal, setShowOrderModal] = useState(false)
+  const [isTestingEmail, setIsTestingEmail] = useState(false)
 
   const showNotification = useCallback((message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type })
@@ -206,7 +207,7 @@ export default function Admin() {
       
       // Send email notification to customer
       try {
-        await handleOrderStatusChange(
+        const emailResult = await handleOrderStatusChange(
           {
             ...order,
             id: order.id || '',
@@ -216,7 +217,11 @@ export default function Admin() {
           previousStatus,
           false // Don't notify admin again
         )
-        console.log('[Admin] Email notification sent for order status change')
+        if (emailResult.success) {
+          console.log('[Admin] Email notification sent for order status change')
+        } else {
+          console.warn('[Admin] Email service returned failure:', emailResult.error)
+        }
       } catch (emailError) {
         console.warn('[Admin] Failed to send email notification:', emailError)
         // Don't fail the status update if email fails
@@ -226,6 +231,23 @@ export default function Admin() {
       await loadData()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update status')
+    }
+  }
+
+  const handleTestEmail = async () => {
+    if (!user?.email) return
+    setIsTestingEmail(true)
+    try {
+      const result = await testEmailSending(user.email)
+      if (result.success) {
+        showNotification(result.message, 'success')
+      } else {
+        setError(result.error || result.message)
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to send test email')
+    } finally {
+      setIsTestingEmail(false)
     }
   }
 
@@ -262,6 +284,14 @@ export default function Admin() {
       <div className="admin-header">
         <h2>Admin Dashboard</h2>
         <div className="admin-user-info">
+          <button 
+            onClick={handleTestEmail} 
+            className="btn-test-email" 
+            disabled={isTestingEmail}
+            style={{ marginRight: '10px', padding: '5px 10px', fontSize: '0.8rem' }}
+          >
+            {isTestingEmail ? 'Testing...' : 'Test Email System'}
+          </button>
           <span className="user-email">{user?.email}</span>
           <button onClick={() => signOut()} className="admin-logout">Sign Out</button>
         </div>

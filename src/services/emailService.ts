@@ -32,11 +32,11 @@ class EmailService {
   private adminEmail: string
 
   constructor() {
-    // Use typeof to safely check for process in browser environment
-    this.provider = (typeof process !== 'undefined' && process.env?.EMAIL_PROVIDER) || 'console'
-    this.apiKey = (typeof process !== 'undefined' && process.env?.EMAIL_API_KEY) || null
-    this.fromEmail = (typeof process !== 'undefined' && process.env?.FROM_EMAIL) || 'noreply@bluewatershopping.com'
-    this.adminEmail = (typeof process !== 'undefined' && process.env?.ADMIN_EMAIL) || 'admin@bluewatershopping.com'
+    // In Vite, use import.meta.env with VITE_ prefix for client-side access
+    this.provider = import.meta.env.VITE_EMAIL_PROVIDER || 'console'
+    this.apiKey = import.meta.env.VITE_EMAIL_API_KEY || null
+    this.fromEmail = import.meta.env.VITE_FROM_EMAIL || 'noreply@bluewatershopping.com'
+    this.adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@bluewatershopping.com'
   }
 
   /**

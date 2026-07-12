@@ -124,7 +124,7 @@ export async function sendAdminNewOrderNotification(
   order: Order & { id: string }
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const adminEmail = (typeof process !== 'undefined' && process.env?.ADMIN_EMAIL) || 'admin@bluewatershopping.com'
+    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@bluewatershopping.com'
 
     const { html, text } = getAdminNewOrderTemplate(order)
 

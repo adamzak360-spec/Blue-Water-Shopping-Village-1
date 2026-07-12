@@ -127,7 +127,7 @@ export async function testEmailSending(testEmail: string): Promise<{
   error?: string
 }> {
   try {
-    const emailProvider = (typeof process !== 'undefined' && process.env?.EMAIL_PROVIDER) || 'console'
+    const emailProvider = import.meta.env.VITE_EMAIL_PROVIDER || 'console'
     const { html, text } = {
       html: `
         <!DOCTYPE html>

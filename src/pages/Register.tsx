@@ -55,13 +55,16 @@ export default function Register() {
       return
     }
 
-    // Since we don't have a DB trigger to auto-create profile, 
-    // and Supabase signUp doesn't return the user object if email confirmation is required,
-    // we'll rely on the user logging in later or the trigger being there.
-    // However, the instructions say "Automatically create or initialize the corresponding customer_profiles record."
-    // If email confirmation is OFF, signUp returns the user.
-    
-    // For now, redirect to login with a success message
+    // Send welcome email notification
+    try {
+      const { handleNewCustomerRegistration } = await import('../api/emailNotificationHandler')
+      await handleNewCustomerRegistration(formData.fullName, formData.email)
+    } catch (emailError) {
+      console.warn('[Register] Failed to send welcome email:', emailError)
+      // Don't block registration if email fails
+    }
+
+    // Redirect to login with a success message
     navigate('/login?registered=true')
   }
 
