@@ -162,18 +162,20 @@ export const adjustProductStock = async (productId: string, delta: number): Prom
  */
 export const getLowStockProducts = async (): Promise<Product[]> => {
   try {
+    // Note: Supabase doesn't support column-to-column comparison in filters directly.
+    // We fetch all products and filter client-side for low stock.
     const { data, error } = await getSupabase()
       .from('products')
       .select('*')
-      .lt('stock_quantity', 'low_stock_threshold')
       .order('stock_quantity', { ascending: true })
     
     if (error) {
-      console.error('[InventoryService] Error fetching low stock products:', error)
+      console.error('[InventoryService] Error fetching products for low stock check:', error)
       throw error
     }
     
-    return (data || []) as Product[]
+    const products = (data || []) as Product[]
+    return products.filter(p => (p.stock_quantity || 0) <= (p.low_stock_threshold || 5))
   } catch (error: any) {
     console.error('[InventoryService] Error getting low stock products:', error)
     throw error
@@ -195,12 +197,12 @@ export const getInventorySummary = async () => {
       throw error
     }
     
-    const products = data || []
-    const totalItems = products.reduce((sum, p) => sum + (p.stock_quantity || 0), 0)
+    const products = (data || []) as any[]
+    const totalItems = products.reduce((sum, p) => sum + (Number(p.stock_quantity) || 0), 0)
     const lowStockCount = products.filter(
-      p => (p.stock_quantity || 0) < (p.low_stock_threshold || 5)
+      p => (Number(p.stock_quantity) || 0) <= (Number(p.low_stock_threshold) || 5)
     ).length
-    const outOfStockCount = products.filter(p => p.stock_quantity === 0).length
+    const outOfStockCount = products.filter(p => (Number(p.stock_quantity) || 0) === 0).length
     
     return {
       totalItems,

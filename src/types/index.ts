@@ -6,6 +6,7 @@ export interface Product {
   category: string
   image_url: string
   stock_quantity: number
+  low_stock_threshold?: number
   status: 'active' | 'inactive' | 'out-of-stock'
   created_at: string
   updated_at: string
