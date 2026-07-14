@@ -379,19 +379,167 @@ export const getRevenueReport = async (): Promise<{ totalRevenue: number; totalO
 }
 
 export const exportOrdersCSV = (orders: Order[]): string => {
-  const headers = ['Order ID', 'Customer', 'Email', 'Total', 'Status', 'Payment', 'Date']
+  const headers = ['Order ID', 'Customer Name', 'Customer Email', 'Customer Phone', 'Date', 'Status', 'Total (GH₵)']
   const rows = orders.map(o => [
-    o.id,
+    o.id || '',
     o.customer_name,
     o.customer_email,
-    o.total.toFixed(2),
+    o.customer_phone,
+    o.created_at || '',
     o.status,
-    o.payment_status,
-    o.created_at
+    o.total.toFixed(2)
   ])
   
   return [
     headers.join(','),
     ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
   ].join('\n')
+}
+
+export const exportProductsCSV = async (products: any[]): Promise<string> => {
+  try {
+    const headers = ['Product Name', 'Category', 'Price (GH₵)', 'Current Stock', 'Low Stock Threshold', 'Stock Status']
+    const rows = products.map(p => {
+      let stockStatus = 'In Stock'
+      if (p.status === 'out-of-stock' || p.stock_quantity === 0) {
+        stockStatus = 'Out of Stock'
+      } else if (p.low_stock_threshold && p.stock_quantity <= p.low_stock_threshold) {
+        stockStatus = 'Low Stock'
+      }
+      
+      return [
+        p.name,
+        p.category,
+        p.price.toFixed(2),
+        p.stock_quantity.toString(),
+        (p.low_stock_threshold || 0).toString(),
+        stockStatus
+      ]
+    })
+    
+    return [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+  } catch (error) {
+    console.error('[AdminAnalytics] Error exporting products CSV:', error)
+    throw error
+  }
+}
+
+export const exportCustomersCSV = async (): Promise<string> => {
+  try {
+    const supabaseClient = getSupabase()
+    
+    // Get all customers from orders
+    const { data: orders, error: ordersError } = await supabaseClient
+      .from('orders')
+      .select('customer_name, customer_email, customer_phone, total, created_at')
+      .neq('status', 'cancelled')
+    
+    if (ordersError) throw ordersError
+    
+    // Aggregate customer data
+    const customerMap = new Map<string, any>()
+    
+    orders?.forEach((order: any) => {
+      const key = order.customer_email.toLowerCase()
+      if (!customerMap.has(key)) {
+        customerMap.set(key, {
+          name: order.customer_name,
+          email: order.customer_email,
+          phone: order.customer_phone,
+          totalOrders: 0,
+          totalSpending: 0,
+          firstOrder: order.created_at
+        })
+      }
+      
+      const customer = customerMap.get(key)!
+      customer.totalOrders += 1
+      customer.totalSpending += order.total
+      
+      // Update to earliest registration date
+      if (order.created_at < customer.firstOrder) {
+        customer.firstOrder = order.created_at
+      }
+    })
+    
+    const headers = ['Customer Name', 'Email', 'Phone', 'Registration Date', 'Total Orders', 'Total Spending (GH₵)']
+    const rows = Array.from(customerMap.values()).map(c => [
+      c.name,
+      c.email,
+      c.phone,
+      c.firstOrder ? new Date(c.firstOrder).toISOString().split('T')[0] : '',
+      c.totalOrders.toString(),
+      c.totalSpending.toFixed(2)
+    ])
+    
+    return [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+  } catch (error) {
+    console.error('[AdminAnalytics] Error exporting customers CSV:', error)
+    throw error
+  }
+}
+
+export const exportSalesReportCSV = async (days: number = 30): Promise<string> => {
+  try {
+    const supabaseClient = getSupabase()
+    
+    // Get orders from the last N days
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - days)
+    
+    const { data: orders, error } = await supabaseClient
+      .from('orders')
+      .select('*')
+      .gte('created_at', startDate.toISOString())
+      .neq('status', 'cancelled')
+    
+    if (error) throw error
+    
+    // Aggregate by date
+    const dateMap = new Map<string, any>()
+    
+    orders?.forEach((order: Order) => {
+      const dateStr = order.created_at ? new Date(order.created_at).toISOString().split('T')[0] : ''
+      if (!dateMap.has(dateStr)) {
+        dateMap.set(dateStr, {
+          date: dateStr,
+          orders: 0,
+          revenue: 0,
+          productsSold: 0
+        })
+      }
+      
+      const dayData = dateMap.get(dateStr)!
+      dayData.orders += 1
+      dayData.revenue += order.total
+      order.items.forEach(item => {
+        dayData.productsSold += item.quantity
+      })
+    })
+    
+    const headers = ['Date', 'Orders', 'Revenue (GH₵)', 'Average Order Value (GH₵)', 'Products Sold']
+    const rows = Array.from(dateMap.values())
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map(d => [
+        d.date,
+        d.orders.toString(),
+        d.revenue.toFixed(2),
+        (d.revenue / d.orders).toFixed(2),
+        d.productsSold.toString()
+      ])
+    
+    return [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+  } catch (error) {
+    console.error('[AdminAnalytics] Error exporting sales report CSV:', error)
+    throw error
+  }
 }

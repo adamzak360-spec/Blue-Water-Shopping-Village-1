@@ -157,15 +157,25 @@ export const adminGetInventoryReport = async () => {
       summary,
       totalValue,
       averageStock,
-      products: products.map(p => ({
-        id: p.id,
-        name: p.name,
-        stock: p.stock_quantity,
-        price: p.price,
-        value: p.stock_quantity * p.price,
-        status: p.status,
-        category: p.category
-      }))
+      products: products.map(p => {
+        let stockStatus = 'In Stock'
+        if (p.status === 'out-of-stock' || p.stock_quantity === 0) {
+          stockStatus = 'Out of Stock'
+        } else if (p.low_stock_threshold && p.stock_quantity <= p.low_stock_threshold) {
+          stockStatus = 'Low Stock'
+        }
+        return {
+          id: p.id,
+          name: p.name,
+          stock: p.stock_quantity,
+          price: p.price,
+          value: p.stock_quantity * p.price,
+          status: p.status,
+          category: p.category,
+          lowStockThreshold: p.low_stock_threshold || 0,
+          stockStatus: stockStatus
+        }
+      })
     }
     
     console.log('[AdminInventory] Inventory report generated')
@@ -186,16 +196,14 @@ export const adminExportInventoryCSV = async (): Promise<string> => {
     
     const report = await adminGetInventoryReport()
     
-    // Create CSV header
-    const headers = ['Product ID', 'Product Name', 'Category', 'Stock Quantity', 'Price', 'Stock Value', 'Status']
+    // Create CSV header - matching spec: Product, Category, Current Stock, Low Stock Threshold, Stock Status
+    const headers = ['Product', 'Category', 'Current Stock', 'Low Stock Threshold', 'Stock Status']
     const rows = report.products.map(p => [
-      p.id,
       p.name,
       p.category,
       p.stock.toString(),
-      p.price.toFixed(2),
-      p.value.toFixed(2),
-      p.status
+      p.lowStockThreshold.toString(),
+      p.stockStatus
     ])
     
     // Create CSV content

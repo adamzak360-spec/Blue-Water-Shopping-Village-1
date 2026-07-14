@@ -9,6 +9,7 @@ import {
   getBestSellingProducts,
   getLeastSellingProducts,
   getTopCustomersBySpending,
+  exportSalesReportCSV,
   DailySalesReport,
   CategorySalesReport,
   ProductPerformance,
@@ -65,12 +66,37 @@ export default function FinancialReports() {
     loadData()
   }, [])
 
+  const downloadCSV = (csv: string, filename: string) => {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', filename)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  }
+
+  const handleExportSalesReport = async () => {
+    try {
+      const csv = await exportSalesReportCSV(30)
+      downloadCSV(csv, `sales-report-${new Date().toISOString().split('T')[0]}.csv`)
+    } catch (err) {
+      console.error('Failed to export sales report:', err)
+    }
+  }
+
   if (isLoading) return <div className="loading">Loading reports...</div>
   if (error) return <div className="error-message">{error}</div>
 
   return (
     <div className="financial-reports">
       <div className="report-tabs">
+        <button onClick={handleExportSalesReport} className="btn-export" title="Export sales report as CSV" style={{ marginLeft: 'auto' }}>
+          Export Report
+        </button>
         <button className={`report-tab ${activeReport === 'revenue' ? 'active' : ''}`} onClick={() => setActiveReport('revenue')}>Revenue Report</button>
         <button className={`report-tab ${activeReport === 'daily' ? 'active' : ''}`} onClick={() => setActiveReport('daily')}>Daily Sales</button>
         <button className={`report-tab ${activeReport === 'weekly' ? 'active' : ''}`} onClick={() => setActiveReport('weekly')}>Weekly Sales</button>

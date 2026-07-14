@@ -12,15 +12,21 @@ import {
   getAllOrders,
   updateOrderStatus,
 } from '../services/orderService'
+import {
+  exportOrdersCSV,
+  exportProductsCSV,
+  exportCustomersCSV,
+} from '../services/adminAnalyticsService'
 import { handleOrderStatusChange, testEmailSending } from '../api/emailNotificationHandler'
 import type { Product, DashboardStats, Order } from '../types'
 import { formatCurrency } from '../utils/currency'
 import InventoryManagement from '../components/InventoryManagement'
 import AdminAnalytics from '../components/AdminAnalytics'
 import FinancialReports from '../components/FinancialReports'
+import SupplierManagement from '../components/SupplierManagement'
 import './Admin.css'
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers'
 
 interface ProductFormErrors {
   name?: string
@@ -253,6 +259,51 @@ export default function Admin() {
     }
   }
 
+  const downloadCSV = (csv: string, filename: string) => {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', filename)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  }
+
+  const handleExportOrders = async () => {
+    try {
+      const csv = exportOrdersCSV(orders)
+      downloadCSV(csv, `orders-${new Date().toISOString().split('T')[0]}.csv`)
+      showNotification('Orders exported successfully')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to export orders')
+    }
+  }
+
+  const handleExportProducts = async () => {
+    try {
+      const csv = await exportProductsCSV(products)
+      downloadCSV(csv, `products-${new Date().toISOString().split('T')[0]}.csv`)
+      showNotification('Products exported successfully')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to export products')
+    }
+  }
+
+  const handleExportCustomers = async () => {
+    try {
+      const csv = await exportCustomersCSV()
+      downloadCSV(csv, `customers-${new Date().toISOString().split('T')[0]}.csv`)
+      showNotification('Customers exported successfully')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to export customers')
+    }
+  }
+
+
+
   if (isLoading && products.length === 0) {
     return (
       <div className="admin-page">
@@ -343,13 +394,25 @@ export default function Admin() {
         >
           Reports
         </button>
+        <button
+          className={`tab ${view === 'suppliers' ? 'active' : ''}`}
+          onClick={() => setView('suppliers')}
+        >
+          Suppliers
+        </button>
       </div>
 
       {/* Analytics View */}
       {view === 'analytics' && <AdminAnalytics />}
 
+      {/* Inventory Management View */}
+      {view === 'inventory' && <InventoryManagement />}
+
       {/* Financial Reports View */}
       {view === 'reports' && <FinancialReports />}
+
+      {/* Supplier Management View */}
+      {view === 'suppliers' && <SupplierManagement />}
 
       {/* Dashboard Overview */}
       {view === 'dashboard' && (
@@ -443,6 +506,9 @@ export default function Admin() {
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
+            <button onClick={handleExportProducts} className="btn-export" title="Export products as CSV">
+              Export CSV
+            </button>
           </div>
 
           {filteredProducts.length === 0 ? (
@@ -537,6 +603,12 @@ export default function Admin() {
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
             </select>
+            <button onClick={handleExportOrders} className="btn-export" title="Export orders as CSV">
+              Export Orders
+            </button>
+            <button onClick={handleExportCustomers} className="btn-export" title="Export customers as CSV">
+              Export Customers
+            </button>
           </div>
 
           {filteredOrders.length === 0 ? (

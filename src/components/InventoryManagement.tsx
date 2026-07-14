@@ -9,6 +9,7 @@ import {
   adminGetInventorySummary,
   adminExportInventoryCSV,
 } from '../services/adminInventoryService'
+import { supplierService, Supplier } from '../services/supplierService'
 import './InventoryManagement.css'
 
 type InventoryView = 'overview' | 'all-products' | 'low-stock' | 'adjust'
@@ -31,6 +32,9 @@ export default function InventoryManagement() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [newStock, setNewStock] = useState('')
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
+  const [productSuppliers, setProductSuppliers] = useState<Supplier[]>([])
+  const [selectedSupplierId, setSelectedSupplierId] = useState('')
 
   const showNotification = useCallback((message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type })
@@ -41,14 +45,16 @@ export default function InventoryManagement() {
     setIsLoading(true)
     setError('')
     try {
-      const [allProducts, lowStock, inventorySummary] = await Promise.all([
+      const [allProducts, lowStock, inventorySummary, allSuppliers] = await Promise.all([
         getAllProductsWithInventory(),
         adminGetLowStockProducts(),
         adminGetInventorySummary(),
+        supplierService.getSuppliers()
       ])
       setProducts(allProducts)
       setLowStockProducts(lowStock)
       setSummary(inventorySummary)
+      setSuppliers(allSuppliers)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load inventory data')
     } finally {
@@ -73,11 +79,43 @@ export default function InventoryManagement() {
 
       await adminUpdateProductStock(selectedProduct.id, stock)
       showNotification(`Stock updated for ${selectedProduct.name}`)
-      setSelectedProduct(null)
-      setNewStock('')
-      await loadInventoryData()
+      // Update local state to reflect change immediately
+      setProducts(prev => prev.map(p => p.id === selectedProduct.id ? { ...p, stock_quantity: stock } : p))
+      setSummary(prev => prev ? { ...prev, totalItems: prev.totalItems - selectedProduct.stock_quantity + stock } : null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update stock')
+    }
+  }
+
+  const loadProductSuppliers = async (productId: string) => {
+    try {
+      const data = await supplierService.getProductSuppliers(productId)
+      setProductSuppliers(data)
+    } catch (err) {
+      console.error('Failed to load product suppliers:', err)
+    }
+  }
+
+  const handleLinkSupplier = async () => {
+    if (!selectedProduct || !selectedSupplierId) return
+    try {
+      await supplierService.linkProductToSupplier(selectedProduct.id, selectedSupplierId)
+      showNotification('Supplier linked successfully')
+      setSelectedSupplierId('')
+      loadProductSuppliers(selectedProduct.id)
+    } catch (err: any) {
+      setError(err.message || 'Failed to link supplier')
+    }
+  }
+
+  const handleUnlinkSupplier = async (supplierId: string) => {
+    if (!selectedProduct) return
+    try {
+      await supplierService.unlinkProductFromSupplier(selectedProduct.id, supplierId)
+      showNotification('Supplier unlinked')
+      loadProductSuppliers(selectedProduct.id)
+    } catch (err: any) {
+      setError(err.message || 'Failed to unlink supplier')
     }
   }
 
@@ -226,6 +264,7 @@ export default function InventoryManagement() {
                             onClick={() => {
                               setSelectedProduct(product)
                               setNewStock(product.stock_quantity.toString())
+                              loadProductSuppliers(product.id)
                               setView('adjust')
                             }}
                           >
@@ -272,6 +311,7 @@ export default function InventoryManagement() {
                               onClick={() => {
                                 setSelectedProduct(product)
                                 setNewStock(product.stock_quantity.toString())
+                                loadProductSuppliers(product.id)
                                 setView('adjust')
                               }}
                             >
@@ -291,6 +331,7 @@ export default function InventoryManagement() {
           {view === 'adjust' && (
             <div className="inventory-adjust">
               {selectedProduct ? (
+                <>
                 <form onSubmit={handleUpdateStock} className="adjust-form">
                   <div className="form-group">
                     <label>Product</label>
@@ -322,12 +363,62 @@ export default function InventoryManagement() {
                       onClick={() => {
                         setSelectedProduct(null)
                         setNewStock('')
+                        setView('all-products')
                       }}
                     >
-                      Cancel
+                      Back to List
                     </button>
                   </div>
                 </form>
+
+                <div className="supplier-link-section" style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid #eee' }}>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem' }}>Linked Suppliers</h4>
+                  
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                    <select 
+                      style={{ flex: 1, padding: '0.5rem', border: '1px solid #ccc', borderRadius: '4px' }}
+                      value={selectedSupplierId}
+                      onChange={(e) => setSelectedSupplierId(e.target.value)}
+                    >
+                      <option value="">Select a supplier to link...</option>
+                      {suppliers
+                        .filter(s => !productSuppliers.some(ps => ps.id === s.id))
+                        .map(s => (
+                          <option key={s.id} value={s.id}>{s.company_name}</option>
+                        ))
+                      }
+                    </select>
+                    <button 
+                      style={{ backgroundColor: '#10b981', color: 'white', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer', border: 'none' }}
+                      onClick={handleLinkSupplier}
+                      disabled={!selectedSupplierId}
+                    >
+                      Link Supplier
+                    </button>
+                  </div>
+
+                  <div className="linked-suppliers-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {productSuppliers.length === 0 ? (
+                      <p style={{ color: '#666', fontStyle: 'italic' }}>No suppliers linked to this product.</p>
+                    ) : (
+                      productSuppliers.map(s => (
+                        <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', backgroundColor: '#f9f9f9', borderRadius: '4px', border: '1px solid #f0f0f0' }}>
+                          <div>
+                            <p style={{ fontWeight: '500', margin: 0 }}>{s.company_name}</p>
+                            <p style={{ fontSize: '0.85rem', color: '#666', margin: 0 }}>{s.contact_person} | {s.email_address}</p>
+                          </div>
+                          <button 
+                            style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '500' }}
+                            onClick={() => handleUnlinkSupplier(s.id)}
+                          >
+                            Unlink
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+                </>
               ) : (
                 <p className="empty-state">Select a product to adjust stock</p>
               )}
