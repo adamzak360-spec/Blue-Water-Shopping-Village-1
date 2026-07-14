@@ -16,9 +16,10 @@ import { handleOrderStatusChange, testEmailSending } from '../api/emailNotificat
 import type { Product, DashboardStats, Order } from '../types'
 import { formatCurrency } from '../utils/currency'
 import InventoryManagement from '../components/InventoryManagement'
+import AdminAnalytics from '../components/AdminAnalytics'
 import './Admin.css'
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics'
 
 interface ProductFormErrors {
   name?: string
@@ -329,7 +330,16 @@ export default function Admin() {
         >
           Inventory
         </button>
+        <button
+          className={`tab ${view === 'analytics' ? 'active' : ''}`}
+          onClick={() => setView('analytics')}
+        >
+          Analytics
+        </button>
       </div>
+
+      {/* Analytics View */}
+      {view === 'analytics' && <AdminAnalytics />}
 
       {/* Dashboard Overview */}
       {view === 'dashboard' && (

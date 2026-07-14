@@ -853,3 +853,37 @@ table tr:hover {
     overflow-x: auto;
   }
 }
+
+/* Analytics Styles */
+.analytics-container {
+  padding: 1rem 0;
+}
+
+.stat-card.revenue { background-color: #f0f9ff; border-left: 4px solid #0ea5e9; }
+.stat-card.total { background-color: #f0fdf4; border-left: 4px solid #22c55e; }
+.stat-card.orders { background-color: #faf5ff; border-left: 4px solid #a855f7; }
+.stat-card.value { background-color: #fff7ed; border-left: 4px solid #f97316; }
+.stat-card.products { background-color: #fff1f2; border-left: 4px solid #f43f5e; }
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.loading, .error-message {
+  padding: 2rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+.error-message {
+  color: #ef4444;
+}
