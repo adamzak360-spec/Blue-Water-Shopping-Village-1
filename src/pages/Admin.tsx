@@ -17,9 +17,10 @@ import type { Product, DashboardStats, Order } from '../types'
 import { formatCurrency } from '../utils/currency'
 import InventoryManagement from '../components/InventoryManagement'
 import AdminAnalytics from '../components/AdminAnalytics'
+import FinancialReports from '../components/FinancialReports'
 import './Admin.css'
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports'
 
 interface ProductFormErrors {
   name?: string
@@ -336,10 +337,19 @@ export default function Admin() {
         >
           Analytics
         </button>
+        <button
+          className={`tab ${view === 'reports' ? 'active' : ''}`}
+          onClick={() => setView('reports')}
+        >
+          Reports
+        </button>
       </div>
 
       {/* Analytics View */}
       {view === 'analytics' && <AdminAnalytics />}
+
+      {/* Financial Reports View */}
+      {view === 'reports' && <FinancialReports />}
 
       {/* Dashboard Overview */}
       {view === 'dashboard' && (
