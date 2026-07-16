@@ -9,16 +9,17 @@ interface StockStatusProps {
 
 /**
  * StockStatus Component
- * Displays product stock status with visual indicators
- * - Green: In stock (above threshold)
- * - Yellow: Low stock (at or below threshold)
- * - Red: Out of stock
+ * Updated to match approved compact design:
+ * - Rounded pill shape
+ * - Green background
+ * - Green text
+ * - No icon
  */
 export default function StockStatus({
   stock,
   lowStockThreshold = 5,
   showLabel = true,
-  size = 'medium'
+  size = 'small'
 }: StockStatusProps) {
   const isOutOfStock = stock === 0
   const isLowStock = stock > 0 && stock <= lowStockThreshold
@@ -31,19 +32,11 @@ export default function StockStatus({
 
   const getStatusText = () => {
     if (isOutOfStock) return 'Out of Stock'
-    if (isLowStock) return `Low Stock (${stock})`
     return `${stock} in stock`
-  }
-
-  const getStatusIcon = () => {
-    if (isOutOfStock) return '✕'
-    if (isLowStock) return '⚠'
-    return '✓'
   }
 
   return (
     <div className={`${getStatusClass()} size-${size}`}>
-      <span className="stock-icon">{getStatusIcon()}</span>
       {showLabel && <span className="stock-label">{getStatusText()}</span>}
     </div>
   )

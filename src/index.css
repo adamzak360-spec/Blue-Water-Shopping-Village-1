@@ -13,7 +13,7 @@
   --color-warning-light: #fef3c7;
 
   /* Neutrals */
-  --color-bg: #f5f5f5;
+  --color-bg: #ffffff; /* White background as per approved design */
   --color-surface: #ffffff;
   --color-text: #111827;
   --color-text-secondary: #6b7280;
