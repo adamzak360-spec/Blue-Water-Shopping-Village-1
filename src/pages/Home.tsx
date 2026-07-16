@@ -4,7 +4,7 @@ import type { Product } from '../types'
 import { Link } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import './Home.css'
-import '../components/ProductGrid.css'
+// import '../components/ProductGrid.css' - Moved to main.tsx for priority
 
 const TESTIMONIALS = [
   {

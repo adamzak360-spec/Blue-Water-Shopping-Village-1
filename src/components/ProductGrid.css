@@ -192,11 +192,11 @@
 }
 
 /* Mobile (Up to 767px) — TWO PRODUCTS PER ROW (Highest Priority) */
-@media (max-width: 767px) {
-  .products-grid {
-    grid-template-columns: repeat(2, 1fr); /* 2 products per row */
-    gap: 0.75rem;
-    padding: 0.5rem;
+@media screen and (max-width: 767px) {
+  .app-main .products-grid {
+    grid-template-columns: repeat(2, 1fr) !important; /* 2 products per row - HIGHEST PRIORITY */
+    gap: 0.75rem !important;
+    padding: 0.5rem !important;
   }
 
   .product-image-container {

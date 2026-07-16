@@ -3,7 +3,7 @@ import { getAllProducts } from '../services/productService'
 import type { Product } from '../types'
 import ProductCard from '../components/ProductCard'
 import './Products.css'
-import '../components/ProductGrid.css'
+// import '../components/ProductGrid.css' - Moved to main.tsx for priority
 
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([])
