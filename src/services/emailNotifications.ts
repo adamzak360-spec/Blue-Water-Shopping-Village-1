@@ -204,3 +204,52 @@ export async function sendOrderStatusChangeNotifications(
 
   return results
 }
+
+import {
+  getLowStockAlertTemplate,
+  getRestockRequestTemplate,
+} from './emailTemplates'
+
+/**
+ * Send low stock alert to admin
+ */
+export async function sendLowStockAlert(products: any[]): Promise<{ success: boolean; error?: string }> {
+  try {
+    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@bluewatershopping.com'
+    const { html, text } = getLowStockAlertTemplate(products)
+
+    const payload: EmailPayload = {
+      to: adminEmail,
+      subject: `LOW STOCK ALERT: ${products.length} items need attention`,
+      html,
+      text,
+    }
+
+    return await emailService.sendEmail(payload)
+  } catch (error: any) {
+    console.error('[EMAIL NOTIFICATIONS] Error sending low stock alert:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Send restock request to supplier
+ */
+export async function sendRestockRequest(supplier: any, products: any[]): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { html, text } = getRestockRequestTemplate(supplier, products)
+
+    const payload: EmailPayload = {
+      to: supplier.email_address,
+      subject: `Restock Request from ${import.meta.env.VITE_COMPANY_NAME || 'Blue Water Shopping Village'}`,
+      html,
+      text,
+      replyTo: import.meta.env.VITE_ADMIN_EMAIL || 'admin@bluewatershopping.com',
+    }
+
+    return await emailService.sendEmail(payload)
+  } catch (error: any) {
+    console.error('[EMAIL NOTIFICATIONS] Error sending restock request:', error)
+    return { success: false, error: error.message }
+  }
+}

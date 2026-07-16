@@ -542,3 +542,135 @@ Notes: ${order.notes || 'None'}
 
   return { html, text }
 }
+
+/**
+ * Low Stock Alert Email for Admin
+ */
+export function getLowStockAlertTemplate(products: any[]): { html: string; text: string } {
+  const itemsHtml = products
+    .map(
+      (p) => `
+    <div class="order-item">
+      <div class="item-name">${p.name}</div>
+      <div class="item-qty" style="color: #dc2626; font-weight: bold;">${p.stock_quantity} left</div>
+      <div class="item-price">Threshold: ${p.low_stock_threshold || 5}</div>
+    </div>
+  `
+    )
+    .join('')
+
+  const html = getEmailWrapper(
+    `
+    <div class="header" style="background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);">
+      <h1>Low Stock Alert</h1>
+      <p>Action required: Products below threshold</p>
+    </div>
+    <div class="content">
+      <div class="section">
+        <h2>Inventory Warning</h2>
+        <p>The following products have reached or fallen below their low stock threshold. Please restock these items soon to avoid running out of stock.</p>
+      </div>
+
+      <div class="section">
+        <div class="order-item" style="font-weight: bold; margin-bottom: 10px;">
+          <div class="item-name">Product</div>
+          <div class="item-qty">Current</div>
+          <div class="item-price">Limit</div>
+        </div>
+        ${itemsHtml}
+      </div>
+
+      <div class="section">
+        <a href="${COMPANY_WEBSITE}/admin" class="cta-button" style="background-color: #dc2626;">Manage Inventory</a>
+      </div>
+    </div>
+  `,
+    'Low Stock Alert'
+  )
+
+  const text = `
+Low Stock Alert - Inventory Warning
+
+The following products are below their threshold:
+
+${products.map((p) => `- ${p.name}: ${p.stock_quantity} remaining (Threshold: ${p.low_stock_threshold || 5})`).join('\n')}
+
+Manage inventory at: ${COMPANY_WEBSITE}/admin
+  `
+
+  return { html, text }
+}
+
+/**
+ * Restock Request Email for Supplier
+ */
+export function getRestockRequestTemplate(supplier: any, products: any[]): { html: string; text: string } {
+  const itemsHtml = products
+    .map(
+      (p) => `
+    <tr style="border-bottom: 1px solid #e5e7eb;">
+      <td style="padding: 12px 0;">${p.name}</td>
+      <td style="padding: 12px 0; text-align: center;">${p.quantity_needed || 'As per usual'}</td>
+    </tr>
+  `
+    )
+    .join('')
+
+  const html = getEmailWrapper(
+    `
+    <div class="header">
+      <h1>Restock Request</h1>
+      <p>From ${COMPANY_NAME}</p>
+    </div>
+    <div class="content">
+      <div class="section">
+        <h2>Hello ${supplier.contact_person},</h2>
+        <p>We would like to request a restock for the following products from <strong>${supplier.company_name}</strong>.</p>
+      </div>
+
+      <div class="section">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="border-bottom: 2px solid #e5e7eb; text-align: left; color: #1e3a8a;">
+              <th style="padding-bottom: 10px;">Product Name</th>
+              <th style="padding-bottom: 10px; text-align: center;">Quantity Requested</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <p>Please confirm receipt of this request and let us know the expected delivery date and total cost.</p>
+        <p>You can reach us at <strong>${PHONE}</strong> or reply directly to this email.</p>
+      </div>
+
+      <div class="section">
+        <p>Best regards,</p>
+        <p><strong>Inventory Manager</strong><br>${COMPANY_NAME}</p>
+      </div>
+    </div>
+  `,
+    'Restock Request'
+  )
+
+  const text = `
+Restock Request from ${COMPANY_NAME}
+
+Hello ${supplier.contact_person},
+
+We would like to request a restock for the following products from ${supplier.company_name}:
+
+${products.map((p) => `- ${p.name}: ${p.quantity_needed || 'As per usual'}`).join('\n')}
+
+Please confirm receipt of this request and let us know the expected delivery date and total cost.
+
+Best regards,
+Inventory Manager
+${COMPANY_NAME}
+  `
+
+  return { html, text }
+}
