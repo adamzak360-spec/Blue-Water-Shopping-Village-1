@@ -25,6 +25,7 @@ import CustomerProfile from './pages/CustomerProfile'
 import CustomerOrders from './pages/CustomerOrders'
 import OrderDetails from './pages/OrderDetails'
 import CustomerSettings from './pages/CustomerSettings'
+import ProductDetails from './pages/ProductDetails'
 
 function App() {
   return (
@@ -74,6 +75,7 @@ function AppShell() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/product/:productId" element={<ProductDetails />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

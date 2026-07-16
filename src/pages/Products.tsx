@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { getAllProducts } from '../services/productService'
 import type { Product } from '../types'
 import { useCart } from '../context/CartContext'
@@ -127,33 +128,37 @@ export default function Products() {
         <div className="products-grid">
           {filteredProducts.map(product => (
             <div key={product.id} className="product-card">
-              {product.image_url ? (
-                <>
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    className="product-image"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.style.display = 'none'
-                      const placeholder = target.nextElementSibling
-                      if (placeholder) {
-                        placeholder.classList.add('visible')
-                      }
-                    }}
-                  />
-                  <div className="product-image-placeholder">
+              <Link to={`/product/${product.id}`} className="product-image-link">
+                {product.image_url ? (
+                  <>
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="product-image"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.style.display = 'none'
+                        const placeholder = target.nextElementSibling
+                        if (placeholder) {
+                          placeholder.classList.add('visible')
+                        }
+                      }}
+                    />
+                    <div className="product-image-placeholder">
+                      <span>No image</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="product-image-placeholder visible">
                     <span>No image</span>
                   </div>
-                </>
-              ) : (
-                <div className="product-image-placeholder visible">
-                  <span>No image</span>
-                </div>
-              )}
+                )}
+              </Link>
               <div className="product-info">
                 <span className="product-category">{product.category}</span>
-                <h3 className="product-name">{product.name}</h3>
+                <Link to={`/product/${product.id}`} className="product-name-link">
+                  <h3 className="product-name">{product.name}</h3>
+                </Link>
                 <p className="product-description">{product.description}</p>
                 <div className="product-footer">
                   <span className="product-price">{formatCurrency(product.price)}</span>
@@ -165,13 +170,21 @@ export default function Products() {
                     <span className="in-stock-badge">{product.stock_quantity} in stock</span>
                   )}
                 </div>
-                <button 
-                  className="add-to-cart-btn"
-                  onClick={() => addToCart(product)}
-                  disabled={product.stock_quantity === 0 || product.status === 'inactive'}
-                >
-                  {product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
-                </button>
+                <div className="product-actions">
+                  <Link 
+                    to={`/product/${product.id}`}
+                    className="view-details-btn"
+                  >
+                    View Details
+                  </Link>
+                  <button 
+                    className="add-to-cart-btn"
+                    onClick={() => addToCart(product)}
+                    disabled={product.stock_quantity === 0 || product.status === 'inactive'}
+                  >
+                    {product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+                  </button>
+                </div>
               </div>
             </div>
           ))}

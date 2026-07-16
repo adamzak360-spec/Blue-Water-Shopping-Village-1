@@ -234,7 +234,6 @@
 
 .add-to-cart-btn {
   width: 100%;
-  margin-top: 1rem;
   padding: 0.75rem;
   background-color: #2563eb;
   color: white;
@@ -260,6 +259,64 @@
 .add-to-cart-btn:disabled {
   background-color: #d1d5db;
   cursor: not-allowed;
+}
+
+/* ── Product Image Link ── */
+.product-image-link {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+  overflow: hidden;
+  position: relative;
+}
+
+.product-image-link:hover .product-image {
+  transform: scale(1.05);
+}
+
+/* ── Product Name Link ── */
+.product-name-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.product-name-link:hover .product-name {
+  color: #2563eb;
+}
+
+/* ── Product Actions ── */
+.product-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-direction: column;
+  margin-top: 1rem;
+  flex-shrink: 0;
+}
+
+.view-details-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #f3f4f6;
+  color: #2563eb;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  min-height: 44px;
+}
+
+.view-details-btn:hover {
+  background-color: #e5e7eb;
+  border-color: #2563eb;
+  color: #1d4ed8;
+  transform: translateY(-1px);
 }
 
 /* ── Shared States ── */
