@@ -941,10 +941,6 @@ export default function Admin() {
         </div>
       )}
 
-      {/* Inventory Management */}
-      {view === 'inventory' && (
-        <InventoryManagement />
-      )}
     </div>
   )
 }

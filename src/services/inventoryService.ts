@@ -115,9 +115,15 @@ export const updateProductStock = async (productId: string, newStock: number): P
   try {
     console.log(`[InventoryService] Updating stock for product ${productId} to ${newStock}`)
     
+    const stock = Math.max(0, newStock);
+    const status = stock === 0 ? 'out-of-stock' : 'active';
+    
     const { data, error } = await getSupabase()
       .from('products')
-      .update({ stock_quantity: Math.max(0, newStock) })
+      .update({ 
+        stock_quantity: stock,
+        status: status
+      })
       .eq('id', productId)
       .select()
       .single()
@@ -199,10 +205,14 @@ export const getInventorySummary = async () => {
     
     const products = (data || []) as any[]
     const totalItems = products.reduce((sum, p) => sum + (Number(p.stock_quantity) || 0), 0)
-    const lowStockCount = products.filter(
-      p => (Number(p.stock_quantity) || 0) <= (Number(p.low_stock_threshold) || 5)
-    ).length
     const outOfStockCount = products.filter(p => (Number(p.stock_quantity) || 0) === 0).length
+    const lowStockCount = products.filter(
+      p => {
+        const stock = Number(p.stock_quantity) || 0;
+        const threshold = Number(p.low_stock_threshold) || 5;
+        return stock > 0 && stock <= threshold;
+      }
+    ).length
     
     return {
       totalItems,

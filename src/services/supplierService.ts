@@ -115,5 +115,29 @@ export const supplierService = {
     
     if (error) throw error;
     return (data || []).map((item: any) => item.suppliers) as unknown as Supplier[];
+  },
+
+  /**
+   * Export suppliers data as CSV format
+   * @returns CSV string
+   */
+  async exportSuppliersCSV(): Promise<string> {
+    const suppliers = await this.getSuppliers();
+    const headers = ['Company Name', 'Contact Person', 'Phone Number', 'Email Address', 'Address', 'Tax ID', 'Status', 'Date Added'];
+    const rows = suppliers.map(s => [
+      s.company_name,
+      s.contact_person,
+      s.phone_number,
+      s.email_address,
+      s.business_address,
+      s.tax_id || '',
+      s.status,
+      new Date(s.created_at).toLocaleDateString()
+    ]);
+    
+    return [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
   }
 };

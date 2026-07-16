@@ -10,6 +10,18 @@ import {
   adminExportInventoryCSV,
 } from '../services/adminInventoryService'
 import { supplierService, Supplier } from '../services/supplierService'
+import { 
+  LayoutDashboard, 
+  Package, 
+  AlertTriangle, 
+  RefreshCcw, 
+  Download, 
+  Search, 
+  Link as LinkIcon, 
+  Unlink,
+  ChevronRight,
+  Plus
+} from 'lucide-react'
 import './InventoryManagement.css'
 
 type InventoryView = 'overview' | 'all-products' | 'low-stock' | 'adjust'
@@ -79,9 +91,14 @@ export default function InventoryManagement() {
 
       await adminUpdateProductStock(selectedProduct.id, stock)
       showNotification(`Stock updated for ${selectedProduct.name}`)
-      // Update local state to reflect change immediately
-      setProducts(prev => prev.map(p => p.id === selectedProduct.id ? { ...p, stock_quantity: stock } : p))
-      setSummary(prev => prev ? { ...prev, totalItems: prev.totalItems - selectedProduct.stock_quantity + stock } : null)
+      
+      // Refresh all data to ensure consistency
+      loadInventoryData()
+      
+      // Clear selection after update
+      setSelectedProduct(null)
+      setNewStock('')
+      setView('all-products')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update stock')
     }
@@ -143,171 +160,192 @@ export default function InventoryManagement() {
   )
 
   return (
-    <div className="inventory-management">
-      {/* Notification */}
+    <div className="inventory-management-container">
+      {/* Notifications & Errors */}
       {notification && (
-        <div className={`notification ${notification.type}`}>
+        <div className={`inventory-notification ${notification.type}`}>
           <span>{notification.message}</span>
           <button onClick={() => setNotification(null)}>&times;</button>
         </div>
       )}
 
-      {/* Error Banner */}
       {error && (
-        <div className="error-banner">
+        <div className="inventory-error-banner">
+          <AlertTriangle size={20} />
           <span>{error}</span>
           <button onClick={() => setError('')}>&times;</button>
         </div>
       )}
 
-      {/* Header */}
-      <div className="inventory-header">
-        <h3>Inventory Management</h3>
-        <button className="export-btn" onClick={handleExportCSV}>
-          📥 Export CSV
+      {/* Header Section */}
+      <div className="inventory-header-section">
+        <div>
+          <h2 className="inventory-title">Inventory Control</h2>
+          <p className="inventory-subtitle">Monitor stock levels and manage product suppliers</p>
+        </div>
+        <button className="inventory-export-btn" onClick={handleExportCSV}>
+          <Download size={18} />
+          <span>Export Inventory</span>
         </button>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="inventory-tabs">
+      {/* Summary Dashboard */}
+      <div className="inventory-summary-grid">
+        <div className="inventory-summary-card total">
+          <div className="summary-icon-wrapper">
+            <Package size={24} />
+          </div>
+          <div className="summary-info">
+            <span className="summary-label">Total Stock Items</span>
+            <span className="summary-value">{summary?.totalItems || 0}</span>
+          </div>
+        </div>
+        <div className="inventory-summary-card products">
+          <div className="summary-icon-wrapper">
+            <LayoutDashboard size={24} />
+          </div>
+          <div className="summary-info">
+            <span className="summary-label">Unique Products</span>
+            <span className="summary-value">{summary?.totalProducts || 0}</span>
+          </div>
+        </div>
+        <div className="inventory-summary-card warning">
+          <div className="summary-icon-wrapper">
+            <AlertTriangle size={24} />
+          </div>
+          <div className="summary-info">
+            <span className="summary-label">Low Stock Alerts</span>
+            <span className="summary-value">{summary?.lowStockCount || 0}</span>
+          </div>
+        </div>
+        <div className="inventory-summary-card danger">
+          <div className="summary-icon-wrapper">
+            <AlertTriangle size={24} />
+          </div>
+          <div className="summary-info">
+            <span className="summary-label">Out of Stock</span>
+            <span className="summary-value">{summary?.outOfStockCount || 0}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Navigation */}
+      <div className="inventory-nav-tabs">
         <button
-          className={`tab ${view === 'overview' ? 'active' : ''}`}
+          className={`inventory-tab ${view === 'overview' ? 'active' : ''}`}
           onClick={() => setView('overview')}
         >
-          Overview
+          <LayoutDashboard size={18} />
+          <span>Dashboard</span>
         </button>
         <button
-          className={`tab ${view === 'all-products' ? 'active' : ''}`}
+          className={`inventory-tab ${view === 'all-products' ? 'active' : ''}`}
           onClick={() => setView('all-products')}
         >
-          All Products
+          <Package size={18} />
+          <span>All Products</span>
         </button>
         <button
-          className={`tab ${view === 'low-stock' ? 'active' : ''}`}
+          className={`inventory-tab ${view === 'low-stock' ? 'active' : ''}`}
           onClick={() => setView('low-stock')}
         >
-          Low Stock ({lowStockProducts.length})
+          <AlertTriangle size={18} />
+          <span>Low Stock ({lowStockProducts.length})</span>
         </button>
         <button
-          className={`tab ${view === 'adjust' ? 'active' : ''}`}
+          className={`inventory-tab ${view === 'adjust' ? 'active' : ''}`}
           onClick={() => setView('adjust')}
         >
-          Adjust Stock
+          <RefreshCcw size={18} />
+          <span>Stock Adjustment</span>
         </button>
       </div>
 
-      {isLoading && !products.length ? (
-        <div className="loading-container">
-          <div className="spinner" />
-          <p>Loading inventory...</p>
-        </div>
-      ) : (
-        <div className="inventory-content">
-          {/* Overview Tab */}
-          {view === 'overview' && summary && (
-            <div className="inventory-overview">
-              <div className="summary-card">
-                <h4>Total Items</h4>
-                <p className="summary-value">{summary.totalItems}</p>
+      {/* Content Area */}
+      <div className="inventory-content-wrapper">
+        {isLoading && !products.length ? (
+          <div className="inventory-loading">
+            <div className="inventory-spinner" />
+            <p>Syncing inventory data...</p>
+          </div>
+        ) : (
+          <div className="inventory-view-container">
+            {/* Dashboard Overview */}
+            {view === 'overview' && (
+              <div className="inventory-dashboard-view">
+                <div className="dashboard-welcome">
+                  <h3>Welcome to Inventory Control</h3>
+                  <p>Quickly identify stock issues and restock popular items.</p>
+                </div>
+                <div className="dashboard-quick-actions">
+                  <div className="action-card" onClick={() => setView('low-stock')}>
+                    <AlertTriangle className="text-amber-500" />
+                    <h4>Restock Needed</h4>
+                    <p>{summary?.lowStockCount || 0} products are below threshold</p>
+                    <ChevronRight size={20} />
+                  </div>
+                  <div className="action-card" onClick={() => setView('all-products')}>
+                    <Package className="text-blue-500" />
+                    <h4>Manage Catalog</h4>
+                    <p>Update stock levels for {summary?.totalProducts || 0} products</p>
+                    <ChevronRight size={20} />
+                  </div>
+                </div>
               </div>
-              <div className="summary-card">
-                <h4>Total Products</h4>
-                <p className="summary-value">{summary.totalProducts}</p>
-              </div>
-              <div className="summary-card warning">
-                <h4>Low Stock</h4>
-                <p className="summary-value">{summary.lowStockCount}</p>
-              </div>
-              <div className="summary-card alert">
-                <h4>Out of Stock</h4>
-                <p className="summary-value">{summary.outOfStockCount}</p>
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* All Products Tab */}
-          {view === 'all-products' && (
-            <div className="inventory-products">
-              <div className="search-box">
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="products-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Product Name</th>
-                      <th>Category</th>
-                      <th>Stock</th>
-                      <th>Price</th>
-                      <th>Status</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredProducts.map(product => (
-                      <tr key={product.id}>
-                        <td>{product.name}</td>
-                        <td>{product.category}</td>
-                        <td className="stock-cell">
-                          <StockStatus stock={product.stock_quantity} size="small" />
-                        </td>
-                        <td>{formatCurrency(product.price)}</td>
-                        <td>{product.status}</td>
-                        <td>
-                          <button
-                            className="adjust-btn"
-                            onClick={() => {
-                              setSelectedProduct(product)
-                              setNewStock(product.stock_quantity.toString())
-                              loadProductSuppliers(product.id)
-                              setView('adjust')
-                            }}
-                          >
-                            Adjust
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* Low Stock Tab */}
-          {view === 'low-stock' && (
-            <div className="inventory-low-stock">
-              {lowStockProducts.length === 0 ? (
-                <p className="empty-state">No products with low stock!</p>
-              ) : (
-                <div className="products-table">
-                  <table>
+            {/* Products List (Shared for All and Low Stock) */}
+            {(view === 'all-products' || view === 'low-stock') && (
+              <div className="inventory-list-view">
+                <div className="list-controls">
+                  <div className="inventory-search-bar">
+                    <Search size={18} />
+                    <input
+                      type="text"
+                      placeholder="Search by product name or category..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+                
+                <div className="inventory-table-container">
+                  <table className="inventory-data-table">
                     <thead>
                       <tr>
-                        <th>Product Name</th>
+                        <th>Product Details</th>
                         <th>Category</th>
-                        <th>Stock</th>
+                        <th>Current Stock</th>
                         <th>Price</th>
-                        <th>Action</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {lowStockProducts.map(product => (
+                      {(view === 'all-products' ? filteredProducts : lowStockProducts).map(product => (
                         <tr key={product.id}>
-                          <td>{product.name}</td>
-                          <td>{product.category}</td>
-                          <td className="stock-cell">
-                            <StockStatus stock={product.stock_quantity} size="small" />
+                          <td>
+                            <div className="product-info-cell">
+                              <span className="p-name">{product.name}</span>
+                              <span className="p-id">ID: {product.id.substring(0, 8)}</span>
+                            </div>
                           </td>
-                          <td>{formatCurrency(product.price)}</td>
+                          <td><span className="category-badge">{product.category}</span></td>
+                          <td>
+                            <div className="stock-level-cell">
+                              <StockStatus stock={product.stock_quantity} size="small" />
+                              <span className="stock-count">{product.stock_quantity} units</span>
+                            </div>
+                          </td>
+                          <td><span className="price-tag">{formatCurrency(product.price)}</span></td>
+                          <td>
+                            <span className={`status-pill ${product.status}`}>
+                              {product.status === 'active' ? 'Active' : 'Out of Stock'}
+                            </span>
+                          </td>
                           <td>
                             <button
-                              className="adjust-btn"
+                              className="inventory-action-btn"
                               onClick={() => {
                                 setSelectedProduct(product)
                                 setNewStock(product.stock_quantity.toString())
@@ -315,117 +353,143 @@ export default function InventoryManagement() {
                                 setView('adjust')
                               }}
                             >
-                              Adjust
+                              Manage
                             </button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                  {(view === 'all-products' ? filteredProducts : lowStockProducts).length === 0 && (
+                    <div className="inventory-empty-state">
+                      <Package size={48} />
+                      <p>No products found matching your criteria.</p>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
 
-          {/* Adjust Stock Tab */}
-          {view === 'adjust' && (
-            <div className="inventory-adjust">
-              {selectedProduct ? (
-                <>
-                <form onSubmit={handleUpdateStock} className="adjust-form">
-                  <div className="form-group">
-                    <label>Product</label>
-                    <p className="product-display">{selectedProduct.name}</p>
-                  </div>
-                  <div className="form-group">
-                    <label>Current Stock</label>
-                    <p className="stock-display">{selectedProduct.stock_quantity}</p>
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="newStock">New Stock Quantity *</label>
-                    <input
-                      type="number"
-                      id="newStock"
-                      min="0"
-                      value={newStock}
-                      onChange={(e) => setNewStock(e.target.value)}
-                      placeholder="Enter new stock quantity"
-                      required
-                    />
-                  </div>
-                  <div className="form-actions">
-                    <button type="submit" className="submit-btn">
-                      Update Stock
-                    </button>
-                    <button
-                      type="button"
-                      className="cancel-btn"
-                      onClick={() => {
-                        setSelectedProduct(null)
-                        setNewStock('')
-                        setView('all-products')
-                      }}
-                    >
-                      Back to List
-                    </button>
-                  </div>
-                </form>
-
-                <div className="supplier-link-section" style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid #eee' }}>
-                  <h4 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem' }}>Linked Suppliers</h4>
-                  
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                    <select 
-                      style={{ flex: 1, padding: '0.5rem', border: '1px solid #ccc', borderRadius: '4px' }}
-                      value={selectedSupplierId}
-                      onChange={(e) => setSelectedSupplierId(e.target.value)}
-                    >
-                      <option value="">Select a supplier to link...</option>
-                      {suppliers
-                        .filter(s => !productSuppliers.some(ps => ps.id === s.id))
-                        .map(s => (
-                          <option key={s.id} value={s.id}>{s.company_name}</option>
-                        ))
-                      }
-                    </select>
-                    <button 
-                      style={{ backgroundColor: '#10b981', color: 'white', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer', border: 'none' }}
-                      onClick={handleLinkSupplier}
-                      disabled={!selectedSupplierId}
-                    >
-                      Link Supplier
-                    </button>
-                  </div>
-
-                  <div className="linked-suppliers-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {productSuppliers.length === 0 ? (
-                      <p style={{ color: '#666', fontStyle: 'italic' }}>No suppliers linked to this product.</p>
-                    ) : (
-                      productSuppliers.map(s => (
-                        <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', backgroundColor: '#f9f9f9', borderRadius: '4px', border: '1px solid #f0f0f0' }}>
-                          <div>
-                            <p style={{ fontWeight: '500', margin: 0 }}>{s.company_name}</p>
-                            <p style={{ fontSize: '0.85rem', color: '#666', margin: 0 }}>{s.contact_person} | {s.email_address}</p>
-                          </div>
-                          <button 
-                            style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '500' }}
-                            onClick={() => handleUnlinkSupplier(s.id)}
+            {/* Stock Adjustment & Supplier Linking */}
+            {view === 'adjust' && (
+              <div className="inventory-adjustment-view">
+                {selectedProduct ? (
+                  <div className="adjustment-grid">
+                    {/* Left: Stock Form */}
+                    <div className="adjustment-form-card">
+                      <div className="card-header">
+                        <RefreshCcw size={20} />
+                        <h3>Stock Adjustment</h3>
+                      </div>
+                      <form onSubmit={handleUpdateStock} className="stock-form">
+                        <div className="form-info-group">
+                          <label>Product Name</label>
+                          <div className="info-value">{selectedProduct.name}</div>
+                        </div>
+                        <div className="form-info-group">
+                          <label>Current Stock</label>
+                          <div className="info-value highlight">{selectedProduct.stock_quantity} units</div>
+                        </div>
+                        <div className="form-input-group">
+                          <label htmlFor="newStock">New Stock Level</label>
+                          <input
+                            type="number"
+                            id="newStock"
+                            min="0"
+                            value={newStock}
+                            onChange={(e) => setNewStock(e.target.value)}
+                            placeholder="Enter quantity"
+                            required
+                          />
+                        </div>
+                        <div className="form-button-row">
+                          <button type="submit" className="inventory-btn-primary">
+                            Update Inventory
+                          </button>
+                          <button
+                            type="button"
+                            className="inventory-btn-secondary"
+                            onClick={() => setView('all-products')}
                           >
-                            Unlink
+                            Cancel
                           </button>
                         </div>
-                      ))
-                    )}
+                      </form>
+                    </div>
+
+                    {/* Right: Supplier Management */}
+                    <div className="adjustment-suppliers-card">
+                      <div className="card-header">
+                        <LinkIcon size={20} />
+                        <h3>Product Suppliers</h3>
+                      </div>
+                      
+                      <div className="supplier-link-box">
+                        <select 
+                          className="inventory-select"
+                          value={selectedSupplierId}
+                          onChange={(e) => setSelectedSupplierId(e.target.value)}
+                        >
+                          <option value="">Link a new supplier...</option>
+                          {suppliers
+                            .filter(s => !productSuppliers.some(ps => ps.id === s.id))
+                            .map(s => (
+                              <option key={s.id} value={s.id}>{s.company_name}</option>
+                            ))
+                          }
+                        </select>
+                        <button 
+                          className="inventory-add-btn"
+                          onClick={handleLinkSupplier}
+                          disabled={!selectedSupplierId}
+                        >
+                          <Plus size={18} />
+                        </button>
+                      </div>
+
+                      <div className="linked-suppliers-container">
+                        <h4 className="container-title">Current Suppliers</h4>
+                        {productSuppliers.length === 0 ? (
+                          <div className="suppliers-empty">
+                            <p>No suppliers linked to this product yet.</p>
+                          </div>
+                        ) : (
+                          <div className="suppliers-list">
+                            {productSuppliers.map(s => (
+                              <div key={s.id} className="supplier-item-row">
+                                <div className="s-details">
+                                  <span className="s-name">{s.company_name}</span>
+                                  <span className="s-contact">{s.contact_person}</span>
+                                </div>
+                                <button 
+                                  className="s-unlink-btn"
+                                  onClick={() => handleUnlinkSupplier(s.id)}
+                                  title="Unlink Supplier"
+                                >
+                                  <Unlink size={16} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                </>
-              ) : (
-                <p className="empty-state">Select a product to adjust stock</p>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+                ) : (
+                  <div className="inventory-empty-state selection-needed">
+                    <Package size={64} />
+                    <h3>No Product Selected</h3>
+                    <p>Please select a product from the list to manage its stock and suppliers.</p>
+                    <button className="inventory-btn-primary" onClick={() => setView('all-products')}>
+                      View Product List
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
