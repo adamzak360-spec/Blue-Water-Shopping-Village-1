@@ -146,10 +146,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #ffffff;
-  color: #2563eb;
-  border: 1px solid #2563eb; /* Blue border */
+  background-color: #ffffff !important; /* Force white background */
+  color: #2563eb !important; /* Force blue text */
+  border: 1px solid #2563eb !important; /* Force blue border */
   transition: all 0.2s;
+}
+
+.view-details-btn:hover {
+  background-color: #f8fafc !important;
+  color: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
 }
 
 .add-to-cart-btn {
