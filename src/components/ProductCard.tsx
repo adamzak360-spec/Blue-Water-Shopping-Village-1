@@ -46,9 +46,7 @@ export default function ProductCard({ product, showStock = true }: ProductCardPr
           <h4 className="product-name">{product.name}</h4>
         </Link>
         <p className="product-description">
-          {product.description.length > 80
-            ? product.description.substring(0, 80) + '\u2026'
-            : product.description}
+          {product.description}
         </p>
         <div className="product-footer">
           <span className="product-price">{formatCurrency(product.price)}</span>

@@ -13,43 +13,36 @@
 .product-card {
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: 4px; /* Matches the sharper corners in screenshot */
   overflow: hidden;
   transition: all 0.3s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  height: 100%; /* Ensure all cards in a row have equal height */
+  height: 100%;
   position: relative;
 }
 
 .product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  border-color: #bfdbfe;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* ── Product Image Standardization ── */
+/* ── Product Image ── */
 .product-image-link {
   display: block;
   width: 100%;
-  aspect-ratio: 1 / 1; /* Force square aspect ratio for consistency */
+  aspect-ratio: 1.2 / 1; /* Slightly wider aspect ratio to match screenshot */
   overflow: hidden;
   position: relative;
-  background-color: white; /* Clean white background for contained images */
+  background-color: #f3f4f6;
 }
 
 .product-image {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* Show full image without cropping or distortion */
+  object-fit: cover; /* Fill the area as seen in screenshot */
   display: block;
   transition: transform 0.3s ease;
-  padding: 0.5rem; /* Small padding to prevent image touching edges */
-}
-
-.product-image-link:hover .product-image {
-  transform: scale(1.02); /* Subtle scale only */
 }
 
 .product-image-placeholder {
@@ -69,71 +62,61 @@
 
 /* ── Product Info ── */
 .product-info {
-  padding: 1.25rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  flex: 1; /* Push footer to bottom */
+  flex: 1;
 }
 
 .product-category {
-  display: inline-block;
-  font-size: 0.7rem;
+  display: block;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #2563eb;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 0.375rem;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.5rem;
 }
 
 .product-name-link {
   text-decoration: none;
   color: inherit;
   display: block;
-}
-
-.product-name-link:hover .product-name {
-  color: #2563eb;
+  margin-bottom: 0.75rem;
 }
 
 .product-name {
-  font-size: 1.05rem;
-  font-weight: 600;
+  font-size: 1.15rem;
+  font-weight: 700;
   color: #111827;
-  margin: 0 0 0.5rem 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-height: 1.4;
-  min-height: 2.8em; /* Ensure consistent height for names */
+  margin: 0;
+  line-height: 1.2;
 }
 
 .product-description {
-  font-size: 0.85rem;
-  color: #6b7280;
+  font-size: 0.9rem;
+  color: #9ca3af; /* Light gray text as seen in screenshot */
   margin: 0 0 1rem 0;
-  line-height: 1.5;
+  line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  flex: 1; /* Allow description to take available space */
 }
 
-/* ── Product Footer ── */
+/* ── Product Footer (Price & Stock) ── */
 .product-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 0.75rem;
-  border-top: 1px solid #f3f4f6;
-  margin-top: auto;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .product-price {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #16a34a;
+  color: #16a34a; /* Green price */
 }
 
 .stock-container {
@@ -141,36 +124,45 @@
   align-items: center;
 }
 
+/* Custom Stock Badge to match screenshot */
+.stock-container .stock-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #16a34a;
+  background-color: #f0fdf4;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+}
+
 .out-of-stock-badge {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #d97706;
   background-color: #fef3c7;
-  padding: 0.25rem 0.625rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 9999px;
 }
 
 /* ── Product Actions ── */
 .product-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 0.5rem;
-  margin-top: 1rem;
+  margin-top: auto;
 }
 
 .view-details-btn, .add-to-cart-btn {
   width: 100%;
-  padding: 0.625rem 0.25rem;
-  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   cursor: pointer;
   text-decoration: none;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  min-height: 40px;
 }
 
 .view-details-btn {
@@ -181,8 +173,6 @@
 
 .view-details-btn:hover {
   background-color: #f0f7ff;
-  border-color: #1d4ed8;
-  color: #1d4ed8;
 }
 
 .add-to-cart-btn {
@@ -193,7 +183,6 @@
 
 .add-to-cart-btn:hover:not(:disabled) {
   background-color: #1d4ed8;
-  transform: translateY(-1px);
 }
 
 .add-to-cart-btn:disabled {
@@ -204,13 +193,6 @@
 /* ========================================
    RESPONSIVE BREAKPOINTS
    ======================================== */
-
-/* Desktop Large (1200px+) — 5 columns if space allows */
-@media (min-width: 1400px) {
-  .products-grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
 
 /* Tablet (768px - 1024px) — 3 columns */
 @media (max-width: 1024px) {
@@ -225,6 +207,7 @@
   .products-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
+    padding: 0.75rem;
   }
 
   .product-info {
@@ -232,30 +215,21 @@
   }
 
   .product-name {
-    font-size: 0.95rem;
-    min-height: 2.6em;
+    font-size: 1rem;
   }
 
   .product-description {
-    /* Keep description visible on mobile as requested */
     font-size: 0.8rem;
-    margin-bottom: 0.75rem;
-    -webkit-line-clamp: 1; /* Limit to 1 line on mobile to keep cards compact */
+    -webkit-line-clamp: 2;
   }
 
   .product-price {
     font-size: 1rem;
   }
-
-  .product-actions {
-    grid-template-columns: 1fr; /* Stack buttons on mobile */
-    gap: 0.4rem;
-  }
-
+  
   .view-details-btn, .add-to-cart-btn {
-    font-size: 0.8rem;
-    padding: 0.5rem;
-    min-height: 36px;
+    padding: 0.625rem;
+    font-size: 0.85rem;
   }
 }
 
