@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { createOrder } from '../services/orderService'
 import { createGuestOrder } from '../services/guestOrderService'
 import { createOrUpdateCustomerProfile } from '../services/customerProfileService'
-import { handleNewOrder } from '../api/emailNotificationHandler'
+// Email notification import removed as it is now handled by the service layer
 import { formatCurrency } from '../utils/currency'
 import './Checkout.css'
 

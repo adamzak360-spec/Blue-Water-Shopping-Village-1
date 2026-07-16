@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supplierService, Supplier, SupplierFormData } from '../services/supplierService';
-import { Plus, Edit2, Trash2, Building2, User, Phone, Mail, MapPin, X, Check, Search, Download, AlertTriangle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Building2, User, Phone, Mail, MapPin, X, Check, Download, AlertTriangle } from 'lucide-react';
 import '../pages/Admin.css';
 
 const SupplierManagement: React.FC = () => {

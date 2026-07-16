@@ -17,7 +17,7 @@ import {
   exportProductsCSV,
   exportCustomersCSV,
 } from '../services/adminAnalyticsService'
-import { handleOrderStatusChange, testEmailSending } from '../api/emailNotificationHandler'
+import { testEmailSending } from '../api/emailNotificationHandler'
 import type { Product, DashboardStats, Order } from '../types'
 import { formatCurrency } from '../utils/currency'
 import InventoryManagement from '../components/InventoryManagement'
@@ -207,8 +207,6 @@ export default function Admin() {
         setError('Order not found')
         return
       }
-      
-      const previousStatus = order.status
       
       // Update order status in database
       await updateOrderStatus(orderId, newStatus)
