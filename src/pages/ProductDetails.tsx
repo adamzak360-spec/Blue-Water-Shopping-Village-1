@@ -4,7 +4,7 @@ import { getProductById, getAllProducts } from '../services/productService'
 import type { Product } from '../types'
 import { useCart } from '../context/CartContext'
 import { formatCurrency } from '../utils/currency'
-import { ChevronLeft, ShoppingCart, Plus, Minus } from 'lucide-react'
+import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock } from 'lucide-react'
 import './ProductDetails.css'
 
 export default function ProductDetails() {
@@ -41,7 +41,7 @@ export default function ProductDetails() {
         const allProducts = await getAllProducts()
         const related = allProducts
           .filter(p => p.category === productData.category && p.id !== productId && p.status === 'active')
-          .slice(0, 6)
+          .slice(0, 4)
         setRelatedProducts(related)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load product')
@@ -59,7 +59,6 @@ export default function ProductDetails() {
         addToCart(product)
       }
       setQuantity(1)
-      // Optional: Show a toast notification or feedback
     }
   }
 
@@ -96,29 +95,15 @@ export default function ProductDetails() {
     )
   }
 
-  // Prepare product images (currently just one, but structure supports multiple)
+  // Prepare product images
   const productImages = product.image_url ? [product.image_url] : []
   const mainImage = productImages[mainImageIndex] || product.image_url
 
   const isOutOfStock = product.stock_quantity === 0 || product.status === 'inactive'
-  const isLowStock = product.stock_quantity > 0 && product.stock_quantity <= (product.low_stock_threshold || 5)
 
   return (
     <div className="product-details-page">
-      {/* Breadcrumb Navigation */}
-      <div className="breadcrumb">
-        <Link to="/products" className="breadcrumb-link">Products</Link>
-        <span className="breadcrumb-separator">/</span>
-        <span className="breadcrumb-current">{product.name}</span>
-      </div>
-
-      {/* Back Button */}
-      <button onClick={() => navigate('/products')} className="back-button-top">
-        <ChevronLeft size={20} />
-        Back to Products
-      </button>
-
-      <div className="product-details-container">
+      <div className="product-main-layout">
         {/* Left Column: Image Gallery */}
         <div className="product-gallery-section">
           <div className="main-image-container">
@@ -127,23 +112,16 @@ export default function ProductDetails() {
                 src={mainImage}
                 alt={product.name}
                 className="main-product-image"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement
-                  target.style.display = 'none'
-                  const placeholder = target.nextElementSibling
-                  if (placeholder) {
-                    placeholder.classList.add('visible')
-                  }
-                }}
               />
-            ) : null}
-            <div className="product-image-placeholder-large">
-              <span>No image available</span>
-            </div>
+            ) : (
+              <div className="product-image-placeholder-large">
+                <span>No image available</span>
+              </div>
+            )}
           </div>
 
           {/* Image Thumbnails */}
-          {productImages.length > 1 && (
+          {productImages.length > 0 && (
             <div className="thumbnail-gallery">
               {productImages.map((image, index) => (
                 <button
@@ -151,204 +129,133 @@ export default function ProductDetails() {
                   className={`thumbnail ${index === mainImageIndex ? 'active' : ''}`}
                   onClick={() => setMainImageIndex(index)}
                 >
-                  <img src={image} alt={`${product.name} ${index + 1}`} />
+                  <img src={image} alt={`${product.name} thumbnail`} />
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* Right Column: Product Information */}
+        {/* Right Column: Product Info */}
         <div className="product-info-section">
-          {/* Product Header */}
-          <div className="product-header">
-            <span className="product-category-badge">{product.category}</span>
-            <h1 className="product-title">{product.name}</h1>
-            <div className="product-rating">
-              <span className="rating-stars">★★★★★</span>
-              <span className="rating-text">(No reviews yet)</span>
+          <div className="price-tag">
+            {formatCurrency(product.price)}
+          </div>
+
+          <div className="availability-info">
+            <div className="info-row">
+              <span className="info-label">Availability:</span>
+              <span className="info-value status-in-stock">In Stock</span>
+            </div>
+            <div className="info-row">
+              <span className="info-label">Stock:</span>
+              <span className="info-value">{product.stock_quantity} units available</span>
+            </div>
+            <div className="info-row">
+              <span className="info-label">SKU:</span>
+              <span className="info-value">BW-{product.id.substring(0, 8).toUpperCase()}</span>
             </div>
           </div>
 
-          {/* Price and Availability */}
-          <div className="price-availability-section">
-            <div className="price-block">
-              <span className="price-label">Price</span>
-              <span className="price-value">{formatCurrency(product.price)}</span>
-            </div>
-
-            <div className="availability-block">
-              <span className="availability-label">Availability</span>
-              {isOutOfStock ? (
-                <span className="availability-out-of-stock">Out of Stock</span>
-              ) : isLowStock ? (
-                <span className="availability-low-stock">Low Stock ({product.stock_quantity} left)</span>
-              ) : (
-                <span className="availability-in-stock">In Stock ({product.stock_quantity} available)</span>
-              )}
-            </div>
-
-            {product.stock_quantity > 0 && (
-              <div className="stock-quantity-block">
-                <span className="stock-label">Stock Quantity</span>
-                <span className="stock-value">{product.stock_quantity} units</span>
-              </div>
-            )}
-          </div>
-
-          {/* Product Description */}
           <div className="description-section">
             <h3 className="section-title">Description</h3>
-            <p className="product-description-full">{product.description}</p>
+            <p className="product-description">{product.description || product.name}</p>
           </div>
 
-          {/* Product Details */}
-          <div className="details-section">
-            <h3 className="section-title">Product Details</h3>
-            <div className="details-grid">
-              <div className="detail-item">
-                <span className="detail-label">Category</span>
-                <span className="detail-value">{product.category}</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">Stock</span>
-                <span className="detail-value">{product.stock_quantity} units</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">Status</span>
-                <span className={`detail-value status-${product.status}`}>
-                  {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
-                </span>
-              </div>
-              {product.low_stock_threshold && (
-                <div className="detail-item">
-                  <span className="detail-label">Low Stock Threshold</span>
-                  <span className="detail-value">{product.low_stock_threshold} units</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Specifications Section */}
-          <div className="specifications-section">
-            <h3 className="section-title">Specifications</h3>
-            <div className="specifications-content">
-              <p className="no-specs-message">No specifications available.</p>
-            </div>
-          </div>
-
-          {/* Quantity Selector and Add to Cart */}
-          {!isOutOfStock && (
-            <div className="purchase-section">
-              <div className="quantity-selector">
-                <span className="quantity-label">Quantity</span>
-                <div className="quantity-controls">
-                  <button
-                    className="quantity-btn"
-                    onClick={() => handleQuantityChange(-1)}
-                    disabled={quantity <= 1}
-                  >
-                    <Minus size={18} />
-                  </button>
-                  <input
-                    type="number"
-                    className="quantity-input"
-                    value={quantity}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value) || 1
-                      if (val > 0 && val <= product.stock_quantity) {
-                        setQuantity(val)
-                      }
-                    }}
-                    min="1"
-                    max={product.stock_quantity}
-                  />
-                  <button
-                    className="quantity-btn"
-                    onClick={() => handleQuantityChange(1)}
-                    disabled={quantity >= product.stock_quantity}
-                  >
-                    <Plus size={18} />
-                  </button>
-                </div>
-              </div>
-
-              <button
-                className="add-to-cart-button"
-                onClick={handleAddToCart}
-                disabled={isOutOfStock}
+          <div className="purchase-controls">
+            <div className="quantity-selector">
+              <button 
+                className="qty-btn" 
+                onClick={() => handleQuantityChange(-1)}
+                disabled={quantity <= 1}
               >
-                <ShoppingCart size={20} />
-                Add to Cart
+                <Minus size={16} />
+              </button>
+              <input 
+                type="number" 
+                className="qty-input" 
+                value={quantity} 
+                readOnly 
+              />
+              <button 
+                className="qty-btn" 
+                onClick={() => handleQuantityChange(1)}
+                disabled={quantity >= product.stock_quantity}
+              >
+                <Plus size={16} />
               </button>
             </div>
-          )}
+            <button 
+              className="add-to-cart-btn"
+              onClick={handleAddToCart}
+              disabled={isOutOfStock}
+            >
+              <ShoppingCart size={20} />
+              Add to Cart
+            </button>
+          </div>
 
-          {isOutOfStock && (
-            <div className="out-of-stock-message">
-              <p>This product is currently out of stock</p>
+          <div className="trust-badges">
+            <div className="trust-item">
+              <Truck size={20} />
+              <span>Fast Delivery</span>
             </div>
-          )}
-
-          {/* Continue Shopping */}
-          <div className="continue-shopping">
-            <Link to="/products" className="continue-shopping-link">
-              ← Continue Shopping
-            </Link>
+            <div className="trust-item">
+              <ShieldCheck size={20} />
+              <span>Quality Guaranteed</span>
+            </div>
+            <div className="trust-item">
+              <Lock size={20} />
+              <span>Secure Packaging</span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Customer Reviews Section */}
-      <div className="reviews-section">
-        <h2 className="section-title">Customer Reviews</h2>
-        <div className="reviews-content">
-          <p className="no-reviews-message">No reviews yet.</p>
+      {/* Specifications Section */}
+      <div className="content-card specifications-card">
+        <h3 className="card-title">Specifications</h3>
+        <div className="card-content">
+          <p className="muted-text">No specifications available.</p>
+        </div>
+      </div>
+
+      {/* Reviews Section */}
+      <div className="content-card reviews-card">
+        <h3 className="card-title">Customer Reviews</h3>
+        <div className="card-content">
+          <div className="rating-summary">
+            <span className="rating-score">0.0</span>
+            <div className="rating-stars">☆☆☆☆☆</div>
+            <span className="rating-count">0 reviews</span>
+          </div>
+          <p className="muted-text">No reviews yet.</p>
         </div>
       </div>
 
       {/* Related Products Section */}
-      {relatedProducts.length > 0 && (
-        <div className="related-products-section">
-          <div className="section-header">
-            <h2 className="section-title">Related Products</h2>
-            <Link to={`/products?category=${encodeURIComponent(product.category)}`} className="view-all-link">
-              View All in {product.category} →
+      <div className="related-products-section">
+        <h3 className="section-title">Related Products</h3>
+        <div className="related-products-grid">
+          {relatedProducts.map(item => (
+            <Link key={item.id} to={`/product/${item.id}`} className="related-card">
+              <div className="related-image-container">
+                <img src={item.image_url} alt={item.name} />
+              </div>
+              <div className="related-info">
+                <h4 className="related-name">{item.name}</h4>
+                <span className="related-price">{formatCurrency(item.price)}</span>
+              </div>
             </Link>
-          </div>
-
-          <div className="related-products-grid">
-            {relatedProducts.map(relatedProduct => (
-              <Link
-                key={relatedProduct.id}
-                to={`/product/${relatedProduct.id}`}
-                className="related-product-card"
-              >
-                {relatedProduct.image_url ? (
-                  <img
-                    src={relatedProduct.image_url}
-                    alt={relatedProduct.name}
-                    className="related-product-image"
-                  />
-                ) : (
-                  <div className="related-product-image-placeholder">
-                    <span>No image</span>
-                  </div>
-                )}
-                <div className="related-product-info">
-                  <h4 className="related-product-name">{relatedProduct.name}</h4>
-                  <span className="related-product-price">{formatCurrency(relatedProduct.price)}</span>
-                  {relatedProduct.stock_quantity === 0 ? (
-                    <span className="related-product-status out-of-stock">Out of Stock</span>
-                  ) : (
-                    <span className="related-product-status in-stock">In Stock</span>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
+          ))}
         </div>
-      )}
+      </div>
+
+      <div className="footer-actions">
+        <button onClick={() => navigate('/products')} className="continue-shopping-btn">
+          Continue Shopping
+        </button>
+      </div>
     </div>
   )
 }
