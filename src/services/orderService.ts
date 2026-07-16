@@ -1,6 +1,7 @@
 import { supabase } from '../supabaseClient'
 import { Order, CartItem } from '../types'
 import { validateCartStock } from './inventoryService'
+import { sendNewOrderNotifications, sendOrderStatusChangeNotifications } from './emailNotifications'
 
 // Guard: Supabase must be configured for order operations
 const getSupabase = () => {
@@ -50,7 +51,14 @@ export const createOrder = async (orderData: Omit<Order, 'id' | 'created_at'>) =
   }
 
   console.log('[OrderService] Order created successfully. Stock reduction will be handled by database trigger.');
-  return data[0];
+  
+  // Trigger email notifications in the background
+  const createdOrder = data[0];
+  sendNewOrderNotifications(createdOrder, createdOrder.customer_email).catch(err => {
+    console.error('[OrderService] Error sending new order notifications:', err);
+  });
+
+  return createdOrder;
 }
 
 export const getAllOrders = async () => {
@@ -67,6 +75,20 @@ export const getAllOrders = async () => {
 }
 
 export const updateOrderStatus = async (orderId: string, status: Order['status']) => {
+  // First fetch the current order to get the previous status and customer email
+  const { data: currentOrder, error: fetchError } = await getSupabase()
+    .from('orders')
+    .select('*')
+    .eq('id', orderId)
+    .single();
+
+  if (fetchError) {
+    console.error('Error fetching order for status update:', fetchError);
+    throw fetchError;
+  }
+
+  const previousStatus = currentOrder.status;
+
   const { data, error } = await getSupabase()
     .from('orders')
     .update({ status })
@@ -77,7 +99,16 @@ export const updateOrderStatus = async (orderId: string, status: Order['status']
     console.error('Error updating order status:', error)
     throw error
   }
-  return data[0]
+
+  // Trigger status change notifications in the background
+  const updatedOrder = data[0];
+  if (previousStatus !== status) {
+    sendOrderStatusChangeNotifications(updatedOrder, updatedOrder.customer_email, previousStatus).catch(err => {
+      console.error('[OrderService] Error sending status change notifications:', err);
+    });
+  }
+
+  return updatedOrder;
 }
 
 export const updatePaymentStatus = async (orderId: string, payment_status: Order['payment_status']) => {
