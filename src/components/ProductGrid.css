@@ -166,13 +166,15 @@
 }
 
 .view-details-btn {
-  background-color: white;
+  background-color: transparent;
   color: #2563eb;
   border: 1px solid #2563eb;
 }
 
 .view-details-btn:hover {
-  background-color: #f0f7ff;
+  background-color: transparent;
+  border-color: #1d4ed8;
+  color: #1d4ed8;
 }
 
 .add-to-cart-btn {
