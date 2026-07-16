@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supplierService, Supplier, SupplierFormData } from '../services/supplierService';
-import { Plus, Edit2, Trash2, Building2, User, Phone, Mail, MapPin, X, Check, Search, Filter, Download, AlertTriangle } from 'lucide-react';
-import './InventoryManagement.css'; // Reusing inventory styles for consistency
+import { Plus, Edit2, Trash2, Building2, User, Phone, Mail, MapPin, X, Check, Search, Download, AlertTriangle } from 'lucide-react';
+import '../pages/Admin.css';
 
 const SupplierManagement: React.FC = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -142,243 +142,226 @@ const SupplierManagement: React.FC = () => {
 
   if (loading && suppliers.length === 0) {
     return (
-      <div className="inventory-loading">
-        <div className="inventory-spinner" />
+      <div className="loading">
+        <div className="spinner-small" style={{ borderColor: '#2563eb', borderTopColor: 'transparent' }}></div>
         <p>Syncing supplier data...</p>
       </div>
     );
   }
 
   return (
-    <div className="inventory-management-container">
+    <div className="admin-section">
       {error && (
-        <div className="inventory-error-banner">
-          <AlertTriangle size={20} />
-          <span>{error}</span>
+        <div className="error-banner">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <AlertTriangle size={18} />
+            <span>{error}</span>
+          </div>
           <button onClick={() => setError(null)}>&times;</button>
         </div>
       )}
 
       {/* Header Section */}
-      <div className="inventory-header-section">
+      <div className="admin-header" style={{ borderBottom: 'none', marginBottom: '0.5rem' }}>
         <div>
-          <h2 className="inventory-title">Supplier Management</h2>
-          <p className="inventory-subtitle">Manage your product vendors and contact information</p>
+          <h2>Supplier Management</h2>
+          <p style={{ color: '#6b7280', fontSize: '0.9rem', marginTop: '0.25rem' }}>
+            Manage your product vendors and contact information
+          </p>
         </div>
-        <div className="flex gap-3">
-          <button className="inventory-export-btn" onClick={handleExportCSV}>
-            <Download size={18} />
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button className="btn-cancel" onClick={handleExportCSV} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Download size={16} />
             <span>Export CSV</span>
           </button>
-          <button 
-            className="inventory-btn-primary flex items-center gap-2 px-6" 
-            onClick={() => handleOpenModal()}
-          >
-            <Plus size={18} />
+          <button className="btn-primary" onClick={() => handleOpenModal()} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Plus size={16} />
             <span>Add New Supplier</span>
           </button>
         </div>
       </div>
 
       {/* Summary Dashboard */}
-      <div className="inventory-summary-grid">
-        <div className="inventory-summary-card total">
-          <div className="summary-icon-wrapper">
-            <Building2 size={24} />
-          </div>
-          <div className="summary-info">
-            <span className="summary-label">Total Suppliers</span>
-            <span className="summary-value">{stats.total}</span>
+      <div className="stats-grid">
+        <div className="stat-card stat-total">
+          <div className="stat-icon"><Building2 size={24} color="#2563eb" /></div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.total}</span>
+            <span className="stat-label">Total Suppliers</span>
           </div>
         </div>
-        <div className="inventory-summary-card products">
-          <div className="summary-icon-wrapper">
-            <Check size={24} />
-          </div>
-          <div className="summary-info">
-            <span className="summary-label">Active</span>
-            <span className="summary-value">{stats.active}</span>
+        <div className="stat-card stat-active">
+          <div className="stat-icon"><Check size={24} color="#16a34a" /></div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.active}</span>
+            <span className="stat-label">Active Vendors</span>
           </div>
         </div>
-        <div className="inventory-summary-card danger">
-          <div className="summary-icon-wrapper">
-            <X size={24} />
-          </div>
-          <div className="summary-info">
-            <span className="summary-label">Inactive</span>
-            <span className="summary-value">{stats.inactive}</span>
+        <div className="stat-card stat-out-of-stock">
+          <div className="stat-icon"><X size={24} color="#d97706" /></div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.inactive}</span>
+            <span className="stat-label">Inactive Vendors</span>
           </div>
         </div>
       </div>
 
-      {/* Filters & Content Area */}
-      <div className="inventory-content-wrapper">
-        <div className="inventory-list-view">
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="inventory-search-bar flex-1">
-              <Search size={18} />
-              <input 
-                type="text"
-                placeholder="Search by company, contact or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="min-w-[200px]">
-              <select 
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="inventory-select w-full"
-              >
-                <option value="All">All Statuses</option>
-                <option value="Active">Active Only</option>
-                <option value="Inactive">Inactive Only</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="inventory-table-container">
-            <table className="inventory-data-table">
-              <thead>
-                <tr>
-                  <th>Company Details</th>
-                  <th>Contact Person</th>
-                  <th>Contact Info</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredSuppliers.map(supplier => (
-                  <tr key={supplier.id}>
-                    <td>
-                      <div className="product-info-cell">
-                        <span className="p-name">{supplier.company_name}</span>
-                        <span className="p-id flex items-center gap-1">
-                          <MapPin size={12} /> {supplier.business_address}
-                        </span>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-2">
-                        <User size={16} className="text-gray-400" />
-                        <span className="font-medium text-gray-700">{supplier.contact_person}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="flex flex-col gap-1 text-sm">
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Phone size={14} className="text-blue-500" />
-                          <span>{supplier.phone_number}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Mail size={14} className="text-blue-500" />
-                          <span className="truncate max-w-[180px]">{supplier.email_address}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className={`status-pill ${supplier.status.toLowerCase()}`}>
-                        {supplier.status}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={() => handleOpenModal(supplier)}
-                          className="inventory-action-btn"
-                          title="Edit"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(supplier.id)}
-                          className="inventory-action-btn hover:!bg-red-50 hover:!text-red-600 hover:!border-red-200"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {filteredSuppliers.length === 0 && (
-              <div className="inventory-empty-state py-12">
-                <Building2 size={48} className="text-gray-300 mb-4" />
-                <h4 className="text-lg font-bold text-gray-900">No suppliers found</h4>
-                <p className="text-gray-500">Try adjusting your search or filters.</p>
-              </div>
-            )}
-          </div>
-        </div>
+      {/* Search & Filter Bar */}
+      <div className="search-filter-bar">
+        <input 
+          type="text"
+          className="search-input"
+          placeholder="Search by company, contact or email..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <select 
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as any)}
+          className="filter-select"
+        >
+          <option value="All">All Statuses</option>
+          <option value="Active">Active Only</option>
+          <option value="Inactive">Inactive Only</option>
+        </select>
       </div>
 
-      {/* Professional Modal */}
+      {/* Table Section */}
+      <div className="products-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Company Details</th>
+              <th>Contact Person</th>
+              <th>Contact Info</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredSuppliers.map(supplier => (
+              <tr key={supplier.id}>
+                <td>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontWeight: 600, color: '#111827' }}>{supplier.company_name}</span>
+                    <span style={{ fontSize: '0.8rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                      <MapPin size={12} /> {supplier.business_address}
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <User size={16} color="#9ca3af" />
+                    <span>{supplier.contact_person}</span>
+                  </div>
+                </td>
+                <td>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '0.85rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#4b5563' }}>
+                      <Phone size={14} color="#3b82f6" />
+                      <span>{supplier.phone_number}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#4b5563' }}>
+                      <Mail size={14} color="#3b82f6" />
+                      <span style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{supplier.email_address}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span className={`status-badge ${supplier.status.toLowerCase()}`}>
+                    {supplier.status}
+                  </span>
+                </td>
+                <td>
+                  <div className="actions-cell">
+                    <button 
+                      onClick={() => handleOpenModal(supplier)}
+                      className="btn-edit"
+                      title="Edit"
+                    >
+                      <Edit2 size={14} />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(supplier.id)}
+                      className="btn-delete"
+                      title="Delete"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {filteredSuppliers.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
+            <Building2 size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+            <p>No suppliers found matching your criteria.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex justify-center items-center z-[1000] p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">
-                  {editingSupplier ? 'Edit Supplier' : 'Add New Supplier'}
-                </h3>
-                <p className="text-gray-500 text-sm mt-0.5">Enter vendor information</p>
-              </div>
-              <button 
-                onClick={() => setIsModalOpen(false)} 
-                className="p-2 hover:bg-white rounded-full text-gray-400 hover:text-gray-600 transition-all shadow-sm"
-              >
-                <X size={24} />
-              </button>
+        <div className="modal-overlay">
+          <div className="modal-content order-details-modal" style={{ maxWidth: '600px' }}>
+            <div className="modal-header">
+              <h3>{editingSupplier ? 'Edit Supplier' : 'Add New Supplier'}</h3>
+              <button className="close-modal" onClick={() => setIsModalOpen(false)}>&times;</button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div className="form-input-group">
-                  <label>Company Name *</label>
-                  <input
-                    required
-                    name="company_name"
-                    value={formData.company_name}
-                    onChange={handleInputChange}
-                    placeholder="e.g. Blue Water Wholesale"
-                  />
+            <form onSubmit={handleSubmit} style={{ padding: '1.5rem' }}>
+              <div className="product-form" style={{ gap: '1rem' }}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Company Name *</label>
+                    <input
+                      required
+                      name="company_name"
+                      value={formData.company_name}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Blue Water Wholesale"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Contact Person *</label>
+                    <input
+                      required
+                      name="contact_person"
+                      value={formData.contact_person}
+                      onChange={handleInputChange}
+                      placeholder="e.g. John Doe"
+                    />
+                  </div>
                 </div>
-                <div className="form-input-group">
-                  <label>Contact Person *</label>
-                  <input
-                    required
-                    name="contact_person"
-                    value={formData.contact_person}
-                    onChange={handleInputChange}
-                    placeholder="e.g. John Doe"
-                  />
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Phone Number *</label>
+                    <input
+                      required
+                      name="phone_number"
+                      value={formData.phone_number}
+                      onChange={handleInputChange}
+                      placeholder="e.g. +233..."
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Email Address *</label>
+                    <input
+                      required
+                      type="email"
+                      name="email_address"
+                      value={formData.email_address}
+                      onChange={handleInputChange}
+                      placeholder="e.g. contact@supplier.com"
+                    />
+                  </div>
                 </div>
-                <div className="form-input-group">
-                  <label>Phone Number *</label>
-                  <input
-                    required
-                    name="phone_number"
-                    value={formData.phone_number}
-                    onChange={handleInputChange}
-                    placeholder="e.g. +234 800 000 0000"
-                  />
-                </div>
-                <div className="form-input-group">
-                  <label>Email Address *</label>
-                  <input
-                    required
-                    type="email"
-                    name="email_address"
-                    value={formData.email_address}
-                    onChange={handleInputChange}
-                    placeholder="e.g. contact@supplier.com"
-                  />
-                </div>
-                <div className="form-input-group md:col-span-2">
+
+                <div className="form-group">
                   <label>Business Address *</label>
                   <input
                     required
@@ -388,55 +371,51 @@ const SupplierManagement: React.FC = () => {
                     placeholder="Full physical address"
                   />
                 </div>
-                <div className="form-input-group">
-                  <label>Tax ID / Business Reg</label>
-                  <input
-                    name="tax_id"
-                    value={formData.tax_id}
-                    onChange={handleInputChange}
-                    placeholder="Optional"
-                  />
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Tax ID / Business Reg</label>
+                    <input
+                      name="tax_id"
+                      value={formData.tax_id}
+                      onChange={handleInputChange}
+                      placeholder="Optional"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Status</label>
+                    <select
+                      name="status"
+                      value={formData.status}
+                      onChange={handleInputChange}
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="form-input-group">
-                  <label>Status</label>
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    className="inventory-select w-full"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-                </div>
-                <div className="form-input-group md:col-span-2">
+
+                <div className="form-group">
                   <label>Notes</label>
                   <textarea
                     name="notes"
                     value={formData.notes}
                     onChange={handleInputChange}
                     rows={3}
-                    className="w-full p-3 border border-gray-200 rounded-xl outline-none focus:border-blue-500 resize-none"
+                    style={{ resize: 'none' }}
                     placeholder="Any additional information..."
                   />
                 </div>
-              </div>
 
-              <div className="flex justify-end gap-4 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="inventory-btn-secondary px-8"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="inventory-btn-primary px-8 flex items-center gap-2"
-                >
-                  <Check size={20} />
-                  {editingSupplier ? 'Update Supplier' : 'Create Supplier'}
-                </button>
+                <div className="form-actions" style={{ marginTop: '1rem' }}>
+                  <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn-submit">
+                    <Check size={16} />
+                    {editingSupplier ? 'Update Supplier' : 'Create Supplier'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
