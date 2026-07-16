@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { getAllProducts } from '../services/productService'
 import type { Product } from '../types'
 import { Link } from 'react-router-dom'
-import { formatCurrency } from '../utils/currency'
+import ProductCard from '../components/ProductCard'
 import './Home.css'
+import '../components/ProductGrid.css'
 
 const TESTIMONIALS = [
   {
@@ -27,32 +28,32 @@ const TESTIMONIALS = [
 ]
 
 const CATEGORY_ICONS: Record<string, string> = {
-  'New Cars Collection': '\uD83D\uDE97',
-  'Motorcycle': '\uD83C\uDFCD',
-  'Fruits': '\uD83C\uDF4E',
-  'Fruit': '\uD83C\uDF4C',
-  'Sponge': '\uD83E\uDDFD',
-  'Flask': '\uD83E\uDDEA',
-  'Software Developer/Engineer': '\uD83D\uDCBB',
-  'Groceries': '\uD83C\uDF3E',
-  'Electronics': '\uD83D\uDCBB',
-  'Fashion': '\uD83D\uDC57',
-  'Home & Garden': '\uD83C\uDFE1',
-  'Sports': '\u26BD',
-  'Health & Beauty': '\uD83D\uDC84',
+  'New Cars Collection': '🚗',
+  'Motorcycle': '🏍️',
+  'Fruits': '🍎',
+  'Fruit': '🍌',
+  'Sponge': '🧽',
+  'Flask': '🧪',
+  'Software Developer/Engineer': '💻',
+  'Groceries': '🌾',
+  'Electronics': '💻',
+  'Fashion': '👗',
+  'Home & Garden': '🏡',
+  'Sports': '⚽',
+  'Health & Beauty': '💄',
 }
 
 function getCategoryIcon(name: string): string {
   if (CATEGORY_ICONS[name]) return CATEGORY_ICONS[name]
   const lower = name.toLowerCase()
-  if (lower.includes('fruit') || lower.includes('food')) return '\uD83C\uDF4E'
-  if (lower.includes('car') || lower.includes('vehicle') || lower.includes('bike') || lower.includes('motor')) return '\uD83D\uDE97'
-  if (lower.includes('electronics') || lower.includes('tech') || lower.includes('soft')) return '\uD83D\uDCBB'
-  if (lower.includes('fashion') || lower.includes('cloth')) return '\uD83D\uDC57'
-  if (lower.includes('home') || lower.includes('garden')) return '\uD83C\uDFE1'
-  if (lower.includes('sport')) return '\u26BD'
-  if (lower.includes('health') || lower.includes('beauty')) return '\uD83D\uDC84'
-  return '\uD83C\uDF1F'
+  if (lower.includes('fruit') || lower.includes('food')) return '🍎'
+  if (lower.includes('car') || lower.includes('vehicle') || lower.includes('bike') || lower.includes('motor')) return '🚗'
+  if (lower.includes('electronics') || lower.includes('tech') || lower.includes('soft')) return '💻'
+  if (lower.includes('fashion') || lower.includes('cloth')) return '👗'
+  if (lower.includes('home') || lower.includes('garden')) return '🏡'
+  if (lower.includes('sport')) return '⚽'
+  if (lower.includes('health') || lower.includes('beauty')) return '💄'
+  return '🌟'
 }
 
 export default function Home() {
@@ -75,7 +76,7 @@ export default function Home() {
   }, [])
 
   const activeProducts = allProducts.filter(p => p.status === 'active')
-  const featuredProducts = activeProducts.slice(0, 6)
+  const featuredProducts = activeProducts.slice(0, 8)
   const newArrivals = activeProducts.slice(0, 4)
 
   // Dynamically extract categories from database products
@@ -182,39 +183,7 @@ export default function Home() {
           ) : (
             <div className="products-grid">
               {featuredProducts.map(product => (
-                <div key={product.id} className="product-card">
-                  <Link to={`/product/${product.id}`} className="product-image-link">
-                    {product.image_url ? (
-                      <img src={product.image_url} alt={product.name} className="product-image" />
-                    ) : (
-                      <div className="product-image-placeholder">
-                        <span>No image</span>
-                      </div>
-                    )}
-                  </Link>
-                  <div className="product-info">
-                    <span className="product-category">{product.category}</span>
-                    <Link to={`/product/${product.id}`} className="product-name-link">
-                      <h4 className="product-name">{product.name}</h4>
-                    </Link>
-                    <p className="product-description">
-                      {product.description.length > 80
-                        ? product.description.substring(0, 80) + '\u2026'
-                        : product.description}
-                    </p>
-                    <div className="product-footer">
-                      <span className="product-price">{formatCurrency(product.price)}</span>
-                      {product.stock_quantity === 0 && (
-                        <span className="out-of-stock-badge">Out of Stock</span>
-                      )}
-                    </div>
-                    <div className="product-actions">
-                      <Link to={`/product/${product.id}`} className="view-details-btn">
-                        View Details
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                <ProductCard key={product.id} product={product} />
               ))}
             </div>
           )}
@@ -248,39 +217,7 @@ export default function Home() {
           ) : (
             <div className="products-grid">
               {newArrivals.map(product => (
-                <div key={product.id} className="product-card">
-                  <Link to={`/product/${product.id}`} className="product-image-link">
-                    {product.image_url ? (
-                      <img src={product.image_url} alt={product.name} className="product-image" />
-                    ) : (
-                      <div className="product-image-placeholder">
-                        <span>No image</span>
-                      </div>
-                    )}
-                  </Link>
-                  <div className="product-info">
-                    <span className="product-category">{product.category}</span>
-                    <Link to={`/product/${product.id}`} className="product-name-link">
-                      <h4 className="product-name">{product.name}</h4>
-                    </Link>
-                    <p className="product-description">
-                      {product.description.length > 80
-                        ? product.description.substring(0, 80) + '\u2026'
-                        : product.description}
-                    </p>
-                    <div className="product-footer">
-                      <span className="product-price">{formatCurrency(product.price)}</span>
-                      {product.stock_quantity === 0 && (
-                        <span className="out-of-stock-badge">Out of Stock</span>
-                      )}
-                    </div>
-                    <div className="product-actions">
-                      <Link to={`/product/${product.id}`} className="view-details-btn">
-                        View Details
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                <ProductCard key={product.id} product={product} />
               ))}
             </div>
           )}
@@ -349,10 +286,9 @@ export default function Home() {
             <div className="why-shop-card">
               <div className="why-shop-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
                 </svg>
               </div>
               <h4>Exceptional Service</h4>
@@ -370,23 +306,20 @@ export default function Home() {
               <span className="promo-tag">Coming Soon</span>
               <h3 className="promo-title">Exciting Deals Await You</h3>
               <p className="promo-description">
-                Stay tuned for amazing discounts, seasonal offers, and exclusive deals on your favourite products.
+                Stay tuned for amazing discounts, seasonal offers, and exclusive deals on your favourite products. 
                 Subscribe to our newsletter to be the first to know!
               </p>
-              <Link to="/products" className="promo-cta">
-                Shop Now
-              </Link>
+              <Link to="/products" className="promo-btn">Shop Now</Link>
             </div>
             <div className="promo-decoration">
-              <div className="promo-circle promo-circle-1" />
-              <div className="promo-circle promo-circle-2" />
-              <div className="promo-circle promo-circle-3" />
+              <div className="promo-circle" />
+              <div className="promo-circle-small" />
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Customer Testimonials ── */}
+      {/* ── Testimonials ── */}
       <section className="section testimonials-section">
         <div className="section-container">
           <div className="section-header section-header-centered">
@@ -397,18 +330,16 @@ export default function Home() {
             {TESTIMONIALS.map((t, i) => (
               <div key={i} className="testimonial-card">
                 <div className="testimonial-stars">
-                  {[...Array(t.rating)].map((_, s) => (
-                    <span key={s} className="star">&#9733;</span>
+                  {[...Array(t.rating)].map((_, j) => (
+                    <span key={j} className="star">★</span>
                   ))}
                 </div>
                 <p className="testimonial-text">"{t.text}"</p>
                 <div className="testimonial-author">
-                  <div className="author-avatar">
-                    {t.name.charAt(0)}
-                  </div>
+                  <div className="author-avatar">{t.name.charAt(0)}</div>
                   <div className="author-info">
-                    <span className="author-name">{t.name}</span>
-                    <span className="author-location">{t.location}</span>
+                    <h5 className="author-name">{t.name}</h5>
+                    <p className="author-location">{t.location}</p>
                   </div>
                 </div>
               </div>
@@ -417,7 +348,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Newsletter Section ── */}
+      {/* ── Newsletter ── */}
       <section className="section newsletter-section">
         <div className="section-container">
           <div className="newsletter-box">
@@ -426,19 +357,12 @@ export default function Home() {
               <p className="newsletter-description">
                 Subscribe to our newsletter for the latest products, exclusive deals, and special offers delivered to your inbox.
               </p>
-              <form className="newsletter-form" onSubmit={(e) => { e.preventDefault(); }}>
-                <input
-                  type="email"
-                  placeholder="Enter your email address"
-                  className="newsletter-input"
-                  required
-                />
-                <button type="submit" className="newsletter-btn">
-                  Subscribe
-                </button>
-              </form>
-              <p className="newsletter-note">We respect your privacy. Unsubscribe at any time.</p>
             </div>
+            <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
+              <input type="email" placeholder="Enter your email address" className="newsletter-input" />
+              <button type="submit" className="newsletter-btn">Subscribe</button>
+            </form>
+            <p className="newsletter-note">We respect your privacy. Unsubscribe at any time.</p>
           </div>
         </div>
       </section>
