@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from '../supabaseClient'
 import { validateCartStock } from './inventoryService'
+import { sendNewOrderNotifications } from './emailNotifications'
 
 /**
  * Guest Order Service
@@ -177,6 +178,13 @@ export async function createGuestOrder(
       total: createdOrder.total,
     })
     console.log('[Guest Order] Stock reduction will be handled by database trigger.')
+
+    // Trigger email notifications in the background
+    if (createdOrder.customer_email) {
+      sendNewOrderNotifications(createdOrder, createdOrder.customer_email).catch(err => {
+        console.error('[GuestOrderService] Error sending new order notifications:', err);
+      });
+    }
 
     return createdOrder
   } catch (error: any) {

@@ -112,21 +112,8 @@ export default function Checkout() {
 
       console.log('[Checkout] Order created successfully:', result.id)
       
-      // Trigger email notifications
-      try {
-        const emailResult = await handleNewOrder(
-          {
-            ...orderPayload,
-            id: result.id,
-            created_at: new Date().toISOString(),
-          },
-          formData.email
-        )
-        console.log('[Checkout] Email notifications sent:', emailResult)
-      } catch (emailError) {
-        console.warn('[Checkout] Failed to send email notifications:', emailError)
-        // Don't fail the order if email fails
-      }
+      // Email notifications are now handled by the orderService/guestOrderService
+      console.log('[Checkout] Order notifications triggered via service')
       
       clearCart()
       console.log('[Checkout] Cart cleared')

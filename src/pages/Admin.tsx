@@ -213,27 +213,8 @@ export default function Admin() {
       // Update order status in database
       await updateOrderStatus(orderId, newStatus)
       
-      // Send email notification to customer
-      try {
-        const emailResult = await handleOrderStatusChange(
-          {
-            ...order,
-            id: order.id || '',
-            status: newStatus,
-          },
-          order.customer_email,
-          previousStatus,
-          false // Don't notify admin again
-        )
-        if (emailResult.success) {
-          console.log('[Admin] Email notification sent for order status change')
-        } else {
-          console.warn('[Admin] Email service returned failure:', emailResult.error)
-        }
-      } catch (emailError) {
-        console.warn('[Admin] Failed to send email notification:', emailError)
-        // Don't fail the status update if email fails
-      }
+      // Email notifications are now handled by the orderService
+      console.log('[Admin] Order status change notification triggered via service')
       
       showNotification('Order status updated successfully!')
       await loadData()
