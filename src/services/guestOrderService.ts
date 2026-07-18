@@ -20,6 +20,12 @@ interface GuestOrderPayload {
   subtotal: number
   delivery_fee: number
   total: number
+  status?: string
+  payment_status?: string
+  payment_method?: string
+  paystack_reference?: string
+  amount_paid?: number
+  payment_date?: string
 }
 
 /**
@@ -131,8 +137,12 @@ export async function createGuestOrder(
     subtotal: payload.subtotal,
     delivery_fee: payload.delivery_fee,
     total: payload.total,
-    status: 'pending',
-    payment_status: 'pending',
+    status: payload.status || 'pending',
+    payment_status: payload.payment_status || 'pending',
+    payment_method: payload.payment_method || null,
+    paystack_reference: payload.paystack_reference || null,
+    amount_paid: payload.amount_paid || null,
+    payment_date: payload.payment_date || null,
     user_id: null,
   }
 

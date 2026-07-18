@@ -38,7 +38,7 @@ export default function Checkout() {
   // Load Paystack script
   useEffect(() => {
     const script = document.createElement('script')
-    script.src = 'https://js.paystack.co/v1/inline.js'
+    script.src = 'https://js.paystack.co/v2/inline.js'
     script.async = true
     document.body.appendChild(script)
 
@@ -96,11 +96,22 @@ export default function Checkout() {
       console.log('[Checkout] Paystack payment initialized, redirecting to payment page')
       setPaymentStep('payment')
 
-      // Redirect to Paystack payment page
+      // Open Paystack popup using the access code
       if (typeof window !== 'undefined' && (window as any).PaystackPop) {
-        ;(window as any).PaystackPop.resumeTransaction(paymentInit.data.reference)
+        const paystack = new (window as any).PaystackPop()
+        paystack.resumeTransaction(paymentInit.data.access_code, {
+          onSuccess: (transaction: any) => {
+            console.log('[Checkout] Payment successful in popup:', transaction)
+            handlePaymentVerification()
+          },
+          onCancel: () => {
+            console.log('[Checkout] Payment cancelled by user')
+            setIsSubmitting(false)
+            setPaymentStep('form')
+          }
+        })
       } else {
-        // Fallback: redirect to authorization URL
+        // Fallback: redirect to authorization URL if SDK failed to load
         window.location.href = paymentInit.data.authorization_url
       }
     } catch (error: any) {
