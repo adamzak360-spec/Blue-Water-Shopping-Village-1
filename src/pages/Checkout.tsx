@@ -96,24 +96,9 @@ export default function Checkout() {
       console.log('[Checkout] Paystack payment initialized, redirecting to payment page')
       setPaymentStep('payment')
 
-      // Open Paystack popup using the access code
-      if (typeof window !== 'undefined' && (window as any).PaystackPop) {
-        const paystack = new (window as any).PaystackPop()
-        paystack.resumeTransaction(paymentInit.data.access_code, {
-          onSuccess: (transaction: any) => {
-            console.log('[Checkout] Payment successful in popup:', transaction)
-            handlePaymentVerification()
-          },
-          onCancel: () => {
-            console.log('[Checkout] Payment cancelled by user')
-            setIsSubmitting(false)
-            setPaymentStep('form')
-          }
-        })
-      } else {
-        // Fallback: redirect to authorization URL if SDK failed to load
-        window.location.href = paymentInit.data.authorization_url
-      }
+      // Redirect to Paystack payment page using the authorization URL
+      // This is the most reliable method for both mobile and desktop
+      window.location.href = paymentInit.data.authorization_url
     } catch (error: any) {
       console.error('[Checkout] Payment initialization failed:', error)
       alert(`Payment initialization failed: ${error.message}`)
