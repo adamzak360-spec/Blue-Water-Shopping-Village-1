@@ -143,6 +143,8 @@ export default function Checkout() {
           paystack_reference: paymentReference,
           amount_paid: verification.data.amount / 100, // Convert from kobo
           payment_date: new Date().toISOString(),
+          paid_at: verification.data.paid_at,
+          transaction_id: verification.data.id.toString(),
         }
 
         let result;

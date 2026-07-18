@@ -65,5 +65,7 @@ export interface Order {
   paystack_reference?: string
   amount_paid?: number
   payment_date?: string
+  paid_at?: string
+  transaction_id?: string
   created_at?: string
 }
