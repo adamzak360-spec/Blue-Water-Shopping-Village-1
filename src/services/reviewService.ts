@@ -1,7 +1,11 @@
-import { supabase } from '../supabaseClient'
+import { supabase, isSupabaseConfigured } from '../supabaseClient'
 import type { Review } from '../types'
 
 export const getApprovedReviewsByProductId = async (productId: string): Promise<Review[]> => {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
   const { data, error } = await supabase
     .from('reviews')
     .select('*')
@@ -10,10 +14,14 @@ export const getApprovedReviewsByProductId = async (productId: string): Promise<
     .order('created_at', { ascending: false })
 
   if (error) throw error
-  return data || []
+  return (data as Review[]) || []
 }
 
 export const submitReview = async (review: Omit<Review, 'id' | 'created_at' | 'status'>): Promise<Review> => {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
   const { data, error } = await supabase
     .from('reviews')
     .insert([{ ...review, status: 'pending' }])
@@ -21,20 +29,28 @@ export const submitReview = async (review: Omit<Review, 'id' | 'created_at' | 's
     .single()
 
   if (error) throw error
-  return data
+  return data as Review
 }
 
 export const getAllReviews = async (): Promise<Review[]> => {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
   const { data, error } = await supabase
     .from('reviews')
     .select('*')
     .order('created_at', { ascending: false })
 
   if (error) throw error
-  return data || []
+  return (data as Review[]) || []
 }
 
 export const updateReviewStatus = async (reviewId: string, status: 'approved' | 'hidden'): Promise<void> => {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
   const { error } = await supabase
     .from('reviews')
     .update({ status })
@@ -44,6 +60,10 @@ export const updateReviewStatus = async (reviewId: string, status: 'approved' | 
 }
 
 export const deleteReview = async (reviewId: string): Promise<void> => {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
   const { error } = await supabase
     .from('reviews')
     .delete()
@@ -53,6 +73,10 @@ export const deleteReview = async (reviewId: string): Promise<void> => {
 }
 
 export const getProductRatingStats = async (productId: string) => {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
   const { data, error } = await supabase
     .from('reviews')
     .select('rating')

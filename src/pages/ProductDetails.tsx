@@ -5,7 +5,7 @@ import { getApprovedReviewsByProductId, submitReview, getProductRatingStats } fr
 import type { Product, Review } from '../types'
 import { useCart } from '../context/CartContext'
 import { formatCurrency } from '../utils/currency'
-import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock, Star } from 'lucide-react'
+import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock } from 'lucide-react'
 import './ProductDetails.css'
 
 export default function ProductDetails() {
