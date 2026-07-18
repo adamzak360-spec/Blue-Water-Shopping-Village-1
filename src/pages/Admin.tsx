@@ -75,6 +75,12 @@ export default function Admin() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [showOrderModal, setShowOrderModal] = useState(false)
   const [isTestingEmail, setIsTestingEmail] = useState(false)
+  const [productsLoading, setProductsLoading] = useState(false)
+  const [ordersLoading, setOrdersLoading] = useState(false)
+  const [reviewsLoading, setReviewsLoading] = useState(false)
+  const [productsError, setProductsError] = useState('')
+  const [ordersError, setOrdersError] = useState('')
+  const [reviewsError, setReviewsError] = useState('')
 
   const showNotification = useCallback((message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type })
@@ -84,22 +90,58 @@ export default function Admin() {
   const loadData = useCallback(async () => {
     setIsLoading(true)
     setError('')
+    
+    // Load products and stats independently
+    setProductsLoading(true)
+    setProductsError('')
     try {
-      const [allProducts, statsData, allOrders, allReviews] = await Promise.all([
+      const [allProducts, statsData] = await Promise.all([
         getAllProducts(),
-        getDashboardStats(),
-        getAllOrders(),
-        getAllReviews(),
+        getDashboardStats()
       ])
       setProducts(allProducts)
       setStats(statsData)
-      setOrders(allOrders)
-      setReviews(allReviews)
+      setProductsError('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load data')
+      console.error('Error loading products/stats:', err)
+      setProductsError('Failed to load products')
+      setProducts([])
+      setStats({ total: 0, active: 0, outOfStock: 0 })
     } finally {
-      setIsLoading(false)
+      setProductsLoading(false)
     }
+
+    // Load orders independently
+    setOrdersLoading(true)
+    setOrdersError('')
+    try {
+      const ordersData = await getAllOrders()
+      setOrders(ordersData)
+      setOrdersError('')
+    } catch (err) {
+      console.error('Error loading orders:', err)
+      setOrdersError('Failed to load orders')
+      setOrders([])
+    } finally {
+      setOrdersLoading(false)
+    }
+
+    // Load reviews independently
+    setReviewsLoading(true)
+    setReviewsError('')
+    try {
+      const reviewsData = await getAllReviews()
+      setReviews(reviewsData)
+      setReviewsError('')
+    } catch (err) {
+      console.error('Error loading reviews:', err)
+      setReviewsError('Failed to load reviews')
+      setReviews([])
+    } finally {
+      setReviewsLoading(false)
+    }
+
+    setIsLoading(false)
   }, [])
 
   useEffect(() => {
@@ -337,11 +379,11 @@ export default function Admin() {
         </div>
       )}
 
-      {/* Error Banner */}
-      {error && (
+      {/* Error Banner - Only show critical errors */}
+      {(error || productsError) && (
         <div className="error-banner">
-          <span>{error}</span>
-          <button onClick={() => setError('')}>&times;</button>
+          <span>{error || productsError}</span>
+          <button onClick={() => { setError(''); setProductsError(''); }}>&times;</button>
         </div>
       )}
 
