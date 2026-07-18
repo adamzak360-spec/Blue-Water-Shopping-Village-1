@@ -9,7 +9,6 @@ import {
   initializePayment, 
   verifyPayment, 
   generatePaymentReference,
-  getPublicKey 
 } from '../services/paystackService'
 import { formatCurrency } from '../utils/currency'
 import './Checkout.css'
