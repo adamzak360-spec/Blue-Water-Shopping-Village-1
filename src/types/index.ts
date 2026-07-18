@@ -61,5 +61,9 @@ export interface Order {
   total: number
   status: 'pending' | 'confirmed' | 'processing' | 'out-of-delivery' | 'delivered' | 'cancelled'
   payment_status: 'pending' | 'paid' | 'failed'
+  payment_method?: string
+  paystack_reference?: string
+  amount_paid?: number
+  payment_date?: string
   created_at?: string
 }

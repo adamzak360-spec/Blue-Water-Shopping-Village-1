@@ -736,8 +736,47 @@ export default function Admin() {
                     <span className="detail-label">Grand Total:</span>
                     <span className="detail-value">{formatCurrency(selectedOrder.total)}</span>
                   </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Payment Status:</span>
+                    <span className={`status-badge status-${selectedOrder.payment_status}`}>
+                      {selectedOrder.payment_status?.replace('-', ' ') || 'N/A'}
+                    </span>
+                  </div>
                 </div>
               </div>
+
+              {/* Payment Information Section */}
+              {selectedOrder.payment_method && (
+                <div className="details-section">
+                  <h4>Payment Information</h4>
+                  <div className="details-card">
+                    <div className="detail-item">
+                      <span className="detail-label">Payment Method:</span>
+                      <span className="detail-value">{selectedOrder.payment_method}</span>
+                    </div>
+                    {selectedOrder.paystack_reference && (
+                      <div className="detail-item">
+                        <span className="detail-label">Paystack Reference:</span>
+                        <span className="detail-value monospace">{selectedOrder.paystack_reference}</span>
+                      </div>
+                    )}
+                    {selectedOrder.amount_paid && (
+                      <div className="detail-item">
+                        <span className="detail-label">Amount Paid:</span>
+                        <span className="detail-value">{formatCurrency(selectedOrder.amount_paid)}</span>
+                      </div>
+                    )}
+                    {selectedOrder.payment_date && (
+                      <div className="detail-item">
+                        <span className="detail-label">Payment Date:</span>
+                        <span className="detail-value">
+                          {new Date(selectedOrder.payment_date).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Products Section */}
