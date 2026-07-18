@@ -10,6 +10,19 @@ export interface Product {
   status: 'active' | 'inactive' | 'out-of-stock'
   created_at: string
   updated_at: string
+  average_rating?: number
+  review_count?: number
+}
+
+export interface Review {
+  id: string
+  product_id: string
+  customer_name: string
+  rating: number
+  title?: string
+  message: string
+  status: 'pending' | 'approved' | 'hidden'
+  created_at: string
 }
 
 export interface ProductFormData {

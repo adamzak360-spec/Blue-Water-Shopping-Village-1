@@ -1014,3 +1014,53 @@ table tr:hover {
   border-radius: 6px;
   border-left: 4px solid #dc2626;
 }
+
+/* Reviews Management Styles */
+.reviews-list-content {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.reviews-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.reviews-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.reviews-table th {
+  text-align: left;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  color: #374151;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.reviews-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+
+.status-badge.status-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.status-approved {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.status-hidden {
+  background-color: #f3f4f6;
+  color: #374151;
+}

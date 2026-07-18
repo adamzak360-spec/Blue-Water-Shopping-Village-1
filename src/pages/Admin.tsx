@@ -13,12 +13,17 @@ import {
   updateOrderStatus,
 } from '../services/orderService'
 import {
+  getAllReviews,
+  updateReviewStatus,
+  deleteReview,
+} from '../services/reviewService'
+import {
   exportOrdersCSV,
   exportProductsCSV,
   exportCustomersCSV,
 } from '../services/adminAnalyticsService'
 import { testEmailSending } from '../api/emailNotificationHandler'
-import type { Product, DashboardStats, Order } from '../types'
+import type { Product, DashboardStats, Order, Review } from '../types'
 import { formatCurrency } from '../utils/currency'
 import InventoryManagement from '../components/InventoryManagement'
 import AdminAnalytics from '../components/AdminAnalytics'
@@ -26,7 +31,7 @@ import FinancialReports from '../components/FinancialReports'
 import SupplierManagement from '../components/SupplierManagement'
 import './Admin.css'
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews'
 
 interface ProductFormErrors {
   name?: string
@@ -52,10 +57,13 @@ export default function Admin() {
   const [view, setView] = useState<AdminView>('dashboard')
   const [products, setProducts] = useState<Product[]>([])
   const [orders, setOrders] = useState<Order[]>([])
+  const [reviews, setReviews] = useState<Review[]>([])
   const [stats, setStats] = useState<DashboardStats>({ total: 0, active: 0, outOfStock: 0 })
   const [searchTerm, setSearchTerm] = useState('')
   const [orderSearchTerm, setOrderSearchTerm] = useState('')
+  const [reviewSearchTerm, setReviewSearchTerm] = useState('')
   const [orderFilterStatus, setOrderFilterStatus] = useState('')
+  const [reviewFilterProduct, setReviewFilterProduct] = useState('')
   const [filterCategory, setFilterCategory] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -77,14 +85,16 @@ export default function Admin() {
     setIsLoading(true)
     setError('')
     try {
-      const [allProducts, statsData, allOrders] = await Promise.all([
+      const [allProducts, statsData, allOrders, allReviews] = await Promise.all([
         getAllProducts(),
         getDashboardStats(),
         getAllOrders(),
+        getAllReviews(),
       ])
       setProducts(allProducts)
       setStats(statsData)
       setOrders(allOrders)
+      setReviews(allReviews)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data')
     } finally {
@@ -194,6 +204,17 @@ export default function Admin() {
     return matchesSearch && matchesStatus
   })
 
+  const filteredReviews = reviews.filter(review => {
+    const product = products.find(p => p.id === review.product_id)
+    const productName = product ? product.name.toLowerCase() : ''
+    const matchesSearch = 
+      review.customer_name.toLowerCase().includes(reviewSearchTerm.toLowerCase()) ||
+      review.message.toLowerCase().includes(reviewSearchTerm.toLowerCase()) ||
+      productName.includes(reviewSearchTerm.toLowerCase())
+    const matchesProduct = !reviewFilterProduct || review.product_id === reviewFilterProduct
+    return matchesSearch && matchesProduct
+  })
+
   const handleViewOrder = (order: Order) => {
     setSelectedOrder(order)
     setShowOrderModal(true)
@@ -201,23 +222,37 @@ export default function Admin() {
 
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
     try {
-      // Find the order to get previous status and customer email
       const order = orders.find(o => o.id === orderId)
       if (!order) {
         setError('Order not found')
         return
       }
-      
-      // Update order status in database
       await updateOrderStatus(orderId, newStatus)
-      
-      // Email notifications are now handled by the orderService
-      console.log('[Admin] Order status change notification triggered via service')
-      
       showNotification('Order status updated successfully!')
       await loadData()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update status')
+    }
+  }
+
+  const handleReviewStatusUpdate = async (reviewId: string, status: 'approved' | 'hidden') => {
+    try {
+      await updateReviewStatus(reviewId, status)
+      showNotification(`Review ${status} successfully!`)
+      await loadData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update review status')
+    }
+  }
+
+  const handleReviewDelete = async (reviewId: string) => {
+    if (!confirm('Are you sure you want to delete this review?')) return
+    try {
+      await deleteReview(reviewId)
+      showNotification('Review deleted successfully!')
+      await loadData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete review')
     }
   }
 
@@ -280,8 +315,6 @@ export default function Admin() {
       setError(err instanceof Error ? err.message : 'Failed to export customers')
     }
   }
-
-
 
   if (isLoading && products.length === 0) {
     return (
@@ -356,6 +389,12 @@ export default function Admin() {
           Orders ({orders.length})
         </button>
         <button
+          className={`tab ${view === 'reviews' ? 'active' : ''}`}
+          onClick={() => setView('reviews')}
+        >
+          Reviews ({reviews.length})
+        </button>
+        <button
           className={`tab ${view === 'inventory' ? 'active' : ''}`}
           onClick={() => setView('inventory')}
         >
@@ -392,6 +431,109 @@ export default function Admin() {
 
       {/* Supplier Management View */}
       {view === 'suppliers' && <SupplierManagement />}
+
+      {/* Reviews Management View */}
+      {view === 'reviews' && (
+        <div className="reviews-list-content">
+          <div className="search-filter-bar">
+            <input
+              type="text"
+              placeholder="Search reviews by customer, message or product..."
+              value={reviewSearchTerm}
+              onChange={(e) => setReviewSearchTerm(e.target.value)}
+              className="search-input"
+            />
+            <select
+              value={reviewFilterProduct}
+              onChange={(e) => setReviewFilterProduct(e.target.value)}
+              className="filter-select"
+            >
+              <option value="">All Products</option>
+              {products.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {filteredReviews.length === 0 ? (
+            <div className="empty-state">
+              <h3>{reviews.length === 0 ? 'No reviews yet' : 'No reviews match your search'}</h3>
+              <p>{reviews.length === 0 ? 'Reviews will appear here once customers submit them.' : 'Try adjusting your search or filters.'}</p>
+            </div>
+          ) : (
+            <div className="reviews-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Customer</th>
+                    <th>Rating</th>
+                    <th>Review</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredReviews.map(review => {
+                    const product = products.find(p => p.id === review.product_id)
+                    return (
+                      <tr key={review.id}>
+                        <td>{product ? product.name : 'Unknown Product'}</td>
+                        <td>{review.customer_name}</td>
+                        <td>
+                          <div style={{ color: '#fbbf24' }}>
+                            {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                          </div>
+                        </td>
+                        <td>
+                          <div style={{ maxWidth: '300px' }}>
+                            {review.title && <div style={{ fontWeight: 600 }}>{review.title}</div>}
+                            <div style={{ fontSize: '0.9rem', color: '#4b5563' }}>{review.message}</div>
+                            <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '0.25rem' }}>
+                              {new Date(review.created_at).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`status-badge status-${review.status}`}>
+                            {review.status}
+                          </span>
+                        </td>
+                        <td className="actions-cell">
+                          {review.status !== 'approved' && (
+                            <button
+                              onClick={() => handleReviewStatusUpdate(review.id, 'approved')}
+                              className="btn-edit"
+                              style={{ backgroundColor: '#16a34a' }}
+                            >
+                              Approve
+                            </button>
+                          )}
+                          {review.status !== 'hidden' && (
+                            <button
+                              onClick={() => handleReviewStatusUpdate(review.id, 'hidden')}
+                              className="btn-edit"
+                              style={{ backgroundColor: '#6b7280' }}
+                            >
+                              Hide
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleReviewDelete(review.id)}
+                            className="btn-delete"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Dashboard Overview */}
       {view === 'dashboard' && (
@@ -431,10 +573,11 @@ export default function Admin() {
                 </button>
               </div>
             ) : (
-              <div className="product-preview-table">
+              <div className="products-table">
                 <table>
                   <thead>
                     <tr>
+                      <th>Image</th>
                       <th>Name</th>
                       <th>Category</th>
                       <th>Price</th>
@@ -445,9 +588,16 @@ export default function Admin() {
                   <tbody>
                     {products.slice(0, 5).map(product => (
                       <tr key={product.id}>
+                        <td className="product-image-cell">
+                          {product.image_url ? (
+                            <img src={product.image_url} alt={product.name} className="product-thumb" />
+                          ) : (
+                            <div className="product-thumb-placeholder">No image</div>
+                          )}
+                        </td>
                         <td>{product.name}</td>
                         <td>{product.category}</td>
-<td>{formatCurrency(product.price)}</td>
+                        <td>{formatCurrency(product.price)}</td>
                         <td>{product.stock_quantity}</td>
                         <td>
                           <span className={`status-badge ${product.status}`}>
@@ -464,7 +614,7 @@ export default function Admin() {
         </div>
       )}
 
-      {/* Products List */}
+      {/* Products Management */}
       {view === 'products' && (
         <div className="products-list-content">
           <div className="search-filter-bar">
@@ -486,7 +636,7 @@ export default function Admin() {
               ))}
             </select>
             <button onClick={handleExportProducts} className="btn-export" title="Export products as CSV">
-              Export CSV
+              Export Products
             </button>
           </div>
 
@@ -494,11 +644,6 @@ export default function Admin() {
             <div className="empty-state">
               <h3>{products.length === 0 ? 'No products yet' : 'No products match your search'}</h3>
               <p>{products.length === 0 ? 'Start by adding your first product.' : 'Try adjusting your search or filters.'}</p>
-              {products.length === 0 && (
-                <button onClick={() => setView('add')} className="btn-primary">
-                  Add Product
-                </button>
-              )}
             </div>
           ) : (
             <div className="products-table">
@@ -640,16 +785,16 @@ export default function Admin() {
                           <option value="processing">Processing</option>
                           <option value="out-of-delivery">Out for Delivery</option>
                           <option value="delivered">Delivered</option>
-	                          <option value="cancelled">Cancelled</option>
-	                        </select>
-	                        <button
-	                          onClick={() => handleViewOrder(order)}
-	                          className="btn-view"
-	                          title="View order details"
-	                        >
-	                          View Details
-	                        </button>
-	                      </td>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                        <button
+                          onClick={() => handleViewOrder(order)}
+                          className="btn-view"
+                          title="View order details"
+                        >
+                          View Details
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -828,137 +973,119 @@ export default function Admin() {
       {(view === 'add' || view === 'edit') && (
         <div className="product-form-content">
           <h3>{view === 'edit' ? `Edit: ${editProduct?.name}` : 'Add New Product'}</h3>
-          <form onSubmit={handleSubmit} className="product-form" noValidate>
-            <div className="form-row">
+          <form onSubmit={handleSubmit} className="admin-form">
+            <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="product-name">Product Name *</label>
+                <label>Product Name</label>
                 <input
-                  id="product-name"
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className={formErrors.name ? 'input-error' : ''}
-                  placeholder="e.g., Fresh Organic Tomatoes"
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className={formErrors.name ? 'error' : ''}
                 />
                 {formErrors.name && <span className="error-text">{formErrors.name}</span>}
               </div>
 
               <div className="form-group">
-                <label htmlFor="product-category">Category *</label>
+                <label>Category</label>
                 <input
-                  id="product-category"
                   type="text"
                   value={formData.category}
-                  onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                  className={formErrors.category ? 'input-error' : ''}
-                  placeholder="e.g., Produce"
-                  list="category-suggestions"
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className={formErrors.category ? 'error' : ''}
+                  list="category-list"
                 />
-                <datalist id="category-suggestions">
-                  {categories.map(cat => (
-                    <option key={cat} value={cat} />
-                  ))}
+                <datalist id="category-list">
+                  {categories.map(cat => <option key={cat} value={cat} />)}
                 </datalist>
                 {formErrors.category && <span className="error-text">{formErrors.category}</span>}
               </div>
-            </div>
 
-            <div className="form-group">
-              <label htmlFor="product-description">Description *</label>
-              <textarea
-                id="product-description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                rows={3}
-                className={formErrors.description ? 'input-error' : ''}
-                placeholder="Describe this product..."
-              />
-              {formErrors.description && <span className="error-text">{formErrors.description}</span>}
-            </div>
-
-            <div className="form-row">
               <div className="form-group">
-                <label htmlFor="product-price">Price (GH₵) *</label>
+                <label>Price</label>
                 <input
-                  id="product-price"
                   type="number"
                   step="0.01"
-                  min="0"
                   value={formData.price}
-                  onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                  className={formErrors.price ? 'input-error' : ''}
-                  placeholder="0.00"
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  className={formErrors.price ? 'error' : ''}
                 />
                 {formErrors.price && <span className="error-text">{formErrors.price}</span>}
               </div>
 
               <div className="form-group">
-                <label htmlFor="product-stock">Stock Quantity *</label>
+                <label>Stock Quantity</label>
                 <input
-                  id="product-stock"
                   type="number"
-                  min="0"
                   value={formData.stock_quantity}
-                  onChange={(e) => setFormData(prev => ({ ...prev, stock_quantity: e.target.value }))}
-                  className={formErrors.stock_quantity ? 'input-error' : ''}
-                  placeholder="0"
+                  onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
+                  className={formErrors.stock_quantity ? 'error' : ''}
                 />
                 {formErrors.stock_quantity && <span className="error-text">{formErrors.stock_quantity}</span>}
               </div>
 
               <div className="form-group">
-                <label htmlFor="product-status">Status</label>
+                <label>Status</label>
                 <select
-                  id="product-status"
                   value={formData.status}
-                  onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'active' | 'inactive' | 'out-of-stock' }))}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                   <option value="out-of-stock">Out of Stock</option>
                 </select>
               </div>
-            </div>
 
-            <div className="form-group">
-              <label htmlFor="product-image">Product Image</label>
-              <input
-                id="product-image"
-                type="file"
-                accept="image/*"
-                onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.files?.[0] || null }))}
-                className="file-input"
-              />
-              {(formData.existingImageUrl || formData.image) && (
-                <div className="image-preview">
-                  <img
-                    src={formData.image ? URL.createObjectURL(formData.image) : formData.existingImageUrl}
-                    alt="Preview"
-                    className="preview-img"
+              <div className="form-group full-width">
+                <label>Description</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className={formErrors.description ? 'error' : ''}
+                  rows={4}
+                />
+                {formErrors.description && <span className="error-text">{formErrors.description}</span>}
+              </div>
+
+              <div className="form-group full-width">
+                <label>Product Image</label>
+                <div className="image-upload-container">
+                  {formData.existingImageUrl && !formData.image && (
+                    <div className="current-image-preview">
+                      <img src={formData.existingImageUrl} alt="Current" />
+                      <span>Current Image</span>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setFormData({ ...formData, image: e.target.files?.[0] || null })}
                   />
+                  <p className="help-text">Leave empty to keep current image (when editing)</p>
                 </div>
-              )}
+              </div>
             </div>
 
             <div className="form-actions">
-              <button type="button" onClick={() => setView('products')} className="btn-cancel">
+              <button
+                type="button"
+                onClick={() => setView('products')}
+                className="btn-secondary"
+                disabled={isSubmitting}
+              >
                 Cancel
               </button>
-              <button type="submit" className="btn-submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <span className="spinner-small" />
-                    {view === 'edit' ? 'Updating...' : 'Adding...'}
-                  </>
-                ) : (
-                  view === 'edit' ? 'Update Product' : 'Add Product'
-                )}
+              <button
+                type="submit"
+                className="btn-primary"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Saving...' : view === 'edit' ? 'Update Product' : 'Create Product'}
               </button>
             </div>
           </form>
         </div>
       )}
-
     </div>
   )
 }
