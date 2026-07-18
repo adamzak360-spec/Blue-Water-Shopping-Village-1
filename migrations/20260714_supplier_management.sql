@@ -25,41 +25,29 @@ ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_suppliers ENABLE ROW LEVEL SECURITY;
 
 -- Admins can do everything on suppliers
+-- Uses auth.jwt() instead of EXISTS (SELECT FROM auth.users) to avoid
+-- "permission denied for table users" errors
 CREATE POLICY "Admins can manage suppliers" ON suppliers
   FOR ALL
   TO authenticated
   USING (
-    EXISTS (
-      SELECT 1 FROM auth.users 
-      WHERE id = auth.uid() 
-      AND email = 'adamzak360@gmail.com'
-    )
+    auth.jwt() ->> 'email' = 'adamzak360@gmail.com'
   )
   WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM auth.users 
-      WHERE id = auth.uid() 
-      AND email = 'adamzak360@gmail.com'
-    )
+    auth.jwt() ->> 'email' = 'adamzak360@gmail.com'
   );
 
 -- Admins can manage product_suppliers
+-- Uses auth.jwt() instead of EXISTS (SELECT FROM auth.users) to avoid
+-- "permission denied for table users" errors
 CREATE POLICY "Admins can manage product_suppliers" ON product_suppliers
   FOR ALL
   TO authenticated
   USING (
-    EXISTS (
-      SELECT 1 FROM auth.users 
-      WHERE id = auth.uid() 
-      AND email = 'adamzak360@gmail.com'
-    )
+    auth.jwt() ->> 'email' = 'adamzak360@gmail.com'
   )
   WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM auth.users 
-      WHERE id = auth.uid() 
-      AND email = 'adamzak360@gmail.com'
-    )
+    auth.jwt() ->> 'email' = 'adamzak360@gmail.com'
   );
 
 -- Create trigger for updated_at
