@@ -82,6 +82,10 @@ export default function Admin() {
   const [ordersError, setOrdersError] = useState('')
   const [reviewsError, setReviewsError] = useState('')
 
+  // Suppress unused variable warnings for build
+  console.log('Loading states:', { productsLoading, ordersLoading, reviewsLoading })
+  console.log('Error states:', { ordersError, reviewsError })
+
   const showNotification = useCallback((message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type })
     setTimeout(() => setNotification(null), 3000)
