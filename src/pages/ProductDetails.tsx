@@ -10,7 +10,7 @@ import './ProductDetails.css'
 
 export default function ProductDetails() {
   const { productId } = useParams<{ productId: string }>()
-  const navigate = useNavigate()
+  // const navigate = useNavigate()
   const { addToCart } = useCart()
 
   const [product, setProduct] = useState<Product | null>(null)
