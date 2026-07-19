@@ -39,30 +39,41 @@ export default function ProductDetails() {
           return
         }
 
-        const [productData, reviewsData, statsData] = await Promise.all([
-          getProductById(productId),
-          getApprovedReviewsByProductId(productId),
-          getProductRatingStats(productId)
-        ])
+        // Load product data first
+        try {
+          const productData = await getProductById(productId)
+          if (!productData) {
+            setError('Product not found')
+            setIsLoading(false)
+            return
+          }
+          setProduct(productData)
 
-        if (!productData) {
-          setError('Product not found')
+          // Load related products from same category
+          getAllProducts().then(allProducts => {
+            const related = allProducts
+              .filter(p => p.category === productData.category && p.id !== productId && p.status === 'active')
+              .slice(0, 4)
+            setRelatedProducts(related)
+          }).catch(err => console.error('Failed to load related products:', err))
+
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to load product')
           setIsLoading(false)
           return
         }
 
-        setProduct(productData)
-        setReviews(reviewsData)
-        setRatingStats(statsData)
+        // Load reviews and stats independently
+        getApprovedReviewsByProductId(productId)
+          .then(setReviews)
+          .catch(err => console.error('Failed to load reviews:', err))
 
-        // Load related products from same category
-        const allProducts = await getAllProducts()
-        const related = allProducts
-          .filter(p => p.category === productData.category && p.id !== productId && p.status === 'active')
-          .slice(0, 4)
-        setRelatedProducts(related)
+        getProductRatingStats(productId)
+          .then(setRatingStats)
+          .catch(err => console.error('Failed to load rating stats:', err))
+
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load product')
+        console.error('Unexpected error in loadProductAndReviews:', err)
       } finally {
         setIsLoading(false)
       }
@@ -377,15 +388,16 @@ export default function ProductDetails() {
                 <button 
                   type="submit" 
                   disabled={isSubmittingReview}
+                  className="submit-review-btn"
                   style={{ 
                     alignSelf: 'flex-start',
-                    padding: '0.75rem 2rem', 
-                    backgroundColor: '#2563eb', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '6px', 
+                    padding: '0.75rem 2rem',
+                    backgroundColor: '#1f2937',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
                     fontWeight: 600,
-                    cursor: 'pointer',
+                    cursor: isSubmittingReview ? 'not-allowed' : 'pointer',
                     opacity: isSubmittingReview ? 0.7 : 1
                   }}
                 >
@@ -397,29 +409,27 @@ export default function ProductDetails() {
         </div>
       </div>
 
-      {/* Related Products Section */}
-      <div className="related-products-section">
-        <h3 className="section-title">Related Products</h3>
-        <div className="related-products-grid">
-          {relatedProducts.map(item => (
-            <Link key={item.id} to={`/product/${item.id}`} className="related-card">
-              <div className="related-image-container">
-                <img src={item.image_url} alt={item.name} />
-              </div>
-              <div className="related-info">
-                <h4 className="related-name">{item.name}</h4>
-                <span className="related-price">{formatCurrency(item.price)}</span>
-              </div>
-            </Link>
-          ))}
+      {/* Related Products */}
+      {relatedProducts.length > 0 && (
+        <div className="related-products-section" style={{ marginTop: '4rem' }}>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '2rem' }}>Related Products</h3>
+          <div className="related-products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '2rem' }}>
+            {relatedProducts.map(p => (
+              <Link key={p.id} to={`/products/${p.id}`} className="related-product-card" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div style={{ backgroundColor: '#f9fafb', borderRadius: '12px', overflow: 'hidden', height: '200px', marginBottom: '1rem' }}>
+                  {p.image_url ? (
+                    <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>No image</div>
+                  )}
+                </div>
+                <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 600 }}>{p.name}</h4>
+                <p style={{ fontWeight: 700, color: '#1f2937' }}>{formatCurrency(p.price)}</p>
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
-
-      <div className="footer-actions">
-        <button onClick={() => navigate('/products')} className="continue-shopping-btn">
-          Continue Shopping
-        </button>
-      </div>
+      )}
     </div>
   )
 }
