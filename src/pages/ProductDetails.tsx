@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { getProductById, getAllProducts } from '../services/productService'
 import { getApprovedReviewsByProductId, submitReview, getProductRatingStats } from '../services/reviewService'
 import type { Product, Review } from '../types'
