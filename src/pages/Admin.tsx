@@ -784,9 +784,10 @@ export default function Admin() {
             >
               <option value="">All Statuses</option>
               <option value="pending">Pending</option>
-              <option value="confirmed">Confirmed</option>
+              <option value="approved">Approved</option>
               <option value="processing">Processing</option>
-              <option value="out-of-delivery">Out for Delivery</option>
+              <option value="ready-for-pickup">Ready for Pickup</option>
+              <option value="out-for-delivery">Out for Delivery</option>
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
             </select>
@@ -844,9 +845,10 @@ export default function Admin() {
                           className="status-select"
                         >
                           <option value="pending">Pending</option>
-                          <option value="confirmed">Confirmed</option>
+                          <option value="approved">Approved</option>
                           <option value="processing">Processing</option>
-                          <option value="out-of-delivery">Out for Delivery</option>
+                          <option value="ready-for-pickup">Ready for Pickup</option>
+                          <option value="out-for-delivery">Out for Delivery</option>
                           <option value="delivered">Delivered</option>
                           <option value="cancelled">Cancelled</option>
                         </select>

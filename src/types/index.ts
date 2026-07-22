@@ -74,7 +74,7 @@ export interface Order {
   subtotal: number
   delivery_fee: number
   total: number
-  status: 'pending' | 'confirmed' | 'processing' | 'out-of-delivery' | 'delivered' | 'cancelled'
+  status: 'pending' | 'approved' | 'processing' | 'ready-for-pickup' | 'out-for-delivery' | 'delivered' | 'cancelled'
   payment_status: 'pending' | 'paid' | 'failed'
   payment_method?: string
   paystack_reference?: string

@@ -12,6 +12,7 @@ import {
   sendWelcomeEmail,
   sendNewOrderNotifications,
   sendOrderStatusChangeNotifications,
+  sendAdminNewCustomerNotification,
 } from '../services/emailNotifications'
 import { Order } from '../types'
 
@@ -98,19 +99,29 @@ export async function handleNewCustomerRegistration(
   customerEmail: string
 ): Promise<{
   success: boolean
+  customerEmailSent: boolean
+  adminEmailSent: boolean
   error?: string
 }> {
   try {
-    const result = await sendWelcomeEmail(customerName, customerEmail)
+    // Send welcome email to customer
+    const customerResult = await sendWelcomeEmail(customerName, customerEmail)
+    
+    // Send admin notification
+    const adminResult = await sendAdminNewCustomerNotification(customerName, customerEmail)
 
     return {
-      success: result.success,
-      error: result.error,
+      success: customerResult.success || adminResult.success,
+      customerEmailSent: customerResult.success,
+      adminEmailSent: adminResult.success,
+      error: customerResult.error || adminResult.error,
     }
   } catch (error: any) {
     console.error('[EMAIL HANDLER] Error handling new registration:', error)
     return {
       success: false,
+      customerEmailSent: false,
+      adminEmailSent: false,
       error: error.message,
     }
   }
@@ -148,7 +159,7 @@ export async function testEmailSending(testEmail: string): Promise<{
                 <h1>Test Email</h1>
               </div>
               <div class="content">
-                <p>This is a test email from Blue Water Shopping Village.</p>
+                <p>This is a test email from Reliable.</p>
                 <p>If you received this email, your email configuration is working correctly!</p>
                 <p><strong>Email Provider:</strong> ${emailProvider}</p>
                 <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
@@ -160,7 +171,7 @@ export async function testEmailSending(testEmail: string): Promise<{
       text: `
 Test Email
 
-This is a test email from Blue Water Shopping Village.
+This is a test email from Reliable.
 If you received this email, your email configuration is working correctly!
 
 Email Provider: ${emailProvider}
@@ -173,7 +184,7 @@ Timestamp: ${new Date().toISOString()}
 
     const result = await emailService.sendEmail({
       to: testEmail,
-      subject: 'Test Email - Blue Water Shopping Village',
+      subject: 'Test Email - Reliable Marketplace',
       html,
       text,
     })

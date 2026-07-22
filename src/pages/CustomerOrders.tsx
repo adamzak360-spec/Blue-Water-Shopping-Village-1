@@ -52,9 +52,10 @@ export default function CustomerOrders() {
   const statusOptions = [
     { value: 'all', label: 'All Orders' },
     { value: 'pending', label: 'Pending' },
-    { value: 'confirmed', label: 'Confirmed' },
+    { value: 'approved', label: 'Approved' },
     { value: 'processing', label: 'Processing' },
-    { value: 'out-of-delivery', label: 'Out for Delivery' },
+    { value: 'ready-for-pickup', label: 'Ready for Pickup' },
+    { value: 'out-for-delivery', label: 'Out for Delivery' },
     { value: 'delivered', label: 'Delivered' },
     { value: 'cancelled', label: 'Cancelled' },
   ]

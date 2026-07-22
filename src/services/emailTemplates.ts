@@ -7,10 +7,12 @@
 
 import { Order, CartItem } from '../types'
 
-const COMPANY_NAME = 'Blue Water Shopping Village'
+const COMPANY_NAME = 'Reliable'
 const COMPANY_WEBSITE = 'https://blue-water-shopping-village-1.vercel.app'
-const SUPPORT_EMAIL = 'support@bluewatershopping.com'
-const PHONE = '+233 (0) 30 XXX XXXX'
+const SUPPORT_EMAIL = 'support@reliable.com'
+const PHONE = '+233 53 855 7781'
+const SUPPORT_WHATSAPP = '+233 20 335 5542'
+const COMPANY_LOCATION = 'Tamale, Ghana'
 
 /**
  * Base email template wrapper
@@ -192,7 +194,9 @@ function getEmailWrapper(content: string, title: string): string {
           ${content}
           <div class="footer">
             <p><strong>${COMPANY_NAME}</strong></p>
-            <p>📞 ${PHONE}</p>
+            <p>${COMPANY_LOCATION}</p>
+            <p>📞 <a href="tel:+233538557781">${PHONE}</a></p>
+            <p>💬 WhatsApp: <a href="https://wa.me/233203355542">${SUPPORT_WHATSAPP}</a></p>
             <p>✉ <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></p>
             <p><a href="${COMPANY_WEBSITE}">Visit Our Website</a></p>
             <div class="divider"></div>
@@ -224,8 +228,8 @@ export function getOrderConfirmationTemplate(order: Order & { id: string }): { h
   const html = getEmailWrapper(
     `
     <div class="header">
-      <h1>Order Confirmation</h1>
-      <p>Thank you for your order!</p>
+      <h1>Order Confirmed</h1>
+      <p>Thank you for shopping with ${COMPANY_NAME}!</p>
     </div>
     <div class="content">
       <div class="section">
@@ -321,10 +325,11 @@ export function getOrderStatusUpdateTemplate(
   previousStatus: string
 ): { html: string; text: string } {
   const statusMessages: { [key: string]: string } = {
-    pending: 'Your order has been received and is awaiting confirmation.',
-    confirmed: 'Your order has been confirmed and we are preparing it.',
+    pending: 'Your order has been received and is awaiting approval.',
+    approved: 'Your order has been approved and is being prepared.',
     processing: 'Your order is being prepared for delivery.',
-    'out-of-delivery': 'Your order is on its way to you!',
+    'ready-for-pickup': 'Your order is ready for pickup! Please collect it at your earliest convenience.',
+    'out-for-delivery': 'Your order is on its way to you!',
     delivered: 'Your order has been delivered. Thank you for shopping with us!',
     cancelled: 'Your order has been cancelled. Please contact support for more information.',
   }
@@ -391,7 +396,7 @@ export function getWelcomeTemplate(customerName: string, _email: string): { html
     `
     <div class="header">
       <h1>Welcome to ${COMPANY_NAME}!</h1>
-      <p>We're excited to have you on board</p>
+      <p>Your trusted marketplace in ${COMPANY_LOCATION}</p>
     </div>
     <div class="content">
       <div class="section">
@@ -429,7 +434,7 @@ export function getWelcomeTemplate(customerName: string, _email: string): { html
       </div>
     </div>
   `,
-    'Welcome to Blue Water Shopping Village'
+    `Welcome to ${COMPANY_NAME}!`
   )
 
   const text = `
@@ -670,6 +675,455 @@ Please confirm receipt of this request and let us know the expected delivery dat
 Best regards,
 Inventory Manager
 ${COMPANY_NAME}
+  `
+
+  return { html, text }
+}
+
+/**
+ * Order Approved Email
+ */
+export function getOrderApprovedTemplate(order: Order & { id: string }): { html: string; text: string } {
+  const html = getEmailWrapper(
+    `
+    <div class="header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+      <h1>Order Approved!</h1>
+      <p>Your order is being prepared</p>
+    </div>
+    <div class="content">
+      <div class="section">
+        <h2>Great News!</h2>
+        <p>Your order has been approved and is now being prepared for delivery.</p>
+      </div>
+
+      <div class="section">
+        <h2>Order Details</h2>
+        <p><strong>Order ID:</strong> ${order.id}</p>
+        <p><strong>Status:</strong> <span class="status-badge status-approved">Approved</span></p>
+        <p><strong>Total Amount:</strong> GH₵${order.total.toFixed(2)}</p>
+      </div>
+
+      <div class="section">
+        <h2>What's Next?</h2>
+        <p>We are carefully preparing your order. You will receive another notification when your order is ready for pickup or out for delivery.</p>
+        <a href="${COMPANY_WEBSITE}/customer/orders/${order.id}" class="cta-button">Track Your Order</a>
+      </div>
+
+      <div class="section">
+        <p>If you have any questions, please contact us at <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a> or call ${PHONE}</p>
+      </div>
+    </div>
+  `,
+    'Order Approved'
+  )
+
+  const text = `
+Order Approved!
+
+Great News! Your order has been approved and is now being prepared for delivery.
+
+Order ID: ${order.id}
+Status: Approved
+Total: GH₵${order.total.toFixed(2)}
+
+We are carefully preparing your order. You will receive another notification when your order is ready for pickup or out for delivery.
+
+Track your order: ${COMPANY_WEBSITE}/customer/orders/${order.id}
+
+Questions? Contact us: ${SUPPORT_EMAIL} or ${PHONE}
+  `
+
+  return { html, text }
+}
+
+/**
+ * Payment Confirmed Email
+ */
+export function getPaymentConfirmedTemplate(order: Order & { id: string }): { html: string; text: string } {
+  const html = getEmailWrapper(
+    `
+    <div class="header" style="background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);">
+      <h1>Payment Confirmed</h1>
+      <p>Your payment has been received</p>
+    </div>
+    <div class="content">
+      <div class="section">
+        <h2>Payment Received</h2>
+        <p>Thank you! We have successfully received your payment.</p>
+      </div>
+
+      <div class="section">
+        <h2>Payment Details</h2>
+        <p><strong>Order ID:</strong> ${order.id}</p>
+        <p><strong>Amount Paid:</strong> GH₵${order.total.toFixed(2)}</p>
+        <p><strong>Payment Status:</strong> <span class="status-badge status-confirmed">Paid</span></p>
+        <p><strong>Payment Date:</strong> ${order.paid_at ? new Date(order.paid_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}</p>
+      </div>
+
+      <div class="section">
+        <h2>Next Steps</h2>
+        <p>Your order is now being processed. We will notify you as soon as it is ready for pickup or out for delivery.</p>
+        <a href="${COMPANY_WEBSITE}/customer/orders/${order.id}" class="cta-button">View Order</a>
+      </div>
+
+      <div class="section">
+        <p>If you have any questions, please contact us at <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a> or call ${PHONE}</p>
+      </div>
+    </div>
+  `,
+    'Payment Confirmed'
+  )
+
+  const text = `
+Payment Confirmed
+
+Thank you! We have successfully received your payment.
+
+Order ID: ${order.id}
+Amount Paid: GH₵${order.total.toFixed(2)}
+Payment Status: Paid
+Payment Date: ${order.paid_at ? new Date(order.paid_at).toLocaleDateString() : 'N/A'}
+
+Your order is now being processed. We will notify you as soon as it is ready for pickup or out for delivery.
+
+View order: ${COMPANY_WEBSITE}/customer/orders/${order.id}
+
+Questions? Contact us: ${SUPPORT_EMAIL} or ${PHONE}
+  `
+
+  return { html, text }
+}
+
+/**
+ * Ready for Pickup Email
+ */
+export function getReadyForPickupTemplate(order: Order & { id: string }): { html: string; text: string } {
+  const html = getEmailWrapper(
+    `
+    <div class="header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+      <h1>Ready for Pickup!</h1>
+      <p>Your order is waiting for you</p>
+    </div>
+    <div class="content">
+      <div class="section">
+        <h2>Your Order is Ready!</h2>
+        <p>Great news! Your order is now ready for pickup.</p>
+      </div>
+
+      <div class="section">
+        <h2>Order Details</h2>
+        <p><strong>Order ID:</strong> ${order.id}</p>
+        <p><strong>Total Amount:</strong> GH₵${order.total.toFixed(2)}</p>
+        <p><strong>Status:</strong> <span class="status-badge status-ready">Ready for Pickup</span></p>
+      </div>
+
+      <div class="section">
+        <h2>Pickup Instructions</h2>
+        <p>Please collect your order at your earliest convenience from our location in ${COMPANY_LOCATION}.</p>
+        <p><strong>Contact:</strong> ${PHONE}</p>
+        <p><strong>WhatsApp:</strong> <a href="https://wa.me/233203355542">${SUPPORT_WHATSAPP}</a></p>
+      </div>
+
+      <div class="section">
+        <h2>What to Bring</h2>
+        <ul style="margin-left: 20px; line-height: 1.8;">
+          <li>Your Order ID: ${order.id}</li>
+          <li>A valid form of identification</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <p>If you have any questions or need to reschedule, please contact us immediately.</p>
+        <a href="${COMPANY_WEBSITE}/customer/orders/${order.id}" class="cta-button">View Order</a>
+      </div>
+    </div>
+  `,
+    'Ready for Pickup'
+  )
+
+  const text = `
+Ready for Pickup!
+
+Great news! Your order is now ready for pickup.
+
+Order ID: ${order.id}
+Total Amount: GH₵${order.total.toFixed(2)}
+Status: Ready for Pickup
+
+Pickup Instructions:
+Please collect your order at your earliest convenience from our location in ${COMPANY_LOCATION}.
+
+Contact: ${PHONE}
+WhatsApp: ${SUPPORT_WHATSAPP}
+
+What to Bring:
+- Your Order ID: ${order.id}
+- A valid form of identification
+
+If you have any questions or need to reschedule, please contact us immediately.
+
+View order: ${COMPANY_WEBSITE}/customer/orders/${order.id}
+  `
+
+  return { html, text }
+}
+
+/**
+ * Out for Delivery Email
+ */
+export function getOutForDeliveryTemplate(order: Order & { id: string }): { html: string; text: string } {
+  const html = getEmailWrapper(
+    `
+    <div class="header" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);">
+      <h1>Out for Delivery!</h1>
+      <p>Your package is on the way</p>
+    </div>
+    <div class="content">
+      <div class="section">
+        <h2>Your Order is On the Way!</h2>
+        <p>Exciting news! Your order has left our warehouse and is now on its way to you.</p>
+      </div>
+
+      <div class="section">
+        <h2>Order Details</h2>
+        <p><strong>Order ID:</strong> ${order.id}</p>
+        <p><strong>Status:</strong> <span class="status-badge status-out-for-delivery">Out for Delivery</span></p>
+        <p><strong>Delivery Address:</strong> ${order.delivery_address}, ${order.city}, ${order.region}</p>
+      </div>
+
+      <div class="section">
+        <h2>Delivery Information</h2>
+        <p>Your package will be delivered to the address above. Please ensure someone is available to receive it.</p>
+        <p><strong>Estimated Delivery:</strong> Today or within the next 24 hours</p>
+      </div>
+
+      <div class="section">
+        <h2>Questions?</h2>
+        <p>If you need to reschedule delivery or have any concerns, please contact us immediately:</p>
+        <p><strong>Phone:</strong> <a href="tel:+233538557781">${PHONE}</a></p>
+        <p><strong>WhatsApp:</strong> <a href="https://wa.me/233203355542">${SUPPORT_WHATSAPP}</a></p>
+        <p><strong>Email:</strong> <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></p>
+      </div>
+
+      <div class="section">
+        <a href="${COMPANY_WEBSITE}/customer/orders/${order.id}" class="cta-button">Track Your Order</a>
+      </div>
+    </div>
+  `,
+    'Out for Delivery'
+  )
+
+  const text = `
+Out for Delivery!
+
+Exciting news! Your order has left our warehouse and is now on its way to you.
+
+Order ID: ${order.id}
+Status: Out for Delivery
+Delivery Address: ${order.delivery_address}, ${order.city}, ${order.region}
+
+Delivery Information:
+Your package will be delivered to the address above. Please ensure someone is available to receive it.
+Estimated Delivery: Today or within the next 24 hours
+
+Questions?
+If you need to reschedule delivery or have any concerns, please contact us immediately:
+
+Phone: ${PHONE}
+WhatsApp: ${SUPPORT_WHATSAPP}
+Email: ${SUPPORT_EMAIL}
+
+Track your order: ${COMPANY_WEBSITE}/customer/orders/${order.id}
+  `
+
+  return { html, text }
+}
+
+/**
+ * Delivered Email
+ */
+export function getDeliveredTemplate(order: Order & { id: string }): { html: string; text: string } {
+  const html = getEmailWrapper(
+    `
+    <div class="header" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+      <h1>Order Delivered!</h1>
+      <p>Thank you for your business</p>
+    </div>
+    <div class="content">
+      <div class="section">
+        <h2>Your Order Has Been Delivered</h2>
+        <p>We hope you enjoy your purchase! Thank you for choosing ${COMPANY_NAME}.</p>
+      </div>
+
+      <div class="section">
+        <h2>Order Summary</h2>
+        <p><strong>Order ID:</strong> ${order.id}</p>
+        <p><strong>Delivered On:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <p><strong>Total Amount:</strong> GH₵${order.total.toFixed(2)}</p>
+      </div>
+
+      <div class="section">
+        <h2>We'd Love Your Feedback</h2>
+        <p>Your feedback helps us improve our service. Please let us know about your experience with ${COMPANY_NAME}.</p>
+      </div>
+
+      <div class="section">
+        <h2>Shop Again</h2>
+        <p>Ready to order more? Visit our store and discover more amazing products at great prices.</p>
+        <a href="${COMPANY_WEBSITE}" class="cta-button" style="background-color: #059669;">Continue Shopping</a>
+      </div>
+
+      <div class="section">
+        <h2>Need Help?</h2>
+        <p>If you have any issues with your order or need assistance, please don't hesitate to contact us:</p>
+        <p><strong>Phone:</strong> <a href="tel:+233538557781">${PHONE}</a></p>
+        <p><strong>WhatsApp:</strong> <a href="https://wa.me/233203355542">${SUPPORT_WHATSAPP}</a></p>
+        <p><strong>Email:</strong> <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></p>
+      </div>
+
+      <div class="section">
+        <p>Thank you for choosing ${COMPANY_NAME}!</p>
+        <p><strong>${COMPANY_NAME} Team</strong></p>
+      </div>
+    </div>
+  `,
+    'Order Delivered'
+  )
+
+  const text = `
+Order Delivered!
+
+We hope you enjoy your purchase! Thank you for choosing ${COMPANY_NAME}.
+
+Order Summary:
+Order ID: ${order.id}
+Delivered On: ${new Date().toLocaleDateString()}
+Total Amount: GH₵${order.total.toFixed(2)}
+
+We'd Love Your Feedback:
+Your feedback helps us improve our service. Please let us know about your experience with ${COMPANY_NAME}.
+
+Shop Again:
+Ready to order more? Visit our store and discover more amazing products at great prices.
+${COMPANY_WEBSITE}
+
+Need Help?
+If you have any issues with your order or need assistance, please don't hesitate to contact us:
+
+Phone: ${PHONE}
+WhatsApp: ${SUPPORT_WHATSAPP}
+Email: ${SUPPORT_EMAIL}
+
+Thank you for choosing ${COMPANY_NAME}!
+${COMPANY_NAME} Team
+  `
+
+  return { html, text }
+}
+
+/**
+ * Admin Notification - New Customer Registration
+ */
+export function getAdminNewCustomerTemplate(customerName: string, customerEmail: string): { html: string; text: string } {
+  const html = getEmailWrapper(
+    `
+    <div class="header" style="background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);">
+      <h1>New Customer Registration</h1>
+      <p>Admin Notification</p>
+    </div>
+    <div class="content">
+      <div class="section">
+        <h2>New Customer Alert</h2>
+        <p>A new customer has registered on ${COMPANY_NAME}.</p>
+      </div>
+
+      <div class="section">
+        <h2>Customer Information</h2>
+        <p><strong>Name:</strong> ${customerName}</p>
+        <p><strong>Email:</strong> ${customerEmail}</p>
+        <p><strong>Registration Date:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+      </div>
+
+      <div class="section">
+        <p>This customer can now place orders on the platform.</p>
+      </div>
+    </div>
+  `,
+    'New Customer Registration'
+  )
+
+  const text = `
+New Customer Registration - Admin Notification
+
+A new customer has registered on ${COMPANY_NAME}.
+
+Customer Information:
+Name: ${customerName}
+Email: ${customerEmail}
+Registration Date: ${new Date().toLocaleDateString()}
+
+This customer can now place orders on the platform.
+  `
+
+  return { html, text }
+}
+
+/**
+ * Admin Notification - Order Cancellation
+ */
+export function getAdminOrderCancellationTemplate(order: Order & { id: string }): { html: string; text: string } {
+  const html = getEmailWrapper(
+    `
+    <div class="header" style="background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);">
+      <h1>Order Cancelled</h1>
+      <p>Admin Notification</p>
+    </div>
+    <div class="content">
+      <div class="section">
+        <h2>Order Cancellation Alert</h2>
+        <p>An order has been cancelled.</p>
+      </div>
+
+      <div class="section">
+        <h2>Order Information</h2>
+        <p><strong>Order ID:</strong> ${order.id}</p>
+        <p><strong>Customer:</strong> ${order.customer_name}</p>
+        <p><strong>Email:</strong> ${order.customer_email}</p>
+        <p><strong>Total Amount:</strong> GH₵${order.total.toFixed(2)}</p>
+        <p><strong>Cancellation Date:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+      </div>
+
+      <div class="section">
+        <h2>Action Required</h2>
+        <p>Please review the cancellation and take any necessary actions such as:</p>
+        <ul style="margin-left: 20px; line-height: 1.8;">
+          <li>Processing refunds if applicable</li>
+          <li>Restocking items</li>
+          <li>Following up with the customer if needed</li>
+        </ul>
+      </div>
+    </div>
+  `,
+    'Order Cancelled'
+  )
+
+  const text = `
+Order Cancelled - Admin Notification
+
+An order has been cancelled.
+
+Order Information:
+Order ID: ${order.id}
+Customer: ${order.customer_name}
+Email: ${order.customer_email}
+Total Amount: GH₵${order.total.toFixed(2)}
+Cancellation Date: ${new Date().toLocaleDateString()}
+
+Action Required:
+Please review the cancellation and take any necessary actions such as:
+- Processing refunds if applicable
+- Restocking items
+- Following up with the customer if needed
   `
 
   return { html, text }

@@ -1,7 +1,16 @@
 import { supabase } from '../supabaseClient'
 import { Order, CartItem } from '../types'
 import { validateCartStock } from './inventoryService'
-import { sendNewOrderNotifications, sendOrderStatusChangeNotifications } from './emailNotifications'
+import {
+  sendNewOrderNotifications,
+  sendOrderStatusChangeNotifications,
+  sendOrderApprovedEmail,
+  sendPaymentConfirmedEmail,
+  sendReadyForPickupEmail,
+  sendOutForDeliveryEmail,
+  sendDeliveredEmail,
+  sendAdminOrderCancellationNotification,
+} from './emailNotifications'
 
 // Guard: Supabase must be configured for order operations
 const getSupabase = () => {
@@ -100,12 +109,42 @@ export const updateOrderStatus = async (orderId: string, status: Order['status']
     throw error
   }
 
-  // Trigger status change notifications in the background
+  // Trigger status-specific email notifications in the background
   const updatedOrder = data[0];
   if (previousStatus !== status) {
-    sendOrderStatusChangeNotifications(updatedOrder, updatedOrder.customer_email, previousStatus).catch(err => {
-      console.error('[OrderService] Error sending status change notifications:', err);
-    });
+    // Send status-specific emails based on the new status
+    switch (status) {
+      case 'approved':
+        sendOrderApprovedEmail(updatedOrder, updatedOrder.customer_email).catch(err => {
+          console.error('[OrderService] Error sending approved email:', err);
+        });
+        break;
+      case 'ready-for-pickup':
+        sendReadyForPickupEmail(updatedOrder, updatedOrder.customer_email).catch(err => {
+          console.error('[OrderService] Error sending ready for pickup email:', err);
+        });
+        break;
+      case 'out-for-delivery':
+        sendOutForDeliveryEmail(updatedOrder, updatedOrder.customer_email).catch(err => {
+          console.error('[OrderService] Error sending out for delivery email:', err);
+        });
+        break;
+      case 'delivered':
+        sendDeliveredEmail(updatedOrder, updatedOrder.customer_email).catch(err => {
+          console.error('[OrderService] Error sending delivered email:', err);
+        });
+        break;
+      case 'cancelled':
+        sendAdminOrderCancellationNotification(updatedOrder).catch(err => {
+          console.error('[OrderService] Error sending cancellation notification:', err);
+        });
+        break;
+      default:
+        // For other status changes, send generic status update email
+        sendOrderStatusChangeNotifications(updatedOrder, updatedOrder.customer_email, previousStatus).catch(err => {
+          console.error('[OrderService] Error sending status change notifications:', err);
+        });
+    }
   }
 
   return updatedOrder;

@@ -63,7 +63,7 @@ export default function CustomerDashboard() {
     )
   }
 
-  const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'confirmed' || o.status === 'processing' || o.status === 'out-of-delivery')
+  const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'approved' || o.status === 'processing' || o.status === 'ready-for-pickup' || o.status === 'out-for-delivery')
   const completedOrders = orders.filter(o => o.status === 'delivered')
   const cancelledOrders = orders.filter(o => o.status === 'cancelled')
 

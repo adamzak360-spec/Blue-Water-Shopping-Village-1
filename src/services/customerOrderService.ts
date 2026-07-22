@@ -90,13 +90,14 @@ export const getOrderStatusTimeline = (
 ): { stage: string; completed: boolean }[] => {
   const stages = [
     { stage: 'Pending', status: 'pending' },
-    { stage: 'Confirmed', status: 'confirmed' },
-    { stage: 'Preparing', status: 'processing' },
-    { stage: 'Ready for Delivery', status: 'out-of-delivery' },
+    { stage: 'Approved', status: 'approved' },
+    { stage: 'Processing', status: 'processing' },
+    { stage: 'Ready for Pickup', status: 'ready-for-pickup' },
+    { stage: 'Out for Delivery', status: 'out-for-delivery' },
     { stage: 'Delivered', status: 'delivered' },
   ]
 
-  const statusOrder = ['pending', 'confirmed', 'processing', 'out-of-delivery', 'delivered', 'cancelled']
+  const statusOrder = ['pending', 'approved', 'processing', 'ready-for-pickup', 'out-for-delivery', 'delivered', 'cancelled']
   const currentStatusIndex = statusOrder.indexOf(status)
 
   return stages.map(({ stage, status: stageStatus }) => ({
