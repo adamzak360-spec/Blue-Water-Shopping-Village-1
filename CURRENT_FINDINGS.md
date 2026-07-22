@@ -22,3 +22,11 @@
 2. Verify if `order_items` has an `INSERT` policy for `anon` or `public`.
 3. Check the schema of `orders` and `order_items` for any mandatory fields that might be causing the violation.
 4. Apply fixes to RLS policies.
+
+## Issue: Email Notification System
+- **Status**: Investigating and fixing.
+- **Root Cause**: Frontend-only implementation of email sending, causing CORS issues and security risks.
+- **Action Taken**: 
+  - Created a Vercel serverless function `api/send-email.ts` to handle email sending on the server.
+  - Updated `src/services/emailService.ts` to use this new endpoint.
+  - Configuring Vercel environment variables.
