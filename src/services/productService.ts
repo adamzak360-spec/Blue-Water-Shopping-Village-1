@@ -138,6 +138,20 @@ export async function uploadProductImage(file: File): Promise<string> {
   return urlData.publicUrl
 }
 
+export async function deleteProductImage(storagePath: string): Promise<void> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  const { error } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .remove([storagePath])
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
 export async function getDashboardStats(): Promise<DashboardStats> {
   const allProducts = await getAllProducts()
 
