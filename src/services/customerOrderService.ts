@@ -1,6 +1,7 @@
 import { supabase } from '../supabaseClient'
 import { Order, CartItem } from '../types'
 import { validateCartStock } from './inventoryService'
+import { sendNewOrderNotifications } from './emailNotifications'
 
 const getSupabase = () => {
   if (!supabase) {
@@ -82,7 +83,14 @@ export const reorderPreviousOrder = async (
   }
 
   console.log('[ReorderService] Reorder created successfully')
-  return data[0] as Order
+  const createdOrder = data[0] as Order
+  
+  // Trigger email notifications in the background
+  sendNewOrderNotifications(createdOrder, createdOrder.customer_email).catch(err => {
+    console.error('[ReorderService] Error sending new order notifications:', err)
+  })
+
+  return createdOrder
 }
 
 export const getOrderStatusTimeline = (

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { getCustomerOrderById, getOrderStatusTimeline } from '../services/customerOrderService'
+import { supabase } from '../supabaseClient'
 import { Order } from '../types'
 import { formatCurrency } from '../utils/currency'
 import './OrderDetails.css'
@@ -42,6 +43,28 @@ export default function OrderDetails() {
     }
 
     loadOrder()
+
+    // Subscribe to real-time order updates for this specific order
+    const subscription = supabase
+      .channel(`order-details-${orderId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+          filter: `id=eq.${orderId}`
+        },
+        (payload) => {
+          console.log('Specific order update received:', payload)
+          setOrder(payload.new as Order)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(subscription)
+    }
   }, [user, orderId, navigate])
 
   const handleReorder = () => {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getCustomerOrders } from '../services/customerOrderService'
+import { supabase } from '../supabaseClient'
 import { Order } from '../types'
 import { formatCurrency } from '../utils/currency'
 import './CustomerOrders.css'
@@ -36,6 +37,36 @@ export default function CustomerOrders() {
     }
 
     loadOrders()
+
+    // Subscribe to real-time order updates
+    const subscription = supabase
+      .channel('customer-orders')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Order change received:', payload)
+          if (payload.eventType === 'INSERT') {
+            setOrders(prev => [payload.new as Order, ...prev])
+          } else if (payload.eventType === 'UPDATE') {
+            setOrders(prev => prev.map(order => 
+              order.id === payload.new.id ? { ...order, ...payload.new } : order
+            ))
+          } else if (payload.eventType === 'DELETE') {
+            setOrders(prev => prev.filter(order => order.id !== payload.old.id))
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(subscription)
+    }
   }, [user, navigate])
 
   const filteredOrders = orders.filter(order => {

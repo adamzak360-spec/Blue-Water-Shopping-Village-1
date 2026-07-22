@@ -42,6 +42,24 @@ export default function Checkout() {
     script.async = true
     document.body.appendChild(script)
 
+    // Check for persisted checkout state after redirect
+    const persistedState = localStorage.getItem('checkout_state')
+    if (persistedState) {
+      try {
+        const { reference, formData: savedFormData, timestamp } = JSON.parse(persistedState)
+        // Only restore if it's recent (e.g., last 30 minutes)
+        if (Date.now() - timestamp < 30 * 60 * 1000) {
+          setPaymentReference(reference)
+          setFormData(savedFormData)
+          setPaymentStep('payment')
+        } else {
+          localStorage.removeItem('checkout_state')
+        }
+      } catch (e) {
+        console.error('Error restoring checkout state:', e)
+      }
+    }
+
     return () => {
       document.body.removeChild(script)
     }
@@ -92,6 +110,13 @@ export default function Checkout() {
           delivery_fee: deliveryFee,
         }
       })
+
+      // Persist state before redirecting
+      localStorage.setItem('checkout_state', JSON.stringify({
+        reference,
+        formData,
+        timestamp: Date.now()
+      }))
 
       console.log('[Checkout] Paystack payment initialized, redirecting to payment page')
       setPaymentStep('payment')
@@ -176,9 +201,10 @@ export default function Checkout() {
         }
 
         console.log('[Checkout] Order created successfully:', result.id)
+        localStorage.removeItem('checkout_state')
         clearCart()
         alert('Payment successful! Your order has been placed.')
-        navigate('/')
+        navigate('/customer/orders')
       } else {
         throw new Error('Payment was not successful. Please try again.')
       }
