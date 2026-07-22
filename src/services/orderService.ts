@@ -5,7 +5,7 @@ import {
   sendNewOrderNotifications,
   sendOrderStatusChangeNotifications,
   sendOrderApprovedEmail,
-  sendPaymentConfirmedEmail,
+
   sendReadyForPickupEmail,
   sendOutForDeliveryEmail,
   sendDeliveredEmail,
