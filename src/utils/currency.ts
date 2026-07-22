@@ -1,5 +1,5 @@
 /**
- * Reusable currency formatting utility for Blue Water Shopping Village.
+ * Reusable currency formatting utility for Reliable.
  * All prices are displayed in Ghana cedis (GH₵).
  * Do not change numeric values — only the display symbol.
  */

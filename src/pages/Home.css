@@ -368,6 +368,50 @@
   background-color: var(--color-accent-hover);
 }
 
+/* Call to Order Section */
+.call-to-order-section {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  padding: var(--space-2xl) 0;
+}
+
+.call-to-order-card {
+  text-align: center;
+  color: white;
+  padding: var(--space-2xl);
+  border-radius: var(--radius-lg);
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.call-to-order-card h3 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 0 var(--space-sm) 0;
+}
+
+.call-to-order-card p {
+  font-size: 1.1rem;
+  margin: 0 0 var(--space-lg) 0;
+  opacity: 0.95;
+}
+
+.call-to-order-link {
+  display: inline-block;
+  background-color: white;
+  color: #10b981;
+  padding: 1rem 2.5rem;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.call-to-order-link:hover {
+  background-color: #f0f9ff;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .hero-carousel {

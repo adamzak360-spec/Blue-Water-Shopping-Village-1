@@ -43,6 +43,7 @@ import CustomerOrders from './pages/CustomerOrders'
 import OrderDetails from './pages/OrderDetails'
 import CustomerSettings from './pages/CustomerSettings'
 import ProductDetails from './pages/ProductDetails'
+import TermsPopup from './components/TermsPopup'
 
 function App() {
   return (
@@ -162,6 +163,7 @@ function AppShell() {
       </aside>
       <div className={`drawer-overlay ${isMenuOpen ? 'show' : ''}`} onClick={toggleMenu}></div>
 
+      <TermsPopup />
       <main className="app-main">
         <Routes>
           <Route path="/" element={<Home />} />

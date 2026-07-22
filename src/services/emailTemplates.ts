@@ -1,7 +1,7 @@
 /**
  * Email Templates
  * 
- * Professional HTML email templates for Blue Water Shopping Village
+ * Professional HTML email templates for Reliable
  * All templates are responsive and include company branding
  */
 

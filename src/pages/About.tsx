@@ -5,7 +5,7 @@ export default function About() {
     <div className="static-page">
       <div className="static-page-container">
         <div className="page-hero">
-          <h1>About Blue Water Shopping Village</h1>
+          <h1>About Reliable</h1>
           <p className="hero-subtitle">Bringing Ghana's finest groceries to your doorstep</p>
         </div>
 
@@ -13,7 +13,7 @@ export default function About() {
           <section className="content-section">
             <h2>Our Story</h2>
             <p>
-              Blue Water Shopping Village was founded with a simple mission: to make quality groceries
+              Reliable was founded with a simple mission: to make quality groceries
               accessible to every household in Ghana. What started as a small neighbourhood shop has grown
               into a modern, full-service online supermarket that serves customers across the Greater Accra
               region and beyond.
@@ -70,14 +70,14 @@ export default function About() {
           <section className="content-section">
             <h2>Our Commitment</h2>
             <p>
-              At Blue Water Shopping Village, we are committed to supporting the local economy by partnering
+              At Reliable, we are committed to supporting the local economy by partnering
               with Ghanaian farmers and producers wherever possible. We believe in giving back to the community
               that has supported our growth, and we continuously strive to improve our services to meet the
               evolving needs of our customers.
             </p>
             <p>
               Whether you are a busy professional, a family shopping for the week, or someone who simply
-              appreciates the convenience of online grocery shopping, Blue Water Shopping Village is here
+              appreciates the convenience of online grocery shopping, Reliable is here
               to serve you.
             </p>
           </section>

@@ -25,19 +25,21 @@ export default function Contact() {
               <div className="contact-card">
                 <div className="contact-card-icon">&#128222;</div>
                 <h4>Phone</h4>
-                <p>+233 (0) 30 XXX XXXX</p>
+                <a href="tel:+233538557781" style={{ color: 'inherit', textDecoration: 'none' }}>
+                  <p>+233 53 855 7781</p>
+                </a>
                 <p className="contact-note">Available Mon - Sat, 8:00 AM - 8:00 PM</p>
               </div>
               <div className="contact-card">
                 <div className="contact-card-icon">&#9993;</div>
                 <h4>Email</h4>
-                <p>info@bluewatershopping.com</p>
+                <p>support@reliable.com</p>
                 <p className="contact-note">We respond within 24 hours</p>
               </div>
               <div className="contact-card">
                 <div className="contact-card-icon">&#128205;</div>
                 <h4>Location</h4>
-                <p>Blue Water Shopping Village</p>
+                <p>Reliable Marketplace</p>
                 <p className="contact-note">Accra, Greater Accra, Ghana</p>
               </div>
               <div className="contact-card">

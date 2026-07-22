@@ -13,7 +13,7 @@ export default function Delivery() {
           <section className="content-section">
             <h2>Delivery Areas</h2>
             <p>
-              Blue Water Shopping Village currently delivers to all areas within the Greater Accra
+              Reliable currently delivers to all areas within the Greater Accra
               Metropolitan Area. This includes but is not limited to Accra Central, East Legon,
               Spintex, Tema, Madina, Weija, Kasoa, and surrounding areas.
             </p>

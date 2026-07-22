@@ -73,7 +73,7 @@ export default function Register() {
       <div className="login-card">
         <div className="login-header">
           <h2>Create Account</h2>
-          <p>Join Blue Water Shopping Village</p>
+          <p>Join Reliable</p>
         </div>
 
         {error && (

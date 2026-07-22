@@ -14,7 +14,7 @@ export default function Returns() {
           <section className="content-section">
             <h2>1. Our Return Policy</h2>
             <p>
-              At Blue Water Shopping Village, we want you to be completely satisfied with your
+              At Reliable, we want you to be completely satisfied with your
               purchase. If for any reason you are not satisfied, we are here to help. This
               policy outlines the conditions under which you may return products and receive
               a refund or replacement.

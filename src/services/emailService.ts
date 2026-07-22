@@ -1,7 +1,7 @@
 /**
  * Email Service
  * 
- * This service handles all email notifications for the Blue Water Shopping Village.
+ * This service handles all email notifications for the Reliable.
  * It's designed to work with transactional email providers like Resend, SendGrid, or AWS SES.
  * 
  * To enable email sending, set the following environment variables:

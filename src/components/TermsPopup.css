@@ -1,0 +1,190 @@
+/* Terms Popup Overlay */
+.terms-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.terms-popup-container {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 100%;
+  position: relative;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.terms-popup-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  transition: color 0.2s;
+  z-index: 10;
+}
+
+.terms-popup-close:hover {
+  color: #111827;
+}
+
+.terms-popup-content {
+  padding: 2.5rem 2rem 2rem 2rem;
+}
+
+.terms-popup-content h2 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: 0 0 1rem 0;
+  color: #111827;
+}
+
+.terms-popup-intro {
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0 0 1.5rem 0;
+  font-size: 0.95rem;
+}
+
+.terms-popup-policies {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background-color: #f9fafb;
+  border-radius: 8px;
+}
+
+.policy-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.policy-icon {
+  font-size: 1.5rem;
+}
+
+.policy-item a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.policy-item a:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.terms-popup-agreement {
+  color: #374151;
+  font-size: 0.9rem;
+  margin: 1.5rem 0;
+  text-align: center;
+  font-weight: 500;
+}
+
+.terms-popup-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.terms-popup-btn {
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+.read-btn {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.read-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.acknowledge-btn {
+  background-color: #10b981;
+  color: white;
+}
+
+.acknowledge-btn:hover {
+  background-color: #059669;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .terms-popup-container {
+    margin: 0 1rem;
+  }
+
+  .terms-popup-content {
+    padding: 2rem 1.5rem 1.5rem 1.5rem;
+  }
+
+  .terms-popup-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .terms-popup-policies {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .terms-popup-actions {
+    flex-direction: column;
+  }
+}

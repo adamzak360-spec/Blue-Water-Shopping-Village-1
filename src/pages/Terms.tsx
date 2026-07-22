@@ -14,7 +14,7 @@ export default function Terms() {
           <section className="content-section">
             <h2>1. Agreement to Terms</h2>
             <p>
-              By accessing and using the Blue Water Shopping Village website, you agree to be
+              By accessing and using the Reliable website, you agree to be
               bound by these Terms and Conditions. If you do not agree with any part of these
               terms, you must not use our website or services.
             </p>
@@ -95,7 +95,7 @@ export default function Terms() {
             <h2>8. Intellectual Property</h2>
             <p>
               All content on this website, including text, images, logos, and product
-              descriptions, is the property of Blue Water Shopping Village or its licensors
+              descriptions, is the property of Reliable or its licensors
               and is protected by applicable intellectual property laws. You may not reproduce,
               distribute, or use any content without our prior written permission.
             </p>
@@ -104,7 +104,7 @@ export default function Terms() {
           <section className="content-section">
             <h2>9. Limitation of Liability</h2>
             <p>
-              Blue Water Shopping Village shall not be liable for any indirect, incidental,
+              Reliable shall not be liable for any indirect, incidental,
               or consequential damages arising from your use of our website or services.
               Our total liability for any claim shall not exceed the amount you paid for the
               products or services giving rise to the claim.

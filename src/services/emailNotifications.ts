@@ -103,7 +103,7 @@ export async function sendWelcomeEmail(
 
     const payload: EmailPayload = {
       to: customerEmail,
-      subject: `Welcome to Blue Water Shopping Village, ${customerName}!`,
+      subject: `Welcome to Reliable, ${customerName}!`,
       html,
       text,
       replyTo: 'support@bluewatershopping.com',
@@ -248,7 +248,7 @@ export async function sendRestockRequest(supplier: any, products: any[]): Promis
 
     const payload: EmailPayload = {
       to: supplier.email_address,
-      subject: `Restock Request from ${import.meta.env.VITE_COMPANY_NAME || 'Blue Water Shopping Village'}`,
+      subject: `Restock Request from ${import.meta.env.VITE_COMPANY_NAME || 'Reliable'}`,
       html,
       text,
       replyTo: import.meta.env.VITE_ADMIN_EMAIL || 'admin@bluewatershopping.com',

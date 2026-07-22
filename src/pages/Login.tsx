@@ -81,7 +81,7 @@ export default function Login() {
       <div className="login-card">
         <div className="login-header">
           <h2>Login</h2>
-          <p>Blue Water Shopping Village</p>
+          <p>Reliable</p>
         </div>
 
         {error && (

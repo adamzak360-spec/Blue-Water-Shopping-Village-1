@@ -5,7 +5,7 @@ import { getApprovedReviewsByProductId, submitReview, getProductRatingStats } fr
 import type { Product, Review } from '../types'
 import { useCart } from '../context/CartContext'
 import { formatCurrency } from '../utils/currency'
-import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock, Share2, Heart, ZoomIn } from 'lucide-react'
+import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock, Share2, Heart, ZoomIn, Phone } from 'lucide-react'
 import './ProductDetails.css'
 
 export default function ProductDetails() {
@@ -28,6 +28,11 @@ export default function ProductDetails() {
   const [reviewMessage, setReviewMessage] = useState('')
   const [isSubmittingReview, setIsSubmittingReview] = useState(false)
   const [reviewSuccess, setReviewSuccess] = useState(false)
+
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0)
+  }, [productId])
 
   useEffect(() => {
     const loadProductAndReviews = async () => {
@@ -72,6 +77,11 @@ export default function ProductDetails() {
 
     loadProductAndReviews()
   }, [productId])
+
+  // Scroll to top when product changes
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [product?.id])
 
   const handleAddToCart = () => {
     if (product) {
@@ -149,6 +159,10 @@ export default function ProductDetails() {
   const mainImage = productImages[mainImageIndex] || product.image_url
 
   const isOutOfStock = product.stock_quantity === 0 || product.status === 'inactive'
+
+  const handleCallOrder = () => {
+    window.location.href = 'tel:+233538557781'
+  }
 
   const renderStars = (rating: number) => {
     return (
@@ -268,6 +282,11 @@ export default function ProductDetails() {
               <Heart size={18} /> Wishlist
             </button>
           </div>
+
+          <button className="call-to-order-btn" onClick={handleCallOrder}>
+            <Phone size={20} />
+            Need help placing an order? Call us: +233 53 855 7781
+          </button>
 
           <div className="trust-badges">
             <div className="trust-item">

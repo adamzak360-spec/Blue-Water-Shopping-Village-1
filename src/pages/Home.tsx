@@ -283,6 +283,19 @@ export default function Home() {
         </div>
       </section>
 
+      {/* --- Call to Order Section --- */}
+      <section className="section call-to-order-section">
+        <div className="container">
+          <div className="call-to-order-card">
+            <h3>Need Help Placing an Order?</h3>
+            <p>Our customer support team is ready to assist you</p>
+            <a href="tel:+233538557781" className="call-to-order-link">
+              📞 Call us: +233 53 855 7781
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* --- Newsletter --- */}
       <section className="section newsletter-section">
         <div className="container">

@@ -308,6 +308,39 @@
   color: var(--color-accent);
 }
 
+/* Call to Order Button */
+.call-to-order-btn {
+  width: 100%;
+  padding: 1rem;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  transition: all var(--transition-fast);
+  margin: var(--space-lg) 0;
+}
+
+.call-to-order-btn:hover {
+  background-color: #059669;
+}
+
+.call-to-order-btn a {
+  color: white;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  width: 100%;
+}
+
 /* Trust Badges */
 .trust-badges {
   display: flex;
