@@ -20,6 +20,7 @@ export default function Login() {
   }, []);
 
   // If already authenticated, redirect appropriately
+  const { isAdmin } = useAuth()
   useEffect(() => {
     if (user) {
       // Check if we should redirect to a specific location
@@ -28,12 +29,15 @@ export default function Login() {
       const redirect = params.get('redirect');
       if (redirect) {
         navigate(redirect, { replace: true });
+      } else if (isAdmin) {
+        // Redirect admins to admin dashboard
+        navigate('/admin', { replace: true });
       } else {
         // Default: redirect to customer dashboard
         navigate('/customer', { replace: true });
       }
     }
-  }, [user, navigate])
+  }, [user, isAdmin, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,7 +72,7 @@ export default function Login() {
 
   if (user) {
     const params = new URLSearchParams(window.location.search);
-    const redirect = params.get('redirect') || '/customer';
+    const redirect = params.get('redirect') || (isAdmin ? '/admin' : '/customer');
     return <Navigate to={redirect} replace />
   }
 

@@ -53,7 +53,7 @@ function App() {
 }
 
 function AppShell() {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const { cartCount, setIsCartOpen } = useCart()
   const location = useLocation()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -134,6 +134,11 @@ function AppShell() {
           <Link to="/products?filter=deals" className="drawer-item"><Tag size={20} /> Deals</Link>
           {user && (
             <>
+              {isAdmin && (
+                <Link to="/admin" className="drawer-item admin-item" style={{ color: '#0066cc', fontWeight: 'bold' }}>
+                  <Settings size={20} /> Admin Dashboard
+                </Link>
+              )}
               <Link to="/customer/orders" className="drawer-item"><Package size={20} /> Orders</Link>
               <Link to="/customer/wishlist" className="drawer-item"><Heart size={20} /> Wishlist</Link>
               <Link to="/customer" className="drawer-item"><User size={20} /> Account</Link>

@@ -8,7 +8,7 @@ import { formatCurrency } from '../utils/currency'
 import './CustomerDashboard.css'
 
 export default function CustomerDashboard() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, isAdmin } = useAuth()
   const navigate = useNavigate()
   const [profile, setProfile] = useState<CustomerProfile | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
@@ -110,6 +110,16 @@ export default function CustomerDashboard() {
           <div className="dashboard-card quick-actions">
             <h2>Quick Actions</h2>
             <div className="actions-list">
+              {isAdmin && (
+                <button 
+                  className="action-btn admin-btn" 
+                  onClick={() => navigate('/admin')}
+                  style={{ backgroundColor: '#0066cc', color: 'white' }}
+                >
+                  <span className="icon">🛡️</span>
+                  <span>Admin Dashboard</span>
+                </button>
+              )}
               <button className="action-btn" onClick={() => navigate('/customer/profile')}>
                 <span className="icon">👤</span>
                 <span>Edit Profile</span>
