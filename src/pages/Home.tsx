@@ -127,6 +127,19 @@ export default function Home() {
       count,
     }))
 
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
+  const categoryDropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+        setIsCategoryDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   return (
     <div className="home-page">
       {/* --- Hero Carousel --- */}
@@ -161,21 +174,40 @@ export default function Home() {
       {/* --- Featured Categories --- */}
       <section className="section categories-section">
         <div className="container">
-          <div className="section-header">
-            <h3 className="section-title">Shop by Category</h3>
-            <Link to="/products" className="view-all">View All <ChevronRight size={16} /></Link>
-          </div>
-          <div className="categories-grid">
-            {dynamicCategories.map(category => (
-              <Link
-                key={category.name}
-                to={`/products?category=${encodeURIComponent(category.name)}`}
-                className="category-card"
-              >
-                <span className="category-icon">{category.icon}</span>
-                <span className="category-name">{category.name}</span>
-              </Link>
-            ))}
+          <div className="category-dropdown-wrapper" ref={categoryDropdownRef}>
+            <button 
+              className={`category-dropdown-btn ${isCategoryDropdownOpen ? 'active' : ''}`}
+              onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+            >
+              <span>Shop by Category</span>
+              <ChevronRight size={20} className={isCategoryDropdownOpen ? 'rotate-90' : ''} />
+            </button>
+            
+            {isCategoryDropdownOpen && (
+              <div className="category-dropdown-menu">
+                {dynamicCategories.map(category => (
+                  <Link
+                    key={category.name}
+                    to={`/products?category=${encodeURIComponent(category.name)}`}
+                    className="category-dropdown-item"
+                    onClick={() => setIsCategoryDropdownOpen(false)}
+                  >
+                    <span className="category-icon">{category.icon}</span>
+                    <span className="category-name">{category.name}</span>
+                    <span className="category-count">{category.count} items</span>
+                  </Link>
+                ))}
+                <Link 
+                  to="/products" 
+                  className="category-dropdown-item view-all-item"
+                  onClick={() => setIsCategoryDropdownOpen(false)}
+                >
+                  <span className="category-icon">📂</span>
+                  <span className="category-name">View All Products</span>
+                  <ArrowRight size={16} />
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </section>
