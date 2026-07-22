@@ -1,29 +1,33 @@
-/* ========================================
-   MASTER PRODUCT CARD & GRID UI STANDARD
-   ======================================== */
+/* RELIABLE Product Card & Grid UI */
 
 .products-grid {
   display: grid;
-  /* Desktop: 4 columns */
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+  gap: var(--space-lg);
   width: 100%;
-  background-color: #ffffff;
+  background-color: transparent;
 }
 
 .product-card {
   background: white;
-  border: 1px solid #f3f4f6;
-  border-radius: 8px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   height: 100%;
   position: relative;
-  transition: transform 0.2s ease-in-out;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
 }
 
-/* ── Product Image ── */
+.product-card:hover {
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+}
+
+/* Product Image */
 .product-image-link {
   display: block;
   width: 100%;
@@ -33,8 +37,8 @@
 .product-image-container {
   position: relative;
   width: 100%;
-  height: 200px; /* Fixed height to keep cards aligned */
-  background-color: #ffffff;
+  aspect-ratio: 1;
+  background-color: var(--color-border-light);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -45,18 +49,23 @@
 .product-image {
   max-width: 100%;
   max-height: 100%;
-  object-fit: contain; /* Preserve aspect ratio, never stretch or distort */
+  object-fit: contain;
   display: block;
+  transition: transform var(--transition-normal);
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.05);
 }
 
 .product-image-placeholder {
   position: absolute;
   inset: 0;
-  background-color: #f9fafb;
+  background-color: var(--color-border-light);
   display: none;
   align-items: center;
   justify-content: center;
-  color: #9ca3af;
+  color: var(--color-text-muted);
   font-size: 0.8rem;
 }
 
@@ -64,9 +73,9 @@
   display: flex !important;
 }
 
-/* ── Product Info ── */
+/* Product Info */
 .product-info {
-  padding: 1.25rem;
+  padding: var(--space-md);
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -76,50 +85,54 @@
   display: block;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #2563eb; /* Blue category text */
+  color: var(--color-accent);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-sm);
 }
 
 .product-name-link {
   text-decoration: none;
   color: inherit;
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-sm);
 }
 
 .product-name {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #111827;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
   margin: 0;
   line-height: 1.3;
-}
-
-.product-description {
-  font-size: 0.875rem;
-  color: #6b7280; /* Description styling */
-  margin: 0 0 1.25rem 0;
-  line-height: 1.5;
   display: -webkit-box;
-  -webkit-line-clamp: 1; /* Keep it compact as in screenshot */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-/* ── Price & Stock ── */
+.product-description {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-md) 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Price & Stock */
 .product-price-stock {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
 }
 
 .product-price {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #16a34a; /* Green price */
+  color: var(--color-accent);
 }
 
 .stock-badge-wrapper {
@@ -127,18 +140,18 @@
   align-items: center;
 }
 
-/* ── Product Actions ── */
+/* Product Actions */
 .product-actions {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-sm);
   margin-top: auto;
 }
 
 .view-details-btn {
   width: 100%;
-  padding: 0.625rem;
-  border-radius: 6px;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
@@ -146,95 +159,85 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #ffffff !important; /* Force white background */
-  color: #2563eb !important; /* Force blue text */
-  border: 1px solid #2563eb !important; /* Force blue border */
-  transition: all 0.2s;
+  background-color: white;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  transition: all var(--transition-fast);
 }
 
 .view-details-btn:hover {
-  background-color: #f8fafc !important;
-  color: #1d4ed8 !important;
-  border-color: #1d4ed8 !important;
+  background-color: var(--color-accent);
+  color: white;
 }
 
 .add-to-cart-btn {
   width: 100%;
   padding: 0.75rem;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #2563eb; /* Blue Add to Cart button */
-  color: #ffffff;
+  background-color: var(--color-accent);
+  color: white;
   border: none;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
+}
+
+.add-to-cart-btn:hover {
+  background-color: var(--color-accent-hover);
 }
 
 .add-to-cart-btn:disabled {
-  background-color: #94a3b8;
+  background-color: var(--color-text-muted);
   cursor: not-allowed;
 }
 
-/* ========================================
-   RESPONSIVE BREAKPOINTS
-   ======================================== */
-
-/* Tablet (768px - 1024px) — 3 products per row */
+/* Responsive */
 @media (max-width: 1024px) {
   .products-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
+    gap: var(--space-md);
   }
 }
 
-/* Mobile (Up to 767px) — TWO PRODUCTS PER ROW (Highest Priority) */
-@media screen and (max-width: 767px) {
-  .app-main .products-grid {
-    grid-template-columns: repeat(2, 1fr) !important; /* 2 products per row - HIGHEST PRIORITY */
-    gap: 0.75rem !important;
-    padding: 0.5rem !important;
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
   }
-
+  
   .product-image-container {
-    height: 150px; /* Smaller height for mobile */
-    padding: 4px;
+    aspect-ratio: 1;
   }
-
+  
   .product-info {
-    padding: 0.75rem;
+    padding: var(--space-sm);
   }
-
+  
   .product-name {
     font-size: 0.95rem;
   }
-
-  .product-category {
-    font-size: 0.65rem;
-  }
-
-  .product-description {
-    font-size: 0.8rem;
-    margin-bottom: 0.75rem;
-  }
-
+  
   .product-price {
-    font-size: 1rem;
-  }
-
-  .view-details-btn, .add-to-cart-btn {
-    padding: 0.5rem;
-    font-size: 0.8rem;
+    font-size: 1.1rem;
   }
 }
 
-/* Ensure 2 columns even on very small screens */
-@media (max-width: 350px) {
+@media (max-width: 480px) {
   .products-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
+    gap: var(--space-sm);
+  }
+  
+  .product-info {
+    padding: var(--space-sm);
+  }
+  
+  .view-details-btn, .add-to-cart-btn {
+    padding: 0.6rem;
+    font-size: 0.8rem;
   }
 }

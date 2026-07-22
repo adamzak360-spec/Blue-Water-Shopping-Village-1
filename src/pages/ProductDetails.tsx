@@ -5,12 +5,11 @@ import { getApprovedReviewsByProductId, submitReview, getProductRatingStats } fr
 import type { Product, Review } from '../types'
 import { useCart } from '../context/CartContext'
 import { formatCurrency } from '../utils/currency'
-import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock } from 'lucide-react'
+import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock, Share2, Heart, ZoomIn } from 'lucide-react'
 import './ProductDetails.css'
 
 export default function ProductDetails() {
   const { productId } = useParams<{ productId: string }>()
-  // const navigate = useNavigate()
   const { addToCart } = useCart()
 
   const [product, setProduct] = useState<Product | null>(null)
@@ -39,29 +38,21 @@ export default function ProductDetails() {
           return
         }
 
-        // Load product data first
-        try {
-          const productData = await getProductById(productId)
-          if (!productData) {
-            setError('Product not found')
-            setIsLoading(false)
-            return
-          }
-          setProduct(productData)
-
-          // Load related products from same category
-          getAllProducts().then(allProducts => {
-            const related = allProducts
-              .filter(p => p.category === productData.category && p.id !== productId && p.status === 'active')
-              .slice(0, 4)
-            setRelatedProducts(related)
-          }).catch(err => console.error('Failed to load related products:', err))
-
-        } catch (err) {
-          setError(err instanceof Error ? err.message : 'Failed to load product')
+        const productData = await getProductById(productId)
+        if (!productData) {
+          setError('Product not found')
           setIsLoading(false)
           return
         }
+        setProduct(productData)
+
+        // Load related products from same category
+        getAllProducts().then(allProducts => {
+          const related = allProducts
+            .filter(p => p.category === productData.category && p.id !== productId && p.status === 'active')
+            .slice(0, 4)
+          setRelatedProducts(related)
+        }).catch(err => console.error('Failed to load related products:', err))
 
         // Load reviews and stats independently
         getApprovedReviewsByProductId(productId)
@@ -116,7 +107,6 @@ export default function ProductDetails() {
       setReviewTitle('')
       setReviewMessage('')
       setReviewRating(5)
-      // Note: Reviews are pending approval, so we don't refresh the list immediately
     } catch (err) {
       console.error('Failed to submit review:', err)
       alert('Failed to submit review. Please try again.')
@@ -176,11 +166,16 @@ export default function ProductDetails() {
         <div className="product-gallery-section">
           <div className="main-image-container">
             {mainImage ? (
-              <img
-                src={mainImage}
-                alt={product.name}
-                className="main-product-image"
-              />
+              <div className="main-image-wrapper">
+                <img
+                  src={mainImage}
+                  alt={product.name}
+                  className="main-product-image"
+                />
+                <button className="lightbox-btn" aria-label="Zoom image">
+                  <ZoomIn size={20} />
+                </button>
+              </div>
             ) : (
               <div className="product-image-placeholder-large">
                 <span>No image available</span>
@@ -206,31 +201,22 @@ export default function ProductDetails() {
 
         {/* Right Column: Product Info */}
         <div className="product-info-section">
-          <div className="price-tag">
-            {formatCurrency(product.price)}
+          <div className="product-header">
+            <h1 className="product-title">{product.name}</h1>
+            <p className="product-supplier">By {product.category}</p>
           </div>
 
-          <div className="availability-info">
-            <div className="info-row">
-              <span className="info-label">Availability:</span>
-              <span className={`info-value ${isOutOfStock ? 'status-out-of-stock' : 'status-in-stock'}`}>
-                {isOutOfStock ? 'Out of Stock' : 'In Stock'}
-              </span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">Stock:</span>
-              <span className="info-value">{product.stock_quantity} units available</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">SKU:</span>
-              <span className="info-value">BW-{product.id.substring(0, 8).toUpperCase()}</span>
-            </div>
-            <div className="info-row" style={{ marginTop: '0.5rem' }}>
-              {renderStars(ratingStats.averageRating)}
-              <span className="rating-count" style={{ marginLeft: '0.5rem' }}>
-                ({ratingStats.totalReviews} reviews)
-              </span>
-            </div>
+          <div className="rating-section">
+            {renderStars(ratingStats.averageRating)}
+            <span className="rating-value">{ratingStats.averageRating.toFixed(1)}</span>
+            <span className="rating-count">({ratingStats.totalReviews} reviews)</span>
+          </div>
+
+          <div className="price-section">
+            <span className="price-tag">{formatCurrency(product.price)}</span>
+            <span className="stock-status" style={{ color: isOutOfStock ? '#ef4444' : '#16a34a' }}>
+              {isOutOfStock ? 'Out of Stock' : 'In Stock'}
+            </span>
           </div>
 
           <div className="description-section">
@@ -271,6 +257,15 @@ export default function ProductDetails() {
             </button>
           </div>
 
+          <div className="action-buttons">
+            <button className="action-btn">
+              <Share2 size={18} /> Share
+            </button>
+            <button className="action-btn">
+              <Heart size={18} /> Wishlist
+            </button>
+          </div>
+
           <div className="trust-badges">
             <div className="trust-item">
               <Truck size={20} />
@@ -288,14 +283,6 @@ export default function ProductDetails() {
         </div>
       </div>
 
-      {/* Specifications Section */}
-      <div className="content-card specifications-card">
-        <h3 className="card-title">Specifications</h3>
-        <div className="card-content">
-          <p className="muted-text">No specifications available.</p>
-        </div>
-      </div>
-
       {/* Reviews Section */}
       <div className="content-card reviews-card">
         <h3 className="card-title">Customer Reviews</h3>
@@ -306,55 +293,53 @@ export default function ProductDetails() {
             <span className="rating-count">{ratingStats.totalReviews} reviews</span>
           </div>
           
-          <div className="reviews-list" style={{ marginTop: '2rem' }}>
+          <div className="reviews-list">
             {reviews.length === 0 ? (
               <p className="muted-text">No reviews yet. Be the first to review this product!</p>
             ) : (
               reviews.map(review => (
-                <div key={review.id} className="review-item" style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid #f3f4f6' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                <div key={review.id} className="review-item">
+                  <div className="review-header">
                     <div>
-                      <span style={{ fontWeight: 700, marginRight: '1rem' }}>{review.customer_name}</span>
+                      <span className="review-author">{review.customer_name}</span>
                       {renderStars(review.rating)}
                     </div>
-                    <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
+                    <span className="review-date">
                       {new Date(review.created_at).toLocaleDateString()}
                     </span>
                   </div>
-                  {review.title && <h4 style={{ margin: '0.5rem 0', fontWeight: 600 }}>{review.title}</h4>}
-                  <p style={{ color: '#4b5563', lineHeight: 1.5 }}>{review.message}</p>
+                  {review.title && <h4 className="review-title">{review.title}</h4>}
+                  <p className="review-message">{review.message}</p>
                 </div>
               ))
             )}
           </div>
 
           {/* Review Form */}
-          <div className="add-review-section" style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '2px solid #f3f4f6' }}>
-            <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.5rem' }}>Write a Review</h4>
+          <div className="add-review-section">
+            <h4 className="form-title">Write a Review</h4>
             
             {reviewSuccess ? (
-              <div style={{ backgroundColor: '#f0fdf4', color: '#166534', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
+              <div className="success-message">
                 Thank you! Your review has been submitted and is pending approval.
               </div>
             ) : (
-              <form onSubmit={handleSubmitReview} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>Your Name *</label>
+              <form onSubmit={handleSubmitReview} className="review-form">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Your Name *</label>
                     <input 
                       type="text" 
                       required 
                       value={reviewName}
                       onChange={e => setReviewName(e.target.value)}
-                      style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '6px' }}
                     />
                   </div>
-                  <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>Rating *</label>
+                  <div className="form-group">
+                    <label>Rating *</label>
                     <select 
                       value={reviewRating}
                       onChange={e => setReviewRating(parseInt(e.target.value))}
-                      style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '6px' }}
                     >
                       <option value="5">5 Stars - Excellent</option>
                       <option value="4">4 Stars - Good</option>
@@ -364,43 +349,26 @@ export default function ProductDetails() {
                     </select>
                   </div>
                 </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>Review Title</label>
+                <div className="form-group">
+                  <label>Review Title</label>
                   <input 
                     type="text" 
                     value={reviewTitle}
                     onChange={e => setReviewTitle(e.target.value)}
                     placeholder="Summarize your experience"
-                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '6px' }}
                   />
                 </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>Your Review *</label>
+                <div className="form-group">
+                  <label>Your Review *</label>
                   <textarea 
                     required 
                     rows={4}
                     value={reviewMessage}
                     onChange={e => setReviewMessage(e.target.value)}
-                    placeholder="What did you like or dislike?"
-                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '6px', resize: 'vertical' }}
+                    placeholder="Share your experience with this product"
                   />
                 </div>
-                <button 
-                  type="submit" 
-                  disabled={isSubmittingReview}
-                  className="submit-review-btn"
-                  style={{ 
-                    alignSelf: 'flex-start',
-                    padding: '0.75rem 2rem',
-                    backgroundColor: '#1f2937',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontWeight: 600,
-                    cursor: isSubmittingReview ? 'not-allowed' : 'pointer',
-                    opacity: isSubmittingReview ? 0.7 : 1
-                  }}
-                >
+                <button type="submit" className="submit-review-btn" disabled={isSubmittingReview}>
                   {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
                 </button>
               </form>
@@ -411,20 +379,22 @@ export default function ProductDetails() {
 
       {/* Related Products */}
       {relatedProducts.length > 0 && (
-        <div className="related-products-section" style={{ marginTop: '4rem' }}>
-          <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '2rem' }}>Related Products</h3>
-          <div className="related-products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '2rem' }}>
+        <div className="related-products-section">
+          <h3 className="section-title">Related Products</h3>
+          <div className="related-products-grid">
             {relatedProducts.map(p => (
-              <Link key={p.id} to={`/products/${p.id}`} className="related-product-card" style={{ textDecoration: 'none', color: 'inherit' }}>
-                <div style={{ backgroundColor: '#f9fafb', borderRadius: '12px', overflow: 'hidden', height: '200px', marginBottom: '1rem' }}>
+              <Link key={p.id} to={`/product/${p.id}`} className="related-product-card">
+                <div className="related-image-container">
                   {p.image_url ? (
-                    <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={p.image_url} alt={p.name} />
                   ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>No image</div>
+                    <div className="no-image">No image</div>
                   )}
                 </div>
-                <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 600 }}>{p.name}</h4>
-                <p style={{ fontWeight: 700, color: '#1f2937' }}>{formatCurrency(p.price)}</p>
+                <div className="related-info">
+                  <h4 className="related-name">{p.name}</h4>
+                  <p className="related-price">{formatCurrency(p.price)}</p>
+                </div>
               </Link>
             ))}
           </div>

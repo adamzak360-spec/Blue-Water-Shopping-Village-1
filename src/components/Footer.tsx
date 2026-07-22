@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Mail, Phone, MapPin, Clock } from 'lucide-react'
 import './Footer.css'
 
 export default function Footer() {
@@ -8,13 +9,13 @@ export default function Footer() {
         {/* Company Section */}
         <div className="footer-section">
           <div className="footer-brand">
-            <h3 className="footer-logo">Blue Water Shopping Village</h3>
-            <p className="footer-tagline">Your Modern Supermarket</p>
+            <h3 className="footer-logo">RELIABLE</h3>
+            <p className="footer-tagline">Premium Marketplace</p>
             <p className="footer-description">
-              Blue Water Shopping Village is Ghana's premier online supermarket,
-              offering fresh groceries, quality products, and reliable delivery
-              straight to your doorstep. We bring the best shopping experience
-              to your home with convenience, affordability, and trust.
+              RELIABLE is your trusted online marketplace for premium products.
+              We deliver quality, convenience, and exceptional service straight
+              to your doorstep. Shop with confidence and enjoy a seamless
+              shopping experience.
             </p>
           </div>
         </div>
@@ -47,20 +48,20 @@ export default function Footer() {
           <h4 className="footer-heading">Contact Us</h4>
           <div className="footer-contact">
             <div className="contact-item">
-              <span className="contact-icon">&#128222;</span>
+              <Phone size={18} />
               <span>+233 (0) 30 XXX XXXX</span>
             </div>
             <div className="contact-item">
-              <span className="contact-icon">&#9993;</span>
-              <span>info@bluewatershopping.com</span>
+              <Mail size={18} />
+              <span>support@reliable.com</span>
             </div>
             <div className="contact-item">
-              <span className="contact-icon">&#128205;</span>
-              <span>Blue Water Shopping Village,<br />Accra, Greater Accra, Ghana</span>
+              <MapPin size={18} />
+              <span>Accra, Greater Accra, Ghana</span>
             </div>
             <div className="contact-item">
-              <span className="contact-icon">&#128336;</span>
-              <span>Mon - Sat: 8:00 AM - 8:00 PM<br />Sun: 9:00 AM - 6:00 PM</span>
+              <Clock size={18} />
+              <span>Mon - Sat: 8:00 AM - 8:00 PM</span>
             </div>
           </div>
         </div>
@@ -70,13 +71,13 @@ export default function Footer() {
       <div className="footer-bottom">
         <div className="footer-bottom-content">
           <div className="social-media">
-            <a href="#" className="social-link" title="Facebook">&#9679; Facebook</a>
-            <a href="#" className="social-link" title="Instagram">&#9679; Instagram</a>
-            <a href="#" className="social-link" title="Twitter">&#9679; Twitter</a>
-            <a href="#" className="social-link" title="WhatsApp">&#9679; WhatsApp</a>
+            <a href="#" className="social-link" title="Facebook">Facebook</a>
+            <a href="#" className="social-link" title="Instagram">Instagram</a>
+            <a href="#" className="social-link" title="Twitter">Twitter</a>
+            <a href="#" className="social-link" title="WhatsApp">WhatsApp</a>
           </div>
           <p className="footer-copyright">
-            &copy; {new Date().getFullYear()} Blue Water Shopping Village. All rights reserved.
+            &copy; {new Date().getFullYear()} RELIABLE. All rights reserved.
           </p>
         </div>
       </div>

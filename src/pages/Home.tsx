@@ -1,30 +1,39 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getAllProducts } from '../services/productService'
 import type { Product } from '../types'
 import { Link } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
+import { ChevronLeft, ChevronRight, ArrowRight, Zap, TrendingUp, Star, Package, Award, Heart } from 'lucide-react'
 import './Home.css'
-// import '../components/ProductGrid.css' - Moved to main.tsx for priority
 
-const TESTIMONIALS = [
+const HERO_BANNERS = [
   {
-    name: 'Abena Mensah',
-    location: 'East Legon, Accra',
-    text: 'I love shopping here! The products are always fresh and delivery is super fast. My go-to supermarket.',
-    rating: 5,
+    id: 1,
+    title: 'Premium Collection 2026',
+    subtitle: 'Experience Excellence',
+    description: 'Discover our curated selection of high-end products designed for the modern lifestyle.',
+    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1600',
+    cta: 'Shop Now',
+    color: '#000000'
   },
   {
-    name: 'Kwame Asante',
-    location: 'Spintex Road',
-    text: 'Great prices and excellent customer service. The online ordering system is very convenient.',
-    rating: 5,
+    id: 2,
+    title: 'Flash Deals',
+    subtitle: 'Limited Time Only',
+    description: 'Up to 50% off on selected electronics and home appliances. Grab them before they are gone!',
+    image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&q=80&w=1600',
+    cta: 'View Deals',
+    color: '#2563eb'
   },
   {
-    name: 'Efua Darko',
-    location: 'Tema',
-    text: 'Blue Water has changed how I shop for groceries. Everything arrives in perfect condition every time.',
-    rating: 5,
-  },
+    id: 3,
+    title: 'Fresh Arrivals',
+    subtitle: 'New This Week',
+    description: 'Check out our latest arrivals in fashion and accessories. Stay ahead of the trend.',
+    image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=1600',
+    cta: 'Explore New',
+    color: '#059669'
+  }
 ]
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -59,7 +68,14 @@ function getCategoryIcon(name: string): string {
 export default function Home() {
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [currentBanner, setCurrentBanner] = useState(0)
+  
+  const scrollRefs = {
+    trending: useRef<HTMLDivElement>(null),
+    bestSellers: useRef<HTMLDivElement>(null),
+    newArrivals: useRef<HTMLDivElement>(null),
+    flashDeals: useRef<HTMLDivElement>(null)
+  } as const
 
   useEffect(() => {
     const load = async () => {
@@ -67,7 +83,7 @@ export default function Home() {
         const data = await getAllProducts()
         setAllProducts(data)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load products')
+        console.error('Failed to load products:', err)
       } finally {
         setIsLoading(false)
       }
@@ -75,11 +91,29 @@ export default function Home() {
     load()
   }, [])
 
-  const activeProducts = allProducts.filter(p => p.status === 'active')
-  const featuredProducts = activeProducts.slice(0, 8)
-  const newArrivals = activeProducts.slice(0, 4)
+  // Auto-slide hero banner
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentBanner((prev) => (prev + 1) % HERO_BANNERS.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [])
 
-  // Dynamically extract categories from database products
+  const activeProducts = allProducts.filter(p => p.status === 'active')
+  
+  // Categorized products for horizontal sections
+  const trendingProducts = activeProducts.slice(0, 8)
+  const bestSellers = activeProducts.slice(4, 12)
+  const newArrivals = activeProducts.slice(0, 6)
+  const flashDeals = activeProducts.filter(p => p.price < 50).slice(0, 8)
+
+  const scroll = (ref: React.RefObject<HTMLDivElement | null>, direction: 'left' | 'right') => {
+    if (ref.current) {
+      const scrollAmount = direction === 'left' ? -400 : 400
+      ref.current.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+    }
+  }
+
   const categoryCounts: Record<string, number> = {}
   activeProducts.forEach(p => {
     categoryCounts[p.category] = (categoryCounts[p.category] || 0) + 1
@@ -95,277 +129,186 @@ export default function Home() {
 
   return (
     <div className="home-page">
-      {/* ── Hero Section ── */}
-      <section className="hero-section">
-        <div className="hero-bg-pattern" />
-        <div className="hero-content">
-          <h2 className="hero-title">Blue Water Shopping Village</h2>
-          <p className="hero-subtitle">Your Modern Supermarket Experience</p>
-          <p className="hero-description">
-            Discover fresh products, great deals, and exceptional service at your neighbourhood supermarket.
-            We bring quality groceries and household essentials straight to your doorstep.
-          </p>
-          <div className="hero-cta-group">
-            <Link to="/products" className="hero-cta hero-cta-primary">
-              Shop Now
-            </Link>
-            <Link to="/products" className="hero-cta hero-cta-secondary">
-              Browse Categories
-            </Link>
+      {/* --- Hero Carousel --- */}
+      <section className="hero-carousel">
+        {HERO_BANNERS.map((banner, index) => (
+          <div 
+            key={banner.id} 
+            className={`hero-slide ${index === currentBanner ? 'active' : ''}`}
+            style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${banner.image})` }}
+          >
+            <div className="container hero-content">
+              <span className="hero-subtitle animate-up">{banner.subtitle}</span>
+              <h2 className="hero-title animate-up">{banner.title}</h2>
+              <p className="hero-description animate-up">{banner.description}</p>
+              <Link to="/products" className="hero-cta animate-up">
+                {banner.cta} <ArrowRight size={20} />
+              </Link>
+            </div>
           </div>
+        ))}
+        <div className="carousel-dots">
+          {HERO_BANNERS.map((_, index) => (
+            <button 
+              key={index} 
+              className={`dot ${index === currentBanner ? 'active' : ''}`}
+              onClick={() => setCurrentBanner(index)}
+            />
+          ))}
         </div>
       </section>
 
-      {/* ── Featured Categories ── */}
+      {/* --- Featured Categories --- */}
       <section className="section categories-section">
-        <div className="section-container">
+        <div className="container">
           <div className="section-header">
-            <h3 className="section-title">Featured Categories</h3>
-            <Link to="/products" className="view-all-link">View All Products &rarr;</Link>
+            <h3 className="section-title">Shop by Category</h3>
+            <Link to="/products" className="view-all">View All <ChevronRight size={16} /></Link>
           </div>
-          {isLoading ? (
-            <div className="categories-grid loading">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="category-card-skeleton" />
-              ))}
-            </div>
-          ) : dynamicCategories.length === 0 ? (
-            <div className="empty-categories">
-              <p>Categories will appear here once products are added.</p>
-            </div>
-          ) : (
-            <div className="categories-grid">
-              {dynamicCategories.map(category => (
-                <Link
-                  key={category.name}
-                  to={`/products?category=${encodeURIComponent(category.name)}`}
-                  className="category-card"
-                >
-                  <span className="category-icon">{category.icon}</span>
-                  <span className="category-name">{category.name}</span>
-                  <span className="category-count">{category.count} product{category.count !== 1 ? 's' : ''}</span>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ── Featured Products ── */}
-      <section className="section featured-section">
-        <div className="section-container">
-          <div className="section-header">
-            <h3 className="section-title">Featured Products</h3>
-            <Link to="/products" className="view-all-link">View All &rarr;</Link>
-          </div>
-
-          {isLoading ? (
-            <div className="products-grid loading">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="product-card-skeleton">
-                  <div className="skeleton-image" />
-                  <div className="skeleton-text short" />
-                  <div className="skeleton-text" />
-                  <div className="skeleton-price" />
-                </div>
-              ))}
-            </div>
-          ) : error ? (
-            <div className="error-state">
-              <h3>Oops! Something went wrong</h3>
-              <p>{error}</p>
-            </div>
-          ) : featuredProducts.length === 0 ? (
-            <div className="empty-state">
-              <h3>No products available yet</h3>
-              <p>Check back soon for great deals and fresh products.</p>
-            </div>
-          ) : (
-            <div className="products-grid">
-              {featuredProducts.map(product => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ── New Arrivals ── */}
-      <section className="section new-arrivals-section">
-        <div className="section-container">
-          <div className="section-header">
-            <h3 className="section-title">New Arrivals</h3>
-            <Link to="/products" className="view-all-link">View All &rarr;</Link>
-          </div>
-
-          {isLoading ? (
-            <div className="products-grid loading">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="product-card-skeleton">
-                  <div className="skeleton-image" />
-                  <div className="skeleton-text short" />
-                  <div className="skeleton-text" />
-                  <div className="skeleton-price" />
-                </div>
-              ))}
-            </div>
-          ) : newArrivals.length === 0 ? (
-            <div className="empty-state">
-              <h3>No new arrivals yet</h3>
-              <p>We are working hard to bring you the latest products.</p>
-            </div>
-          ) : (
-            <div className="products-grid">
-              {newArrivals.map(product => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ── Why Shop With Us ── */}
-      <section className="section why-shop-section">
-        <div className="section-container">
-          <div className="section-header section-header-centered">
-            <h3 className="section-title">Why Shop With Us</h3>
-            <p className="section-subtitle">We are committed to providing the best shopping experience</p>
-          </div>
-          <div className="why-shop-grid">
-            <div className="why-shop-card">
-              <div className="why-shop-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                </svg>
-              </div>
-              <h4>Quality Guaranteed</h4>
-              <p>Every product is carefully inspected before reaching you. We guarantee freshness and quality.</p>
-            </div>
-            <div className="why-shop-card">
-              <div className="why-shop-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
-                  <path d="M12 18V6" />
-                </svg>
-              </div>
-              <h4>Affordable Prices</h4>
-              <p>Competitive pricing with regular deals and discounts for our loyal customers.</p>
-            </div>
-            <div className="why-shop-card">
-              <div className="why-shop-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="1" y="3" width="15" height="13" />
-                  <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-                  <circle cx="5.5" cy="18.5" r="2.5" />
-                  <circle cx="18.5" cy="18.5" r="2.5" />
-                </svg>
-              </div>
-              <h4>Fast Delivery</h4>
-              <p>Quick and reliable delivery straight to your doorstep, available across Greater Accra.</p>
-            </div>
-            <div className="why-shop-card">
-              <div className="why-shop-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-              </div>
-              <h4>Fresh Products</h4>
-              <p>We source the freshest products daily from trusted local and international suppliers.</p>
-            </div>
-            <div className="why-shop-card">
-              <div className="why-shop-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  <path d="M9 12l2 2 4-4" />
-                </svg>
-              </div>
-              <h4>Secure Shopping</h4>
-              <p>Your personal and payment information is protected with industry-standard security measures.</p>
-            </div>
-            <div className="why-shop-card">
-              <div className="why-shop-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="16" x2="12" y2="12" />
-                  <line x1="12" y1="8" x2="12.01" y2="8" />
-                </svg>
-              </div>
-              <h4>Exceptional Service</h4>
-              <p>Our friendly team is always ready to help you find exactly what you need.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Promotional Banner ── */}
-      <section className="section promo-section">
-        <div className="section-container">
-          <div className="promo-banner">
-            <div className="promo-content">
-              <span className="promo-tag">Coming Soon</span>
-              <h3 className="promo-title">Exciting Deals Await You</h3>
-              <p className="promo-description">
-                Stay tuned for amazing discounts, seasonal offers, and exclusive deals on your favourite products. 
-                Subscribe to our newsletter to be the first to know!
-              </p>
-              <Link to="/products" className="promo-btn">Shop Now</Link>
-            </div>
-            <div className="promo-decoration">
-              <div className="promo-circle" />
-              <div className="promo-circle-small" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ── */}
-      <section className="section testimonials-section">
-        <div className="section-container">
-          <div className="section-header section-header-centered">
-            <h3 className="section-title">What Our Customers Say</h3>
-            <p className="section-subtitle">Trusted by thousands of happy customers across Accra</p>
-          </div>
-          <div className="testimonials-grid">
-            {TESTIMONIALS.map((t, i) => (
-              <div key={i} className="testimonial-card">
-                <div className="testimonial-stars">
-                  {[...Array(t.rating)].map((_, j) => (
-                    <span key={j} className="star">★</span>
-                  ))}
-                </div>
-                <p className="testimonial-text">"{t.text}"</p>
-                <div className="testimonial-author">
-                  <div className="author-avatar">{t.name.charAt(0)}</div>
-                  <div className="author-info">
-                    <h5 className="author-name">{t.name}</h5>
-                    <p className="author-location">{t.location}</p>
-                  </div>
-                </div>
-              </div>
+          <div className="categories-grid">
+            {dynamicCategories.map(category => (
+              <Link
+                key={category.name}
+                to={`/products?category=${encodeURIComponent(category.name)}`}
+                className="category-card"
+              >
+                <span className="category-icon">{category.icon}</span>
+                <span className="category-name">{category.name}</span>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Newsletter ── */}
-      <section className="section newsletter-section">
-        <div className="section-container">
-          <div className="newsletter-box">
-            <div className="newsletter-content">
-              <h3 className="newsletter-title">Stay Updated</h3>
-              <p className="newsletter-description">
-                Subscribe to our newsletter for the latest products, exclusive deals, and special offers delivered to your inbox.
-              </p>
+      {/* --- Horizontal Product Sections --- */}
+      
+      {/* Trending */}
+      <ProductSection 
+        title="Trending Now" 
+        icon={<TrendingUp size={20} />} 
+        products={trendingProducts} 
+        scrollRef={scrollRefs.trending}
+        onScroll={(dir) => scroll(scrollRefs.trending, dir)}
+        isLoading={isLoading}
+      />
+
+      {/* Flash Deals */}
+      <ProductSection 
+        title="Flash Deals" 
+        icon={<Zap size={20} color="#ef4444" />} 
+        products={flashDeals} 
+        scrollRef={scrollRefs.flashDeals}
+        onScroll={(dir) => scroll(scrollRefs.flashDeals, dir)}
+        isLoading={isLoading}
+        className="flash-deals-section"
+      />
+
+      {/* Best Sellers */}
+      <ProductSection 
+        title="Best Sellers" 
+        icon={<Award size={20} color="#f59e0b" />} 
+        products={bestSellers} 
+        scrollRef={scrollRefs.bestSellers}
+        onScroll={(dir) => scroll(scrollRefs.bestSellers, dir)}
+        isLoading={isLoading}
+      />
+
+      {/* New Arrivals */}
+      <ProductSection 
+        title="New Arrivals" 
+        icon={<Package size={20} />} 
+        products={newArrivals} 
+        scrollRef={scrollRefs.newArrivals}
+        onScroll={(dir) => scroll(scrollRefs.newArrivals, dir)}
+        isLoading={isLoading}
+      />
+
+      {/* --- Why Reliable --- */}
+      <section className="section why-reliable">
+        <div className="container">
+          <div className="why-grid">
+            <div className="why-card">
+              <div className="why-icon"><TrendingUp /></div>
+              <h4>Premium Quality</h4>
+              <p>Handpicked products from trusted suppliers worldwide.</p>
             </div>
-            <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
-              <input type="email" placeholder="Enter your email address" className="newsletter-input" />
-              <button type="submit" className="newsletter-btn">Subscribe</button>
-            </form>
-            <p className="newsletter-note">We respect your privacy. Unsubscribe at any time.</p>
+            <div className="why-card">
+              <div className="why-icon"><Zap /></div>
+              <h4>Express Delivery</h4>
+              <p>Get your orders delivered within 24 hours across the city.</p>
+            </div>
+            <div className="why-card">
+              <div className="why-icon"><Star /></div>
+              <h4>Exceptional Service</h4>
+              <p>Our support team is available 24/7 to assist you.</p>
+            </div>
+            <div className="why-card">
+              <div className="why-icon"><Heart /></div>
+              <h4>Customer First</h4>
+              <p>Easy returns and secure payments for peace of mind.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* --- Newsletter --- */}
+      <section className="section newsletter-section">
+        <div className="container">
+          <div className="newsletter-card">
+            <div className="newsletter-content">
+              <h3>Join the Reliable Community</h3>
+              <p>Subscribe to receive updates, access to exclusive deals, and more.</p>
+              <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
+                <input type="email" placeholder="Enter your email" required />
+                <button type="submit">Subscribe</button>
+              </form>
+            </div>
           </div>
         </div>
       </section>
     </div>
+  )
+}
+
+interface ProductSectionProps {
+  title: string
+  icon: React.ReactNode
+  products: Product[]
+  scrollRef: React.RefObject<HTMLDivElement | null>
+  onScroll: (dir: 'left' | 'right') => void
+  isLoading: boolean
+  className?: string
+}
+
+function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading, className = '' }: ProductSectionProps) {
+  if (!isLoading && products.length === 0) return null
+
+  return (
+    <section className={`section product-horizontal-section ${className}`}>
+      <div className="container">
+        <div className="section-header">
+          <div className="section-title-wrapper">
+            {icon}
+            <h3 className="section-title">{title}</h3>
+          </div>
+          <div className="scroll-controls">
+            <button className="scroll-btn" onClick={() => onScroll('left')}><ChevronLeft size={20} /></button>
+            <button className="scroll-btn" onClick={() => onScroll('right')}><ChevronRight size={20} /></button>
+          </div>
+        </div>
+        
+        <div className="horizontal-scroll-container" ref={scrollRef}>
+          {isLoading ? (
+            [...Array(6)].map((_, i) => <div key={i} className="product-card-skeleton horizontal" />)
+          ) : (
+            products.map(product => (
+              <div key={product.id} className="horizontal-product-wrapper">
+                <ProductCard product={product} />
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </section>
   )
 }

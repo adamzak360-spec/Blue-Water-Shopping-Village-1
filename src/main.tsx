@@ -5,6 +5,7 @@ import { AppErrorBoundary } from './components/AppErrorBoundary'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
 import './index.css'
+import './animations.css'
 import './components/ProductGrid.css' // Ensure grid styles have priority
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
