@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
 
   const { to, subject, html, replyTo } = req.body;
   const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.VITE_FROM_EMAIL || process.env.FROM_EMAIL || 'noreply@bluewatershopping.com';
+  const fromEmail = process.env.VITE_FROM_EMAIL || process.env.FROM_EMAIL || 'onboarding@resend.dev';
 
   if (!apiKey) {
     console.error('[SERVERLESS] RESEND_API_KEY is not set');
@@ -47,7 +47,7 @@ module.exports = async (req, res) => {
 
     console.log('[SERVERLESS] Email sent successfully:', response.data.id);
     return res.status(200).json({ success: true, id: response.data.id });
-  } catch (error: any) {
+  } catch (error) {
     if (error.response) {
       console.error('[SERVERLESS] Resend API error:', error.response.data);
       return res.status(error.response.status).json({ error: error.response.data.message || 'Failed to send email' });
