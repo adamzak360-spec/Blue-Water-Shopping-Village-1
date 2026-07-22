@@ -53,6 +53,7 @@
   line-height: 1.1;
   margin-bottom: var(--space-md);
   opacity: 0;
+  color: #FFFFFF; /* Revert to white for clarity */
 }
 
 .hero-description {

@@ -10,7 +10,7 @@ export default function Footer() {
         <div className="footer-section">
           <div className="footer-brand">
             <div className="footer-logo">
-              <img src="/reliable-icon.png" alt="RELIABLE" style={{ height: '40px', marginBottom: '0.5rem' }} />
+              <img src="/reliable-logo-full.png" alt="RELIABLE" style={{ height: '48px', marginBottom: '0.5rem' }} />
             </div>
             <p className="footer-tagline">Premium Marketplace</p>
             <p className="footer-description">

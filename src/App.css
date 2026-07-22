@@ -50,21 +50,20 @@
 }
 
 .brand-logo img {
-  height: 40px;
+  height: 48px;
   width: auto;
+  object-fit: contain;
 }
 
-.brand-logo .logo-text {
-  font-size: 1.25rem;
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  color: var(--color-primary);
-  display: block;
+@media (max-width: 768px) {
+  .brand-logo img {
+    height: 40px;
+  }
 }
 
 @media (max-width: 480px) {
-  .brand-logo .logo-text {
-    font-size: 1.1rem;
+  .brand-logo img {
+    height: 36px;
   }
 }
 
@@ -197,10 +196,12 @@
 .drawer-logo {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--color-primary);
+}
+
+.drawer-logo img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
 }
 
 .drawer-nav {
