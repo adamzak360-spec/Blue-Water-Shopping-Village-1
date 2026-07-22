@@ -4,7 +4,8 @@ export interface Product {
   description: string
   price: number
   category: string
-  image_url: string
+  image_url: string // This will be the cover image
+  gallery_urls?: string[] // Additional images
   stock_quantity: number
   low_stock_threshold?: number
   status: 'active' | 'inactive' | 'out-of-stock'
@@ -32,7 +33,8 @@ export interface ProductFormData {
   category: string
   stock_quantity: string
   status: 'active' | 'inactive' | 'out-of-stock'
-  image: File | null
+  image: File | null // Primary image
+  gallery_images: File[] // Additional images
 }
 
 export type DashboardStats = {

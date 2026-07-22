@@ -50,6 +50,8 @@ const defaultFormState = {
   status: 'active' as 'active' | 'inactive' | 'out-of-stock',
   image: null as File | null,
   existingImageUrl: '',
+  galleryImages: [] as File[],
+  existingGalleryUrls: [] as string[],
 }
 
 export default function Admin() {
@@ -176,6 +178,13 @@ export default function Admin() {
         imageUrl = await uploadProductImage(formData.image)
       }
 
+      // Upload gallery images
+      const newGalleryUrls = await Promise.all(
+        formData.galleryImages.map(file => uploadProductImage(file))
+      )
+      
+      const gallery_urls = [...formData.existingGalleryUrls, ...newGalleryUrls]
+
       const productData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
@@ -184,6 +193,7 @@ export default function Admin() {
         stock_quantity: parseInt(formData.stock_quantity),
         status: formData.status,
         image_url: imageUrl,
+        gallery_urls: gallery_urls,
       }
 
       if (view === 'edit' && editProduct) {
@@ -227,6 +237,8 @@ export default function Admin() {
       status: product.status,
       image: null,
       existingImageUrl: product.image_url,
+      galleryImages: [],
+      existingGalleryUrls: product.gallery_urls || [],
     })
     setView('edit')
   }
@@ -1094,12 +1106,12 @@ export default function Admin() {
               </div>
 
               <div className="form-group full-width">
-                <label>Product Image</label>
+                <label>Cover Image</label>
                 <div className="image-upload-container">
                   {formData.existingImageUrl && !formData.image && (
                     <div className="current-image-preview">
                       <img src={formData.existingImageUrl} alt="Current" />
-                      <span>Current Image</span>
+                      <span>Current Cover</span>
                     </div>
                   )}
                   <input
@@ -1107,7 +1119,56 @@ export default function Admin() {
                     accept="image/*"
                     onChange={(e) => setFormData({ ...formData, image: e.target.files?.[0] || null })}
                   />
-                  <p className="help-text">Leave empty to keep current image (when editing)</p>
+                </div>
+              </div>
+
+              <div className="form-group full-width">
+                <label>Gallery Images</label>
+                <div className="gallery-upload-container">
+                  <div className="existing-gallery">
+                    {formData.existingGalleryUrls.map((url, idx) => (
+                      <div key={idx} className="gallery-preview-item">
+                        <img src={url} alt={`Gallery ${idx}`} />
+                        <button 
+                          type="button" 
+                          className="remove-image"
+                          onClick={() => {
+                            const updated = [...formData.existingGalleryUrls]
+                            updated.splice(idx, 1)
+                            setFormData({ ...formData, existingGalleryUrls: updated })
+                          }}
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
+                    {formData.galleryImages.map((file, idx) => (
+                      <div key={`new-${idx}`} className="gallery-preview-item new">
+                        <img src={URL.createObjectURL(file)} alt={`New Gallery ${idx}`} />
+                        <button 
+                          type="button" 
+                          className="remove-image"
+                          onClick={() => {
+                            const updated = [...formData.galleryImages]
+                            updated.splice(idx, 1)
+                            setFormData({ ...formData, galleryImages: updated })
+                          }}
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || [])
+                      setFormData({ ...formData, galleryImages: [...formData.galleryImages, ...files] })
+                    }}
+                  />
+                  <p className="help-text">Add more images to the product gallery</p>
                 </div>
               </div>
             </div>

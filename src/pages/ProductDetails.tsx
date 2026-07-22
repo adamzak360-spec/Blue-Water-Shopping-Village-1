@@ -142,7 +142,10 @@ export default function ProductDetails() {
   }
 
   // Prepare product images
-  const productImages = product.image_url ? [product.image_url] : []
+  const productImages = [
+    product.image_url,
+    ...(product.gallery_urls || [])
+  ].filter(Boolean)
   const mainImage = productImages[mainImageIndex] || product.image_url
 
   const isOutOfStock = product.stock_quantity === 0 || product.status === 'inactive'
