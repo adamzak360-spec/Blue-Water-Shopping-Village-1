@@ -6,6 +6,7 @@
   gap: var(--space-lg);
   width: 100%;
   background-color: transparent;
+  padding: var(--space-sm) 0;
 }
 
 .product-card {
@@ -230,14 +231,24 @@
   .products-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-sm);
+    padding: 0 var(--space-xs);
   }
   
   .product-info {
-    padding: var(--space-sm);
+    padding: var(--space-xs);
+  }
+  
+  .product-name {
+    font-size: 0.85rem;
+    -webkit-line-clamp: 2;
+  }
+  
+  .product-price {
+    font-size: 1rem;
   }
   
   .view-details-btn, .add-to-cart-btn {
-    padding: 0.6rem;
-    font-size: 0.8rem;
+    padding: 0.5rem;
+    font-size: 0.75rem;
   }
 }

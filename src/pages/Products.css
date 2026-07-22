@@ -59,8 +59,8 @@
 
 /* Page Header */
 .products-header {
-  margin-bottom: var(--space-xl);
-  padding: var(--space-xl) 0 var(--space-lg) 0;
+  margin-bottom: var(--space-lg);
+  padding: var(--space-lg) 0 var(--space-md) 0;
 }
 
 .products-header h1 {
@@ -222,7 +222,8 @@
 .results-info {
   color: var(--color-text-secondary);
   font-size: 0.9rem;
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
+  padding: 0 var(--space-xs);
 }
 
 /* Loading State */

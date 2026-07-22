@@ -163,15 +163,16 @@ export default function Products() {
         </div>
       </div>
 
-      <div className="section-container">
-        {/* Page Header */}
-        <div className="products-header">
-          <h1>Our Products</h1>
-          <p className="products-subtitle">
-            {activeCount} product{activeCount !== 1 ? 's' : ''} available
-            {showAll && ` (showing ${products.length} total, including inactive)`}
-          </p>
-        </div>
+      <div className="container">
+        <div className="section-container">
+          {/* Page Header */}
+          <div className="products-header">
+            <h1>Our Products</h1>
+            <p className="products-subtitle">
+              {activeCount} product{activeCount !== 1 ? 's' : ''} available
+              {showAll && ` (showing ${products.length} total, including inactive)`}
+            </p>
+          </div>
 
         {/* Search & Filter */}
         <div className="products-controls">
@@ -273,8 +274,9 @@ export default function Products() {
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
