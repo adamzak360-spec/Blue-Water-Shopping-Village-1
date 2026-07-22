@@ -205,17 +205,28 @@
 
 /* Show All Toggle */
 .show-all-toggle {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: 8px;
   font-size: 0.9rem;
   color: var(--color-text-secondary);
   cursor: pointer;
   white-space: nowrap;
+  width: fit-content;
+  user-select: none;
+  transition: color var(--transition-fast);
+}
+
+.show-all-toggle:hover {
+  color: var(--color-primary);
 }
 
 .show-all-toggle input {
   cursor: pointer;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-primary);
 }
 
 /* Results Info */
