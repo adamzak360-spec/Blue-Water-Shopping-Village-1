@@ -138,7 +138,7 @@ export async function testEmailSending(testEmail: string): Promise<{
   error?: string
 }> {
   try {
-    const emailProvider = import.meta.env.VITE_EMAIL_PROVIDER || 'console'
+    const emailProvider = import.meta.env.VITE_EMAIL_PROVIDER || 'resend'
     const { html, text } = {
       html: `
         <!DOCTYPE html>
