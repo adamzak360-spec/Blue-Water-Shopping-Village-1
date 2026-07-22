@@ -42,10 +42,34 @@
 }
 
 .brand-logo {
-  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.brand-logo img {
+  height: 40px;
+  width: auto;
+}
+
+.brand-logo .logo-text {
+  font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.05em;
   color: var(--color-primary);
+  display: none;
+}
+
+.brand-logo:hover {
+  opacity: 0.8;
+}
+
+@media (max-width: 480px) {
+  .brand-logo img {
+    height: 32px;
+  }
 }
 
 .menu-toggle {
@@ -165,8 +189,12 @@
 }
 
 .drawer-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
   font-size: 1.25rem;
   font-weight: 800;
+  color: var(--color-primary);
 }
 
 .drawer-nav {

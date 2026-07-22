@@ -9,7 +9,9 @@ export default function Footer() {
         {/* Company Section */}
         <div className="footer-section">
           <div className="footer-brand">
-            <h3 className="footer-logo">RELIABLE</h3>
+            <div className="footer-logo">
+              <img src="/reliable-icon.png" alt="RELIABLE" style={{ height: '40px', marginBottom: '0.5rem' }} />
+            </div>
             <p className="footer-tagline">Premium Marketplace</p>
             <p className="footer-description">
               RELIABLE is your trusted online marketplace for premium products.
