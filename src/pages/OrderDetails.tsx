@@ -45,6 +45,8 @@ export default function OrderDetails() {
     loadOrder()
 
     // Subscribe to real-time order updates for this specific order
+    if (!supabase) return
+
     const subscription = supabase
       .channel(`order-details-${orderId}`)
       .on(
@@ -63,7 +65,9 @@ export default function OrderDetails() {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(subscription)
+      if (supabase && subscription) {
+        supabase.removeChannel(subscription)
+      }
     }
   }, [user, orderId, navigate])
 

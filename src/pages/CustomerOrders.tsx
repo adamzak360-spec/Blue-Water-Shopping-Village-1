@@ -39,6 +39,8 @@ export default function CustomerOrders() {
     loadOrders()
 
     // Subscribe to real-time order updates
+    if (!supabase) return
+
     const subscription = supabase
       .channel('customer-orders')
       .on(
@@ -65,7 +67,9 @@ export default function CustomerOrders() {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(subscription)
+      if (supabase && subscription) {
+        supabase.removeChannel(subscription)
+      }
     }
   }, [user, navigate])
 

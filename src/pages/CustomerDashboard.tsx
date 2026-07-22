@@ -45,6 +45,8 @@ export default function CustomerDashboard() {
     loadData()
 
     // Subscribe to real-time order updates
+    if (!supabase) return
+
     const subscription = supabase
       .channel('dashboard-orders')
       .on(
@@ -71,7 +73,9 @@ export default function CustomerDashboard() {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(subscription)
+      if (supabase && subscription) {
+        supabase.removeChannel(subscription)
+      }
     }
   }, [user, navigate])
 

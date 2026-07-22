@@ -86,7 +86,7 @@ export const reorderPreviousOrder = async (
   const createdOrder = data[0] as Order
   
   // Trigger email notifications in the background
-  sendNewOrderNotifications(createdOrder, createdOrder.customer_email).catch(err => {
+  sendNewOrderNotifications(createdOrder as any, createdOrder.customer_email).catch(err => {
     console.error('[ReorderService] Error sending new order notifications:', err)
   })
 
