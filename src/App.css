@@ -49,21 +49,17 @@
   transition: all var(--transition-fast);
 }
 
-.brand-logo img {
-  height: 48px;
-  width: auto;
-  object-fit: contain;
-}
-
-@media (max-width: 768px) {
-  .brand-logo img {
-    height: 40px;
-  }
+.brand-logo .logo-text {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-primary);
+  text-transform: uppercase;
 }
 
 @media (max-width: 480px) {
-  .brand-logo img {
-    height: 36px;
+  .brand-logo .logo-text {
+    font-size: 1.25rem;
   }
 }
 
@@ -196,12 +192,11 @@
 .drawer-logo {
   display: flex;
   align-items: center;
-}
-
-.drawer-logo img {
-  height: 40px;
-  width: auto;
-  object-fit: contain;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
 }
 
 .drawer-nav {
