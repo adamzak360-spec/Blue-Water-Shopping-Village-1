@@ -404,19 +404,24 @@ export default function Admin() {
       )}
 
       {/* Header */}
-      <div className="admin-header">
-        <h2>Admin Dashboard</h2>
+      <div className="admin-header animate-fade-in">
+        <div className="header-title-group">
+          <h2>Admin Dashboard</h2>
+          <p className="admin-subtitle">Manage your marketplace operations</p>
+        </div>
         <div className="admin-user-info">
+          <div className="user-badge">
+            <span className="user-email">{user?.email}</span>
+            <span className="badge badge-primary">Admin</span>
+          </div>
           <button 
             onClick={handleTestEmail} 
-            className="btn-test-email" 
+            className="btn-secondary btn-sm" 
             disabled={isTestingEmail}
-            style={{ marginRight: '10px', padding: '5px 10px', fontSize: '0.8rem' }}
           >
-            {isTestingEmail ? 'Testing...' : 'Test Email System'}
+            {isTestingEmail ? 'Testing...' : 'Test Email'}
           </button>
-          <span className="user-email">{user?.email}</span>
-          <button onClick={() => signOut()} className="admin-logout">Sign Out</button>
+          <button onClick={() => signOut()} className="btn-delete btn-sm">Sign Out</button>
         </div>
       </div>
 

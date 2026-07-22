@@ -88,42 +88,62 @@ export default function FinancialReports() {
     }
   }
 
-  if (isLoading) return <div className="loading">Loading reports...</div>
-  if (error) return <div className="error-message">{error}</div>
+  if (isLoading) return (
+    <div className="loading-container">
+      <div className="spinner" />
+      <p>Loading reports...</p>
+    </div>
+  )
+  if (error) return <div className="error-state">{error}</div>
 
   return (
-    <div className="financial-reports">
-      <div className="report-tabs">
-        <button onClick={handleExportSalesReport} className="btn-export" title="Export sales report as CSV" style={{ marginLeft: 'auto' }}>
-          Export Report
+    <div className="financial-reports animate-fade-in">
+      <div className="report-header">
+        <div className="report-nav-wrapper">
+          <div className="report-tabs-scroll">
+            <button className={`report-tab ${activeReport === 'revenue' ? 'active' : ''}`} onClick={() => setActiveReport('revenue')}>Revenue</button>
+            <button className={`report-tab ${activeReport === 'daily' ? 'active' : ''}`} onClick={() => setActiveReport('daily')}>Daily</button>
+            <button className={`report-tab ${activeReport === 'weekly' ? 'active' : ''}`} onClick={() => setActiveReport('weekly')}>Weekly</button>
+            <button className={`report-tab ${activeReport === 'monthly' ? 'active' : ''}`} onClick={() => setActiveReport('monthly')}>Monthly</button>
+            <button className={`report-tab ${activeReport === 'yearly' ? 'active' : ''}`} onClick={() => setActiveReport('yearly')}>Yearly</button>
+            <button className={`report-tab ${activeReport === 'category' ? 'active' : ''}`} onClick={() => setActiveReport('category')}>Categories</button>
+            <button className={`report-tab ${activeReport === 'best' ? 'active' : ''}`} onClick={() => setActiveReport('best')}>Best Sellers</button>
+            <button className={`report-tab ${activeReport === 'least' ? 'active' : ''}`} onClick={() => setActiveReport('least')}>Least Sellers</button>
+            <button className={`report-tab ${activeReport === 'customers' ? 'active' : ''}`} onClick={() => setActiveReport('customers')}>Top Customers</button>
+          </div>
+        </div>
+        <button onClick={handleExportSalesReport} className="btn-primary btn-sm btn-export" title="Export sales report as CSV">
+          Export CSV
         </button>
-        <button className={`report-tab ${activeReport === 'revenue' ? 'active' : ''}`} onClick={() => setActiveReport('revenue')}>Revenue Report</button>
-        <button className={`report-tab ${activeReport === 'daily' ? 'active' : ''}`} onClick={() => setActiveReport('daily')}>Daily Sales</button>
-        <button className={`report-tab ${activeReport === 'weekly' ? 'active' : ''}`} onClick={() => setActiveReport('weekly')}>Weekly Sales</button>
-        <button className={`report-tab ${activeReport === 'monthly' ? 'active' : ''}`} onClick={() => setActiveReport('monthly')}>Monthly Sales</button>
-        <button className={`report-tab ${activeReport === 'yearly' ? 'active' : ''}`} onClick={() => setActiveReport('yearly')}>Yearly Sales</button>
-        <button className={`report-tab ${activeReport === 'category' ? 'active' : ''}`} onClick={() => setActiveReport('category')}>By Category</button>
-        <button className={`report-tab ${activeReport === 'best' ? 'active' : ''}`} onClick={() => setActiveReport('best')}>Best Sellers</button>
-        <button className={`report-tab ${activeReport === 'least' ? 'active' : ''}`} onClick={() => setActiveReport('least')}>Least Sellers</button>
-        <button className={`report-tab ${activeReport === 'customers' ? 'active' : ''}`} onClick={() => setActiveReport('customers')}>Top Customers</button>
       </div>
 
       <div className="report-content">
         {activeReport === 'revenue' && revenueData && (
-          <div className="revenue-report">
-            <h3>Revenue Report</h3>
-            <div className="report-summary">
-              <div className="summary-card">
-                <span className="label">Total Revenue</span>
-                <span className="value">{formatCurrency(revenueData.totalRevenue)}</span>
+          <div className="revenue-report animate-fade-in">
+            <div className="section-title-wrapper">
+              <h3 className="section-title">Revenue Overview</h3>
+            </div>
+            <div className="stats-grid">
+              <div className="stat-card stat-total">
+                <div className="stat-icon">💰</div>
+                <div className="stat-info">
+                  <span className="stat-label">Total Revenue</span>
+                  <span className="stat-value">{formatCurrency(revenueData.totalRevenue)}</span>
+                </div>
               </div>
-              <div className="summary-card">
-                <span className="label">Total Orders</span>
-                <span className="value">{revenueData.totalOrders}</span>
+              <div className="stat-card stat-active">
+                <div className="stat-icon">📦</div>
+                <div className="stat-info">
+                  <span className="stat-label">Total Orders</span>
+                  <span className="stat-value">{revenueData.totalOrders}</span>
+                </div>
               </div>
-              <div className="summary-card">
-                <span className="label">Average Order Value</span>
-                <span className="value">{formatCurrency(revenueData.averageOrderValue)}</span>
+              <div className="stat-card stat-out-of-stock">
+                <div className="stat-icon">📈</div>
+                <div className="stat-info">
+                  <span className="stat-label">Avg Order Value</span>
+                  <span className="stat-value">{formatCurrency(revenueData.averageOrderValue)}</span>
+                </div>
               </div>
             </div>
           </div>
