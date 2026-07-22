@@ -1,8 +1,7 @@
 
-import { VercelRequest, VercelResponse } from '@vercel.node';
-import axios from 'axios';
+const axios = require('axios');
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+module.exports = async (req, res) => {
   // Handle CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
