@@ -8,7 +8,7 @@
 import { Order, CartItem } from '../types'
 
 const COMPANY_NAME = 'Reliable'
-const COMPANY_WEBSITE = 'https://blue-water-shopping-village-1.vercel.app'
+const COMPANY_WEBSITE = 'https://reliable-now-1.vercel.app'
 const SUPPORT_EMAIL = 'support@reliable.com'
 const PHONE = '+233 53 855 7781'
 const SUPPORT_WHATSAPP = '+233 20 335 5542'
