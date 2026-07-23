@@ -5,12 +5,12 @@ import {
   sendNewOrderNotifications,
   sendOrderStatusChangeNotifications,
   sendOrderApprovedEmail,
-
   sendReadyForPickupEmail,
   sendOutForDeliveryEmail,
   sendDeliveredEmail,
   sendAdminOrderCancellationNotification,
 } from './emailNotifications'
+import { createNotification } from './notificationService'
 
 // Guard: Supabase must be configured for order operations
 const getSupabase = () => {
@@ -61,11 +61,24 @@ export const createOrder = async (orderData: Omit<Order, 'id' | 'created_at'>) =
 
   console.log('[OrderService] Order created successfully. Stock reduction will be handled by database trigger.');
   
-  // Trigger email notifications in the background
+  // Trigger email and in-app notifications in the background
   const createdOrder = data[0];
+  
+  // Email notification
   sendNewOrderNotifications(createdOrder, createdOrder.customer_email).catch(err => {
     console.error('[OrderService] Error sending new order notifications:', err);
   });
+
+  // In-app notification for authenticated user
+  if (createdOrder.user_id) {
+    createNotification({
+      user_id: createdOrder.user_id,
+      title: 'Order Placed',
+      message: `Your order #${createdOrder.id.slice(0, 8)} has been successfully placed.`,
+      type: 'order_update',
+      order_id: createdOrder.id
+    }).catch(err => console.error('[OrderService] Error creating notification:', err));
+  }
 
   return createdOrder;
 }
@@ -112,7 +125,36 @@ export const updateOrderStatus = async (orderId: string, status: Order['status']
   // Trigger status-specific email notifications in the background
   const updatedOrder = data[0];
   if (previousStatus !== status) {
-    // Send status-specific emails based on the new status
+    // Send status-specific emails and in-app notifications
+    const statusTitles: Record<string, string> = {
+      approved: 'Order Approved',
+      processing: 'Order Processing',
+      'ready-for-pickup': 'Ready for Pickup',
+      'out-for-delivery': 'Out for Delivery',
+      delivered: 'Order Delivered',
+      cancelled: 'Order Cancelled'
+    };
+
+    const statusMessages: Record<string, string> = {
+      approved: 'Your order has been approved and is being prepared.',
+      processing: 'Your order is now being processed.',
+      'ready-for-pickup': 'Your order is ready for pickup!',
+      'out-for-delivery': 'Your order is out for delivery!',
+      delivered: 'Your order has been delivered. Thank you!',
+      cancelled: 'Your order has been cancelled.'
+    };
+
+    if (updatedOrder.user_id) {
+      createNotification({
+        user_id: updatedOrder.user_id,
+        title: statusTitles[status] || 'Order Updated',
+        message: statusMessages[status] || `Your order status has changed to ${status}.`,
+        type: 'order_update',
+        order_id: updatedOrder.id
+      }).catch(err => console.error('[OrderService] Error creating notification:', err));
+    }
+
+    // Send status-specific emails
     switch (status) {
       case 'approved':
         sendOrderApprovedEmail(updatedOrder, updatedOrder.customer_email).catch(err => {
@@ -140,7 +182,6 @@ export const updateOrderStatus = async (orderId: string, status: Order['status']
         });
         break;
       default:
-        // For other status changes, send generic status update email
         sendOrderStatusChangeNotifications(updatedOrder, updatedOrder.customer_email, previousStatus).catch(err => {
           console.error('[OrderService] Error sending status change notifications:', err);
         });

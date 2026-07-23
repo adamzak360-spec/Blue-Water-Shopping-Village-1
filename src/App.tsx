@@ -9,10 +9,9 @@ import {
   Menu, 
   Search, 
   User, 
-  Heart, 
-  Bell, 
-  ShoppingCart, 
-  X,
+	  Heart, 
+	  ShoppingCart, 
+	  X,
   Home as HomeIcon,
   Package,
   Tag,
@@ -37,6 +36,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy'
 import Terms from './pages/Terms'
 import Returns from './pages/Returns'
 import Footer from './components/Footer'
+import NotificationBell from './components/NotificationBell'
 import CustomerDashboard from './pages/CustomerDashboard'
 import CustomerProfile from './pages/CustomerProfile'
 import CustomerOrders from './pages/CustomerOrders'
@@ -112,9 +112,7 @@ function AppShell() {
             <button className="nav-icon-link" title="Wishlist">
               <Heart size={22} />
             </button>
-            <button className="nav-icon-link" title="Notifications">
-              <Bell size={22} />
-            </button>
+	            <NotificationBell />
             <button className="cart-btn" onClick={() => setIsCartOpen(true)}>
               <ShoppingCart size={22} />
               {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}

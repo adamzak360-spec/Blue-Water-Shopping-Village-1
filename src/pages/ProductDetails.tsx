@@ -219,7 +219,7 @@ export default function ProductDetails() {
         {/* Right Column: Product Info */}
         <div className="product-info-section">
           <div className="product-header">
-            <h1 className="product-title">{product.name}</h1>
+            <h1 className="product-title">Buy {product.name}</h1>
             <p className="product-supplier">By {product.category}</p>
           </div>
 

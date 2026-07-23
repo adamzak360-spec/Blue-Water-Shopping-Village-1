@@ -84,3 +84,14 @@ export interface Order {
   transaction_id?: string
   created_at?: string
 }
+
+export interface Notification {
+  id: string
+  user_id: string
+  title: string
+  message: string
+  type: 'info' | 'order_update' | 'promotion'
+  is_read: boolean
+  order_id?: string
+  created_at: string
+}
