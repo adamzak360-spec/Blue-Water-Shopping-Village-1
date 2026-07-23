@@ -22,8 +22,8 @@ class EmailService {
   constructor() {
     // In Vite, use import.meta.env with VITE_ prefix for client-side access
     this.provider = import.meta.env.VITE_EMAIL_PROVIDER || 'resend'
-    this.fromEmail = import.meta.env.VITE_FROM_EMAIL || 'noreply@bluewatershopping.com'
-    this.adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@bluewatershopping.com'
+    this.fromEmail = import.meta.env.VITE_FROM_EMAIL || 'noreply@reliable.com'
+    this.adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@reliable.com'
   }
 
   /**

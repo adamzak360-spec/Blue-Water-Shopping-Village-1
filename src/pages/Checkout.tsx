@@ -204,7 +204,13 @@ export default function Checkout() {
         localStorage.removeItem('checkout_state')
         clearCart()
         alert('Payment successful! Your order has been placed.')
-        navigate('/customer/orders')
+        
+        if (user) {
+          navigate('/customer/orders')
+        } else {
+          // For guests, navigate to home or a success page since they can't access /customer/orders
+          navigate('/')
+        }
       } else {
         throw new Error('Payment was not successful. Please try again.')
       }

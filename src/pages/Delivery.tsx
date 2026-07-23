@@ -13,13 +13,13 @@ export default function Delivery() {
           <section className="content-section">
             <h2>Delivery Areas</h2>
             <p>
-              Reliable currently delivers to all areas within the Greater Accra
-              Metropolitan Area. This includes but is not limited to Accra Central, East Legon,
-              Spintex, Tema, Madina, Weija, Kasoa, and surrounding areas.
+              Reliable currently delivers to all areas within Tamale and surrounding communities. 
+              This includes but is not limited to Tamale Central, Nyohini, Lamashegu, Vittin, 
+              Kumbungu, Savelugu, and other areas within the Northern Region.
             </p>
             <p>
               We are actively working on expanding our delivery network to cover additional
-              regions across Ghana. Check back for updates on new delivery zones.
+              cities and regions across Ghana. Check back for updates on new delivery zones.
             </p>
           </section>
 
@@ -28,17 +28,17 @@ export default function Delivery() {
             <div className="info-grid">
               <div className="info-card">
                 <h4>Standard Delivery</h4>
-                <p>1 to 3 business days</p>
-                <p className="info-note">Available for all areas within Greater Accra</p>
+                <p>Same day or next day delivery</p>
+                <p className="info-note">Available for all areas within Tamale</p>
               </div>
               <div className="info-card">
                 <h4>Processing Time</h4>
-                <p>Orders are processed within 24 hours</p>
-                <p className="info-note">Orders placed before 12:00 PM are processed the same day</p>
+                <p>Orders are processed within 2 hours</p>
+                <p className="info-note">Orders placed before 4:00 PM are processed the same day</p>
               </div>
               <div className="info-card">
                 <h4>Delivery Window</h4>
-                <p>8:00 AM - 6:00 PM</p>
+                <p>8:00 AM - 8:00 PM</p>
                 <p className="info-note">Monday through Saturday</p>
               </div>
             </div>
@@ -48,14 +48,14 @@ export default function Delivery() {
             <h2>Delivery Fees</h2>
             <p>
               Our delivery fees are designed to be fair and transparent. The standard delivery
-              fee is GH₵5.00 for orders within the Greater Accra region. Delivery fees are
+              fee is GH₵5.00 for orders within Tamale. Delivery fees are
               calculated based on your location and displayed clearly at checkout before you
               confirm your order.
             </p>
             <div className="info-card" style={{ maxWidth: '600px' }}>
               <h4>Standard Delivery Fee</h4>
               <p style={{ fontSize: '1.5rem', fontWeight: 700, color: '#2563eb' }}>GH₵5.00</p>
-              <p className="info-note">Within Greater Accra region. Fees may vary for areas outside the standard zone.</p>
+              <p className="info-note">Within Tamale. Fees may vary for areas outside the standard zone.</p>
             </div>
           </section>
 

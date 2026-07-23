@@ -39,7 +39,7 @@ export async function sendOrderConfirmationEmail(
       subject: `Order Confirmation - Order #${order.id.slice(0, 8)}`,
       html,
       text,
-      replyTo: 'support@bluewatershopping.com',
+      replyTo: 'support@reliable.com',
     }
 
     const result = await emailService.sendEmail(payload)
@@ -73,7 +73,7 @@ export async function sendOrderStatusUpdateEmail(
       subject: `Order Status Update - Order #${order.id.slice(0, 8)}`,
       html,
       text,
-      replyTo: 'support@bluewatershopping.com',
+      replyTo: 'support@reliable.com',
     }
 
     const result = await emailService.sendEmail(payload)
@@ -106,7 +106,7 @@ export async function sendWelcomeEmail(
       subject: `Welcome to Reliable, ${customerName}!`,
       html,
       text,
-      replyTo: 'support@bluewatershopping.com',
+      replyTo: 'support@reliable.com',
     }
 
     const result = await emailService.sendEmail(payload)
@@ -131,7 +131,7 @@ export async function sendAdminNewOrderNotification(
   order: Order & { id: string }
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@bluewatershopping.com'
+    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@reliable.com'
 
     const { html, text } = getAdminNewOrderTemplate(order)
 
@@ -222,7 +222,7 @@ import {
  */
 export async function sendLowStockAlert(products: any[]): Promise<{ success: boolean; error?: string }> {
   try {
-    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@bluewatershopping.com'
+    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@reliable.com'
     const { html, text } = getLowStockAlertTemplate(products)
 
     const payload: EmailPayload = {
@@ -251,7 +251,7 @@ export async function sendRestockRequest(supplier: any, products: any[]): Promis
       subject: `Restock Request from ${import.meta.env.VITE_COMPANY_NAME || 'Reliable'}`,
       html,
       text,
-      replyTo: import.meta.env.VITE_ADMIN_EMAIL || 'admin@bluewatershopping.com',
+      replyTo: import.meta.env.VITE_ADMIN_EMAIL || 'admin@reliable.com',
     }
 
     return await emailService.sendEmail(payload)

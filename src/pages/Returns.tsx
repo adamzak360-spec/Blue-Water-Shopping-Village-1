@@ -129,8 +129,8 @@ export default function Returns() {
               If you have any questions about our Return &amp; Refund Policy, please contact us at:
             </p>
             <p>
-              <strong>Email:</strong> info@bluewatershopping.com<br />
-              <strong>Phone:</strong> +233 (0) 30 XXX XXXX<br />
+              <strong>Email:</strong> support@reliable.com<br />
+              <strong>Phone:</strong> +233 53 855 7781<br />
               <strong>Hours:</strong> Mon - Sat, 8:00 AM - 8:00 PM
             </p>
           </section>

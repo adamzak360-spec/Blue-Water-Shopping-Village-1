@@ -1,8 +1,8 @@
 import axios from 'axios'
 
 const PAYSTACK_BASE_URL = 'https://api.paystack.co'
-const PAYSTACK_PUBLIC_KEY = 'pk_test_6a63edf615e22d386c9de31ff0c445ec00f12c71'
-const PAYSTACK_SECRET_KEY = 'sk_test_e33edb0722a842a8a811c71e3a32a1e594538d70'
+const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || ''
+const PAYSTACK_SECRET_KEY = import.meta.env.VITE_PAYSTACK_SECRET_KEY || ''
 
 export interface PaystackInitializePaymentPayload {
   email: string
