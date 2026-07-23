@@ -1,7 +1,7 @@
 {
-  "name": "Blue Water Shopping Village",
-  "short_name": "Blue Water",
-  "description": "Your Modern Supermarket - Fresh groceries and quality products delivered to your doorstep",
+  "name": "Reliable Now",
+  "short_name": "Reliable",
+  "description": "Your Premium Marketplace - Quality products delivered to your doorstep",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
