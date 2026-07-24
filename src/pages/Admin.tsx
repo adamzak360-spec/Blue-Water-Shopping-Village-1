@@ -52,6 +52,13 @@ const defaultFormState = {
   existingImageUrl: '',
   galleryImages: [] as File[],
   existingGalleryUrls: [] as string[],
+  // Delivery Fees
+  delivery_fee_tamale: '',
+  delivery_fee_stc: '',
+  delivery_fee_vip: '',
+  delivery_fee_oa: '',
+  delivery_fee_vvip: '',
+  delivery_fee_fedex: '',
 }
 
 export default function Admin() {
@@ -194,6 +201,13 @@ export default function Admin() {
         status: formData.status,
         image_url: imageUrl,
         gallery_urls: gallery_urls,
+        // Delivery Fees
+        delivery_fee_tamale: formData.delivery_fee_tamale ? parseFloat(formData.delivery_fee_tamale) : 0,
+        delivery_fee_stc: formData.delivery_fee_stc ? parseFloat(formData.delivery_fee_stc) : 0,
+        delivery_fee_vip: formData.delivery_fee_vip ? parseFloat(formData.delivery_fee_vip) : 0,
+        delivery_fee_oa: formData.delivery_fee_oa ? parseFloat(formData.delivery_fee_oa) : 0,
+        delivery_fee_vvip: formData.delivery_fee_vvip ? parseFloat(formData.delivery_fee_vvip) : 0,
+        delivery_fee_fedex: formData.delivery_fee_fedex ? parseFloat(formData.delivery_fee_fedex) : 0,
       }
 
       if (view === 'edit' && editProduct) {
@@ -239,6 +253,12 @@ export default function Admin() {
       existingImageUrl: product.image_url,
       galleryImages: [],
       existingGalleryUrls: product.gallery_urls || [],
+      delivery_fee_tamale: (product.delivery_fee_tamale || 0).toString(),
+      delivery_fee_stc: (product.delivery_fee_stc || 0).toString(),
+      delivery_fee_vip: (product.delivery_fee_vip || 0).toString(),
+      delivery_fee_oa: (product.delivery_fee_oa || 0).toString(),
+      delivery_fee_vvip: (product.delivery_fee_vvip || 0).toString(),
+      delivery_fee_fedex: (product.delivery_fee_fedex || 0).toString(),
     })
     setView('edit')
   }
@@ -1176,6 +1196,79 @@ export default function Admin() {
                     }}
                   />
                   <p className="help-text">Add more images to the product gallery</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Delivery Fees Section */}
+            <div className="form-group full-width">
+              <h4 style={{ marginTop: '1.5rem', marginBottom: '1rem', fontSize: '1.1rem', fontWeight: '600' }}>Delivery Fees</h4>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>Tamale Delivery Fee (GH₵)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.delivery_fee_tamale}
+                    onChange={(e) => setFormData({ ...formData, delivery_fee_tamale: e.target.value })}
+                    placeholder="e.g., 15.00"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>STC Transport Fee (GH₵)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.delivery_fee_stc}
+                    onChange={(e) => setFormData({ ...formData, delivery_fee_stc: e.target.value })}
+                    placeholder="e.g., 35.00"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>VIP Transport Fee (GH₵)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.delivery_fee_vip}
+                    onChange={(e) => setFormData({ ...formData, delivery_fee_vip: e.target.value })}
+                    placeholder="e.g., 45.00"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>OA Transport Fee (GH₵)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.delivery_fee_oa}
+                    onChange={(e) => setFormData({ ...formData, delivery_fee_oa: e.target.value })}
+                    placeholder="e.g., 40.00"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>VVIP Transport Fee (GH₵)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.delivery_fee_vvip}
+                    onChange={(e) => setFormData({ ...formData, delivery_fee_vvip: e.target.value })}
+                    placeholder="e.g., 50.00"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>FedEx Delivery Fee (GH₵)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.delivery_fee_fedex}
+                    onChange={(e) => setFormData({ ...formData, delivery_fee_fedex: e.target.value })}
+                    placeholder="e.g., 90.00"
+                  />
                 </div>
               </div>
             </div>
