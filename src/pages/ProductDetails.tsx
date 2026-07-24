@@ -241,6 +241,31 @@ export default function ProductDetails() {
             <p className="product-description">{product.description || product.name}</p>
           </div>
 
+          {/* Product Specifications */}
+          <div className="specifications-section">
+            <h3 className="section-title">Product Details</h3>
+            <div className="specs-grid">
+              <div className="spec-item">
+                <span className="spec-label">Category</span>
+                <span className="spec-value">{product.category}</span>
+              </div>
+              <div className="spec-item">
+                <span className="spec-label">Stock Available</span>
+                <span className="spec-value">{product.stock_quantity} units</span>
+              </div>
+              <div className="spec-item">
+                <span className="spec-label">Product Status</span>
+                <span className="spec-value" style={{ textTransform: 'capitalize' }}>{product.status}</span>
+              </div>
+              <div className="spec-item">
+                <span className="spec-label">Availability</span>
+                <span className="spec-value" style={{ color: isOutOfStock ? '#ef4444' : '#16a34a' }}>
+                  {isOutOfStock ? 'Out of Stock' : 'In Stock'}
+                </span>
+              </div>
+            </div>
+          </div>
+
           <div className="purchase-controls">
             <div className="quantity-selector">
               <button 
