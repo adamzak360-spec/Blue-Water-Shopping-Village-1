@@ -1,14 +1,13 @@
-
 const axios = require('axios');
 
 module.exports = async (req, res) => {
   // Handle CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
   );
 
   if (req.method === 'OPTIONS') {
@@ -26,7 +25,7 @@ module.exports = async (req, res) => {
 
   if (!apiKey) {
     console.error('[SERVERLESS] RESEND_API_KEY is not set');
-    return res.status(500).json({ error: 'Email service not configured' });
+    return res.status(500).json({ error: 'Email service not configured. RESEND_API_KEY is missing.' });
   }
 
   try {

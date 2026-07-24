@@ -5,11 +5,12 @@ import { useAuth } from '../context/AuthContext'
 import { createOrder } from '../services/orderService'
 import { createGuestOrder } from '../services/guestOrderService'
 import { createOrUpdateCustomerProfile } from '../services/customerProfileService'
-import { 
+import {
   initializePayment, 
   verifyPayment, 
   generatePaymentReference,
 } from '../services/paystackService'
+import { handleNewOrder } from '../api/emailNotificationHandler'
 import { formatCurrency } from '../utils/currency'
 import './Checkout.css'
 
@@ -212,9 +213,19 @@ export default function Checkout() {
         }
 
         console.log('[Checkout] Order created successfully:', result.id)
+        
+        // Send email notifications
+        try {
+          await handleNewOrder(result, formData.email)
+          console.log('[Checkout] Email notifications sent')
+        } catch (emailError) {
+          console.warn('[Checkout] Failed to send email notifications:', emailError)
+          // Don't block the checkout flow if email fails
+        }
+
         localStorage.removeItem('checkout_state')
         clearCart()
-        alert('Payment successful! Your order has been placed.')
+        alert('Payment successful! Your order has been placed. A confirmation email has been sent.')
         
         if (user) {
           navigate('/customer/orders')
@@ -227,6 +238,38 @@ export default function Checkout() {
       }
     } catch (error: any) {
       console.error('[Checkout] Payment verification failed:', error)
+      
+      // If payment failed, try to mark it as failed
+      if (paymentReference && formData.email) {
+        try {
+          const failedPayload = {
+            customer_name: formData.fullName,
+            customer_email: formData.email,
+            customer_phone: formData.phone,
+            delivery_address: formData.address,
+            city: formData.city,
+            region: formData.region,
+            notes: formData.notes,
+            items: cart,
+            subtotal: cartSubtotal,
+            delivery_fee: deliveryFee,
+            total: total,
+            status: 'cancelled' as const,
+            payment_status: 'failed' as const,
+            payment_method: 'paystack',
+            paystack_reference: paymentReference,
+          }
+          
+          if (user) {
+            await createOrder({ ...failedPayload, user_id: user.id })
+          } else if (GUEST_CHECKOUT_ENABLED) {
+            await createGuestOrder(failedPayload)
+          }
+        } catch (err) {
+          console.error('[Checkout] Failed to record failed payment:', err)
+        }
+      }
+      
       alert(`Payment verification failed: ${error.message}`)
       setPaymentStep('form')
     } finally {

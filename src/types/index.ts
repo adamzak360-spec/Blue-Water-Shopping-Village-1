@@ -13,13 +13,13 @@ export interface Product {
   updated_at: string
   average_rating?: number
   review_count?: number
-  // Delivery Fee Fields
+  // Delivery Fee Fields (must match database column names)
   delivery_fee_tamale?: number
-  delivery_fee_stc?: number
-  delivery_fee_vip?: number
-  delivery_fee_oa?: number
-  delivery_fee_vvip?: number
+  delivery_fee_greater_accra?: number
+  delivery_fee_lesser_accra?: number
   delivery_fee_fedex?: number
+  delivery_fee_dhl?: number
+  delivery_fee_ups?: number
 }
 
 export interface Review {
@@ -42,13 +42,13 @@ export interface ProductFormData {
   status: 'active' | 'inactive' | 'out-of-stock'
   image: File | null // Primary image
   gallery_images: File[] // Additional images
-  // Delivery Fees
+  // Delivery Fees (must match database column names)
   delivery_fee_tamale?: string
-  delivery_fee_stc?: string
-  delivery_fee_vip?: string
-  delivery_fee_oa?: string
-  delivery_fee_vvip?: string
+  delivery_fee_greater_accra?: string
+  delivery_fee_lesser_accra?: string
   delivery_fee_fedex?: string
+  delivery_fee_dhl?: string
+  delivery_fee_ups?: string
 }
 
 export type DashboardStats = {

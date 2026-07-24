@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { handleNewCustomerRegistration } from '../api/emailNotificationHandler'
 import { validateEmail, validatePassword, validateRequired } from '../utils/validation'
 import './Login.css' // Reuse login styles
 
@@ -57,7 +58,6 @@ export default function Register() {
 
     // Send welcome email notification
     try {
-      const { handleNewCustomerRegistration } = await import('../api/emailNotificationHandler')
       await handleNewCustomerRegistration(formData.fullName, formData.email)
     } catch (emailError) {
       console.warn('[Register] Failed to send welcome email:', emailError)

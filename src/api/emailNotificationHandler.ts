@@ -14,6 +14,7 @@ import {
   sendOrderStatusChangeNotifications,
   sendAdminNewCustomerNotification,
 } from '../services/emailNotifications'
+import { emailService } from '../services/emailService'
 import { Order } from '../types'
 
 /**
@@ -178,9 +179,6 @@ Email Provider: ${emailProvider}
 Timestamp: ${new Date().toISOString()}
       `,
     }
-
-    // Import emailService dynamically to avoid circular imports
-    const { emailService } = await import('../services/emailService')
 
     const result = await emailService.sendEmail({
       to: testEmail,

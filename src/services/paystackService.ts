@@ -1,8 +1,9 @@
-import axios from 'axios'
-
-const PAYSTACK_BASE_URL = 'https://api.paystack.co'
-const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || ''
-const PAYSTACK_SECRET_KEY = import.meta.env.VITE_PAYSTACK_SECRET_KEY || ''
+/**
+ * Paystack Service
+ * 
+ * Communicates with Paystack through the Vercel serverless API
+ * to keep the secret key server-side and avoid CORS issues.
+ */
 
 export interface PaystackInitializePaymentPayload {
   email: string
@@ -43,7 +44,7 @@ export interface PaystackVerifyPaymentResponse {
 }
 
 /**
- * Initialize a payment with Paystack
+ * Initialize a payment with Paystack via serverless API
  * @param payload Payment initialization data
  * @returns Authorization URL and payment reference
  */
@@ -51,54 +52,69 @@ export const initializePayment = async (
   payload: PaystackInitializePaymentPayload
 ): Promise<PaystackInitializePaymentResponse> => {
   try {
-    const response = await axios.post(
-      `${PAYSTACK_BASE_URL}/transaction/initialize`,
-      {
+    const response = await fetch('/api/paystack', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'initialize',
         email: payload.email,
         amount: payload.amount,
         reference: payload.reference,
         metadata: payload.metadata,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    )
+      }),
+    })
 
-    return response.data
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || data.message || 'Failed to initialize payment')
+    }
+
+    if (!data.status) {
+      throw new Error(data.message || 'Payment initialization failed')
+    }
+
+    return data as PaystackInitializePaymentResponse
   } catch (error: any) {
-    console.error('[Paystack] Payment initialization failed:', error.response?.data || error.message)
-    throw new Error(
-      error.response?.data?.message || 'Failed to initialize payment with Paystack'
-    )
+    console.error('[Paystack] Payment initialization failed:', error.message)
+    throw new Error(error.message || 'Failed to initialize payment with Paystack')
   }
 }
 
 /**
- * Verify a payment with Paystack
+ * Verify a payment with Paystack via serverless API
  * @param reference Payment reference from Paystack
  * @returns Payment verification details
  */
 export const verifyPayment = async (reference: string): Promise<PaystackVerifyPaymentResponse> => {
   try {
-    const response = await axios.get(
-      `${PAYSTACK_BASE_URL}/transaction/verify/${reference}`,
-      {
-        headers: {
-          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    )
+    const response = await fetch('/api/paystack', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'verify',
+        reference,
+      }),
+    })
 
-    return response.data
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || data.message || 'Failed to verify payment')
+    }
+
+    if (!data.status) {
+      throw new Error(data.message || 'Payment verification failed')
+    }
+
+    return data as PaystackVerifyPaymentResponse
   } catch (error: any) {
-    console.error('[Paystack] Payment verification failed:', error.response?.data || error.message)
-    throw new Error(
-      error.response?.data?.message || 'Failed to verify payment with Paystack'
-    )
+    console.error('[Paystack] Payment verification failed:', error.message)
+    throw new Error(error.message || 'Failed to verify payment with Paystack')
   }
 }
 
@@ -107,13 +123,5 @@ export const verifyPayment = async (reference: string): Promise<PaystackVerifyPa
  * @returns Unique reference string
  */
 export const generatePaymentReference = (): string => {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-}
-
-/**
- * Get the Paystack public key for frontend
- * @returns Public key
- */
-export const getPublicKey = (): string => {
-  return PAYSTACK_PUBLIC_KEY
+  return `rlbl-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 }
