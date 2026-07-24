@@ -1,15 +1,5 @@
 import { supabase } from '../supabaseClient'
-
-export interface Notification {
-  id: string
-  user_id: string
-  title: string
-  message: string
-  type: string
-  is_read: boolean
-  order_id?: string
-  created_at: string
-}
+import { Notification } from '../types'
 
 export const getNotifications = async (userId: string): Promise<Notification[]> => {
   if (!supabase) return []
