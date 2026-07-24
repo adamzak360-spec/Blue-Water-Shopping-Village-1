@@ -3,6 +3,7 @@ import { getAllProducts } from '../services/productService'
 import type { Product } from '../types'
 import { Link } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
+import CallToOrderBanner from '../components/CallToOrderBanner'
 import { ChevronLeft, ChevronRight, ArrowRight, Zap, TrendingUp, Star, Package, Award, Heart } from 'lucide-react'
 import './Home.css'
 
@@ -170,6 +171,9 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* --- Call To Order Banner --- */}
+      <CallToOrderBanner />
 
       {/* --- Featured Categories --- */}
       <section className="section categories-section">

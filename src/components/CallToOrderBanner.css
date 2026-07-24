@@ -1,0 +1,86 @@
+.call-to-order-banner {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  padding: 12px 0;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 10;
+}
+
+.banner-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-text {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.banner-label {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.banner-phone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.banner-phone:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.banner-phone svg {
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .call-to-order-banner {
+    padding: 10px 0;
+  }
+
+  .banner-content {
+    padding: 0 12px;
+  }
+
+  .banner-text {
+    gap: 8px;
+  }
+
+  .banner-label {
+    font-size: 12px;
+  }
+
+  .banner-phone {
+    font-size: 14px;
+    padding: 5px 10px;
+    gap: 6px;
+  }
+
+  .banner-phone svg {
+    width: 16px;
+    height: 16px;
+  }
+}
