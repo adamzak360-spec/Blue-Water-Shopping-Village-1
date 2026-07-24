@@ -220,7 +220,7 @@ export default function ProductDetails() {
         <div className="product-info-section">
           <div className="product-header">
             <h1 className="product-title">Buy {product.name}</h1>
-            <p className="product-supplier">By {product.category}</p>
+            <p className="product-supplier">Buy {product.category}</p>
           </div>
 
           <div className="rating-section">
