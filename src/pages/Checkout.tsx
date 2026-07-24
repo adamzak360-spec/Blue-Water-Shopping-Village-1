@@ -29,10 +29,21 @@ export default function Checkout() {
     address: user?.user_metadata?.address || '',
     city: user?.user_metadata?.city || '',
     region: user?.user_metadata?.region || '',
-    notes: ''
+    notes: '',
+    deliveryMethod: 'tamale'
   })
 
-  const deliveryFee = 5.00
+  const deliveryMethods = {
+    tamale: { name: 'Tamale Delivery', fee: 15.00, days: '1-2 days' },
+    stc: { name: 'STC Transport', fee: 35.00, days: '3-5 days' },
+    vip: { name: 'VIP Transport', fee: 45.00, days: '2-3 days' },
+    oa: { name: 'OA Transport', fee: 40.00, days: '3-4 days' },
+    vvip: { name: 'VVIP Transport', fee: 50.00, days: '2-3 days' },
+    fedex: { name: 'FedEx Delivery', fee: 90.00, days: '1-2 days' }
+  }
+
+  const selectedDeliveryMethod = deliveryMethods[formData.deliveryMethod as keyof typeof deliveryMethods]
+  const deliveryFee = selectedDeliveryMethod?.fee || 15.00
   const total = cartSubtotal + deliveryFee
 
   // Load Paystack script
@@ -308,6 +319,28 @@ export default function Checkout() {
                   </div>
                 </div>
                 <div className="form-group">
+                  <label htmlFor="deliveryMethod">Delivery Method *</label>
+                  <select
+                    id="deliveryMethod"
+                    name="deliveryMethod"
+                    required
+                    value={formData.deliveryMethod}
+                    onChange={(e) => setFormData({ ...formData, deliveryMethod: e.target.value })}
+                    className="delivery-method-select"
+                  >
+                    {Object.entries(deliveryMethods).map(([key, method]) => (
+                      <option key={key} value={key}>
+                        {method.name} - GH₵{method.fee.toFixed(2)} ({method.days})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="delivery-info-box">
+                  <p><strong>Selected Delivery:</strong> {selectedDeliveryMethod?.name}</p>
+                  <p><strong>Estimated Delivery:</strong> {selectedDeliveryMethod?.days}</p>
+                  <p><strong>Delivery Fee:</strong> GH₵{deliveryFee.toFixed(2)}</p>
+                </div>
+                <div className="form-group">
                   <label htmlFor="notes">Additional Notes</label>
                   <textarea
                     id="notes"
@@ -369,6 +402,10 @@ export default function Checkout() {
               <div className="summary-row">
                 <span>Subtotal</span>
                 <span>{formatCurrency(cartSubtotal)}</span>
+              </div>
+              <div className="delivery-method-summary">
+                <p><strong>Delivery:</strong> {selectedDeliveryMethod?.name}</p>
+                <p><strong>Est.:</strong> {selectedDeliveryMethod?.days}</p>
               </div>
               <div className="summary-row">
                 <span>Delivery Fee</span>
