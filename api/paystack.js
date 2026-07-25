@@ -1,26 +1,6 @@
-import axios from 'axios';
+const axios = require('axios');
 
-/**
- * Paystack Serverless API
- * 
- * Handles payment initialization and verification server-side
- * to keep the secret key secure and avoid CORS issues.
- * 
- * Vercel Serverless Function
- */
-
-const PAYSTACK_BASE_URL = 'https://api.paystack.co';
-const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY || '';
-
-interface PaystackRequest {
-  action: 'initialize' | 'verify';
-  email?: string;
-  amount?: number;
-  reference?: string;
-  metadata?: Record<string, any>;
-}
-
-export default async function handler(req: any, res: any) {
+module.exports = async (req, res) => {
   // Handle CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -36,12 +16,15 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { action, email, amount, reference, metadata } = req.body as PaystackRequest;
+  const { action, email, amount, reference, metadata } = req.body;
+  const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY || '';
 
   if (!PAYSTACK_SECRET_KEY) {
     console.error('[PAYSTACK API] PAYSTACK_SECRET_KEY is not set');
     return res.status(500).json({ error: 'Payment service not configured' });
   }
+
+  const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 
   try {
     let response;
@@ -56,7 +39,7 @@ export default async function handler(req: any, res: any) {
         `${PAYSTACK_BASE_URL}/transaction/initialize`,
         {
           email,
-          amount,
+          amount: Math.round(amount), // Paystack expects amount in kobo (integer)
           reference,
           metadata,
         },
@@ -88,7 +71,7 @@ export default async function handler(req: any, res: any) {
 
     console.log(`[PAYSTACK API] ${action} successful`);
     return res.status(200).json(response.data);
-  } catch (error: any) {
+  } catch (error) {
     const errorData = error.response?.data || error.message;
     console.error(`[PAYSTACK API] ${action} failed:`, errorData);
     return res.status(error.response?.status || 500).json({
