@@ -61,7 +61,7 @@ export default function Footer() {
             </div>
             <div className="contact-item">
               <MapPin size={18} />
-              <span>Accra, Greater Accra, Ghana</span>
+              <span>Tamale, Northern Region, Ghana</span>
             </div>
             <div className="contact-item">
               <Clock size={18} />

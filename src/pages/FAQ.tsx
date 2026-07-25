@@ -52,22 +52,21 @@ export default function FAQ() {
               <div className="faq-item">
                 <h4>How long does delivery take?</h4>
                 <p>
-                  Standard delivery takes 1 to 3 business days within the Greater Accra region.
-                  Delivery times may vary depending on your location and the availability of items.
+                  Standard delivery takes 1 to 3 business days depending on your location. Within Tamale, delivery is usually same-day or next-day.
+                  Delivery times for other regions may vary depending on the distance and logistics availability.
                 </p>
               </div>
               <div className="faq-item">
                 <h4>What areas do you deliver to?</h4>
                 <p>
-                  We currently deliver to all areas within the Greater Accra region.
-                  We are working on expanding our delivery coverage to other regions in Ghana.
+                  We currently deliver to all areas across Ghana. Our primary operations are based in Tamale, Northern Region, but we offer nationwide delivery through our logistics partners.
                 </p>
               </div>
               <div className="faq-item">
                 <h4>How much does delivery cost?</h4>
                 <p>
                   Delivery fees are calculated based on your location and are displayed at checkout
-                  before you confirm your order. The standard delivery fee is GH₵5.00 within Accra.
+                  before you confirm your order. The standard delivery fee is GH₵15.00 within Tamale. For other regions, the fee will be calculated at checkout.
                 </p>
               </div>
               <div className="faq-item">

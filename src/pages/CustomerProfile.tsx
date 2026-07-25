@@ -181,7 +181,7 @@ export default function CustomerProfile() {
                     name="city"
                     value={formData.city}
                     onChange={handleInputChange}
-                    placeholder="Accra"
+                    placeholder="Tamale"
                   />
                 </div>
 
@@ -193,7 +193,7 @@ export default function CustomerProfile() {
                     name="region"
                     value={formData.region}
                     onChange={handleInputChange}
-                    placeholder="Greater Accra"
+                    placeholder="Northern Region"
                   />
                 </div>
               </div>

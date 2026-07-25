@@ -345,19 +345,19 @@ export default function Checkout() {
                       required
                       value={formData.city}
                       onChange={handleInputChange}
-                      placeholder="Accra"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="region">Region *</label>
-                    <input
-                      type="text"
-                      id="region"
-                      name="region"
-                      required
-                      value={formData.region}
-                      onChange={handleInputChange}
-                      placeholder="Greater Accra"
+                    placeholder="Tamale"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="region">Region *</label>
+                  <input
+                    type="text"
+                    id="region"
+                    name="region"
+                    required
+                    value={formData.region}
+                    onChange={handleInputChange}
+                    placeholder="Northern Region"
                     />
                   </div>
                 </div>
@@ -445,10 +445,6 @@ export default function Checkout() {
               <div className="summary-row">
                 <span>Subtotal</span>
                 <span>{formatCurrency(cartSubtotal)}</span>
-              </div>
-              <div className="delivery-method-summary">
-                <p><strong>Delivery:</strong> {selectedDeliveryMethod?.name}</p>
-                <p><strong>Est.:</strong> {selectedDeliveryMethod?.days}</p>
               </div>
               <div className="summary-row">
                 <span>Delivery Fee</span>

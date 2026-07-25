@@ -13,13 +13,11 @@ export default function Delivery() {
           <section className="content-section">
             <h2>Delivery Areas</h2>
             <p>
-              Reliable currently delivers to all areas within Tamale and surrounding communities. 
-              This includes but is not limited to Tamale Central, Nyohini, Lamashegu, Vittin, 
-              Kumbungu, Savelugu, and other areas within the Northern Region.
+              Reliable currently delivers to all areas across Ghana. Our primary hub is located in Tamale, Northern Region, but we serve customers nationwide.
             </p>
             <p>
-              We are actively working on expanding our delivery network to cover additional
-              cities and regions across Ghana. Check back for updates on new delivery zones.
+              Within the Northern Region, we cover Tamale Central, Nyohini, Lamashegu, Vittin, 
+              Kumbungu, Savelugu, and all surrounding communities. For other regions, we use our trusted logistics partners to ensure your products reach you safely.
             </p>
           </section>
 
@@ -48,14 +46,14 @@ export default function Delivery() {
             <h2>Delivery Fees</h2>
             <p>
               Our delivery fees are designed to be fair and transparent. The standard delivery
-              fee is GH₵5.00 for orders within Tamale. Delivery fees are
+              fee is GH₵15.00 for orders within Tamale. Delivery fees are
               calculated based on your location and displayed clearly at checkout before you
               confirm your order.
             </p>
             <div className="info-card" style={{ maxWidth: '600px' }}>
               <h4>Standard Delivery Fee</h4>
-              <p style={{ fontSize: '1.5rem', fontWeight: 700, color: '#2563eb' }}>GH₵5.00</p>
-              <p className="info-note">Within Tamale. Fees may vary for areas outside the standard zone.</p>
+              <p style={{ fontSize: '1.5rem', fontWeight: 700, color: '#2563eb' }}>GH₵15.00</p>
+              <p className="info-note">Within Tamale. Delivery fees for other regions will be calculated based on the distance and logistics requirements.</p>
             </div>
           </section>
 

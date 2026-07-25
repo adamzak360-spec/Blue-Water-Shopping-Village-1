@@ -32,7 +32,7 @@ export default function Checkout() {
     notes: ''
   })
 
-  const deliveryFee = 5.00
+  const deliveryFee = 15.00
   const total = cartSubtotal + deliveryFee
 
   // Load Paystack script
@@ -285,19 +285,19 @@ export default function Checkout() {
                       required
                       value={formData.city}
                       onChange={handleInputChange}
-                      placeholder="Accra"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="region">Region *</label>
-                    <input
-                      type="text"
-                      id="region"
-                      name="region"
-                      required
-                      value={formData.region}
-                      onChange={handleInputChange}
-                      placeholder="Greater Accra"
+                    placeholder="Tamale"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="region">Region *</label>
+                  <input
+                    type="text"
+                    id="region"
+                    name="region"
+                    required
+                    value={formData.region}
+                    onChange={handleInputChange}
+                    placeholder="Northern Region"
                     />
                   </div>
                 </div>

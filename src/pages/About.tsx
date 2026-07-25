@@ -15,8 +15,8 @@ export default function About() {
             <p>
               Reliable was founded with a simple mission: to make quality groceries
               accessible to every household in Ghana. What started as a small neighbourhood shop has grown
-              into a modern, full-service online supermarket that serves customers across the Greater Accra
-              region and beyond.
+              into a modern, full-service online supermarket that serves customers across the Northern Region
+              and throughout Ghana.
             </p>
             <p>
               Our name reflects our commitment to clarity and transparency in everything we do. From the
