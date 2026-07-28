@@ -1,11 +1,16 @@
+export interface ProductSize {
+  size: string
+  stock: number
+}
+
 export interface Product {
   id: string
   name: string
   description: string
   price: number
   category: string
-  image_url: string // This will be the cover image
-  gallery_urls?: string[] // Additional images
+  image_url: string
+  gallery_urls?: string[]
   stock_quantity: number
   low_stock_threshold?: number
   status: 'active' | 'inactive' | 'out-of-stock'
@@ -13,11 +18,33 @@ export interface Product {
   updated_at: string
   average_rating?: number
   review_count?: number
-  // Delivery Fee Fields (must match database column names)
+  // Extended fields
+  brand?: string
+  original_price?: number
+  discount_percentage?: number
+  sku?: string
+  product_code?: string
+  condition?: string
+  material?: string
+  colour?: string
+  weight?: string
+  dimensions?: string
+  warranty?: string
+  specifications?: string
+  features?: string
+  // Size system
+  has_sizes?: boolean
+  sizes?: ProductSize[]
+  // Delivery Fees (correct names matching database)
   delivery_fee_tamale?: number
+  delivery_fee_stc?: number
+  delivery_fee_vip?: number
+  delivery_fee_oa?: number
+  delivery_fee_vvip?: number
+  delivery_fee_fedex?: number
+  // Legacy fields (may still exist in older products)
   delivery_fee_greater_accra?: number
   delivery_fee_lesser_accra?: number
-  delivery_fee_fedex?: number
   delivery_fee_dhl?: number
   delivery_fee_ups?: number
 }
@@ -40,15 +67,32 @@ export interface ProductFormData {
   category: string
   stock_quantity: string
   status: 'active' | 'inactive' | 'out-of-stock'
-  image: File | null // Primary image
-  gallery_images: File[] // Additional images
-  // Delivery Fees (must match database column names)
+  image: File | null
+  gallery_images: File[]
+  // Extended fields
+  brand?: string
+  original_price?: string
+  discount_percentage?: string
+  sku?: string
+  product_code?: string
+  condition?: string
+  material?: string
+  colour?: string
+  weight?: string
+  dimensions?: string
+  warranty?: string
+  specifications?: string
+  features?: string
+  // Size system
+  has_sizes?: boolean
+  sizes?: ProductSize[]
+  // Delivery Fees (correct names)
   delivery_fee_tamale?: string
-  delivery_fee_greater_accra?: string
-  delivery_fee_lesser_accra?: string
+  delivery_fee_stc?: string
+  delivery_fee_vip?: string
+  delivery_fee_oa?: string
+  delivery_fee_vvip?: string
   delivery_fee_fedex?: string
-  delivery_fee_dhl?: string
-  delivery_fee_ups?: string
 }
 
 export type DashboardStats = {
@@ -61,6 +105,7 @@ export type ProductStatus = Product['status']
 
 export interface CartItem extends Product {
   quantity: number
+  selected_size?: string
 }
 
 export interface CustomerProfile {
@@ -96,6 +141,7 @@ export interface Order {
   payment_date?: string
   paid_at?: string
   transaction_id?: string
+  delivery_method?: string
   created_at?: string
 }
 
