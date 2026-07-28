@@ -285,29 +285,13 @@
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  /* No max-height, no overflow:hidden, no line-clamp */
+  word-break: break-word;
+  /* Full description display - no truncation */
+  display: block;
+  width: 100%;
 }
 
-.product-description.expanded {
-  /* Fully expanded - no restrictions */
-}
 
-.read-more-btn {
-  margin-top: var(--space-sm);
-  background: none;
-  border: none;
-  color: var(--color-accent);
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  padding: 4px 0;
-  transition: color var(--transition-fast);
-}
-
-.read-more-btn:hover {
-  color: var(--color-accent-hover);
-  text-decoration: underline;
-}
 
 /* Specifications Section */
 .specifications-section {

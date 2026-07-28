@@ -31,8 +31,7 @@ export default function ProductDetails() {
   const [isSubmittingReview, setIsSubmittingReview] = useState(false)
   const [reviewSuccess, setReviewSuccess] = useState(false)
 
-  // Description expand state
-  const [descriptionExpanded, setDescriptionExpanded] = useState(false)
+
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -397,17 +396,9 @@ export default function ProductDetails() {
           {/* Description Section */}
           <div className="description-section">
             <h3 className="section-title">Description</h3>
-            <div className={`product-description ${descriptionExpanded ? 'expanded' : ''}`}>
+            <div className="product-description">
               {product.description || 'No description available for this product.'}
             </div>
-            {product.description && product.description.length > 200 && (
-              <button
-                className="read-more-btn"
-                onClick={() => setDescriptionExpanded(!descriptionExpanded)}
-              >
-                {descriptionExpanded ? 'Show Less' : 'Read More'}
-              </button>
-            )}
           </div>
 
           {/* Product Specifications */}
