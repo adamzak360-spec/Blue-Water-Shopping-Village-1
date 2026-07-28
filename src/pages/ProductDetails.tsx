@@ -272,32 +272,26 @@ export default function ProductDetails() {
     ? Math.round(((product.original_price! - product.price) / product.original_price!) * 100)
     : 0
 
-  // Build delivery info
+  // Build delivery info from product-specific fees
+  // Only show delivery options that have been configured for this product (fee > 0)
   const deliveryOptions: { method: string; fee: string }[] = []
-  if (product.delivery_fee_tamale !== undefined && product.delivery_fee_tamale !== null) {
+  if (product.delivery_fee_tamale !== undefined && product.delivery_fee_tamale !== null && product.delivery_fee_tamale > 0) {
     deliveryOptions.push({ method: 'Tamale Delivery', fee: formatCurrency(product.delivery_fee_tamale) })
   }
-  if (product.delivery_fee_stc !== undefined && product.delivery_fee_stc !== null) {
+  if (product.delivery_fee_stc !== undefined && product.delivery_fee_stc !== null && product.delivery_fee_stc > 0) {
     deliveryOptions.push({ method: 'STC Transport', fee: formatCurrency(product.delivery_fee_stc) })
   }
-  if (product.delivery_fee_vip !== undefined && product.delivery_fee_vip !== null) {
+  if (product.delivery_fee_vip !== undefined && product.delivery_fee_vip !== null && product.delivery_fee_vip > 0) {
     deliveryOptions.push({ method: 'VIP Transport', fee: formatCurrency(product.delivery_fee_vip) })
   }
-  if (product.delivery_fee_oa !== undefined && product.delivery_fee_oa !== null) {
+  if (product.delivery_fee_oa !== undefined && product.delivery_fee_oa !== null && product.delivery_fee_oa > 0) {
     deliveryOptions.push({ method: 'OA Transport', fee: formatCurrency(product.delivery_fee_oa) })
   }
-  if (product.delivery_fee_vvip !== undefined && product.delivery_fee_vvip !== null) {
+  if (product.delivery_fee_vvip !== undefined && product.delivery_fee_vvip !== null && product.delivery_fee_vvip > 0) {
     deliveryOptions.push({ method: 'VVIP Transport', fee: formatCurrency(product.delivery_fee_vvip) })
   }
-  if (product.delivery_fee_fedex !== undefined && product.delivery_fee_fedex !== null) {
+  if (product.delivery_fee_fedex !== undefined && product.delivery_fee_fedex !== null && product.delivery_fee_fedex > 0) {
     deliveryOptions.push({ method: 'FedEx Delivery', fee: formatCurrency(product.delivery_fee_fedex) })
-  }
-  // Legacy support
-  if (product.delivery_fee_greater_accra) {
-    deliveryOptions.push({ method: 'Greater Accra Delivery', fee: formatCurrency(product.delivery_fee_greater_accra) })
-  }
-  if (product.delivery_fee_lesser_accra) {
-    deliveryOptions.push({ method: 'Lesser Accra Delivery', fee: formatCurrency(product.delivery_fee_lesser_accra) })
   }
 
   return (
@@ -424,9 +418,11 @@ export default function ProductDetails() {
           )}
 
           {/* Delivery Information */}
-          {deliveryOptions.length > 0 && (
-            <div className="delivery-info-section">
-              <h3 className="section-title">Delivery Options</h3>
+          <div className="delivery-info-section">
+            <h3 className="section-title">Delivery Options</h3>
+            {deliveryOptions.length === 0 ? (
+              <p className="info-text">Contact us at +233 53 855 7781 for delivery options</p>
+            ) : (
               <div className="delivery-options-list">
                 {deliveryOptions.map((opt, idx) => (
                   <div key={idx} className="delivery-option-item">
@@ -436,8 +432,8 @@ export default function ProductDetails() {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Specifications / Features / Material details */}
           {(product.specifications || product.features || product.material || product.warranty) && (
