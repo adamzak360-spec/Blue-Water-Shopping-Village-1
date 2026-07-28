@@ -830,7 +830,7 @@
   }
 
   .add-to-cart-btn {
-    flex: 1;
+    flex: none;
     min-width: auto;
   }
 
@@ -847,6 +847,8 @@
     white-space: normal;
     text-align: center;
     font-size: 0.85rem;
+    width: auto;
+    max-width: 100%;
   }
 
   .form-row {
