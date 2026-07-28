@@ -277,6 +277,9 @@
 .description-section {
   padding: var(--space-lg) 0;
   border-bottom: 1px solid var(--color-border-light);
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
 }
 
 .product-description {
@@ -288,6 +291,9 @@
   word-wrap: break-word;
   overflow-wrap: break-word;
   word-break: break-word;
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
   /* Full description display - no truncation */
   display: block;
   width: 100%;
