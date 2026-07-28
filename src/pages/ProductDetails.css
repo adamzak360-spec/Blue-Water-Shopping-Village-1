@@ -454,20 +454,21 @@
 }
 
 .add-to-cart-btn {
-  flex: 1;
-  padding: 0.875rem 2rem;
+  padding: 0.75rem 1.5rem;
   background-color: var(--color-accent);
   color: white;
   border: none;
   border-radius: var(--radius-sm);
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
   transition: all var(--transition-fast);
+  white-space: nowrap;
+  min-width: fit-content;
 }
 
 .add-to-cart-btn:hover {
@@ -488,18 +489,20 @@
 }
 
 .action-btn {
-  flex: 1;
-  padding: 0.75rem;
+  padding: 0.6rem 1.25rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background-color: white;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
   font-weight: 600;
+  font-size: 0.9rem;
   transition: all var(--transition-fast);
+  white-space: nowrap;
+  min-width: fit-content;
 }
 
 .action-btn:hover {
@@ -509,27 +512,36 @@
 
 /* Call to Order Button */
 .call-to-order-btn {
-  width: 100%;
-  padding: 1rem;
+  padding: 0.75rem 1.5rem;
   background-color: #10b981;
   color: white;
   border: none;
   border-radius: var(--radius-sm);
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
   transition: all var(--transition-fast);
   margin: var(--space-lg) 0;
+  white-space: nowrap;
+  min-width: fit-content;
 }
 
 .call-to-order-btn:hover {
   background-color: #059669;
 }
 
+.call-to-order-btn a {
+  color: white;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
 /* Trust Badges */
 .trust-badges {
   display: flex;
@@ -812,15 +824,29 @@
   }
 
   .purchase-controls {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
   }
 
   .add-to-cart-btn {
-    width: 100%;
+    flex: 1;
+    min-width: auto;
   }
 
   .action-buttons {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .action-btn {
+    flex: none;
+  }
+  
+  .call-to-order-btn {
+    white-space: normal;
+    text-align: center;
+    font-size: 0.85rem;
   }
 
   .form-row {
