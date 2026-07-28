@@ -284,13 +284,15 @@
   line-height: 1.8;
   margin: 0;
   font-size: 1rem;
-  white-space: pre-wrap;
+  white-space: normal;
   word-wrap: break-word;
   overflow-wrap: break-word;
   word-break: break-word;
   /* Full description display - no truncation */
   display: block;
   width: 100%;
+  padding-right: var(--space-md);
+  box-sizing: border-box;
 }
 
 
@@ -815,7 +817,7 @@
   }
 
   .product-info-section {
-    padding: 0;
+    padding: 0 var(--space-md);
   }
 
   .product-title {
@@ -885,7 +887,7 @@
   }
 
   .product-info-section {
-    padding: 0;
+    padding: 0 var(--space-md);
   }
 
   .product-title {
