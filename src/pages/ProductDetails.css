@@ -12,6 +12,7 @@
   grid-template-columns: 1fr 1fr;
   gap: var(--space-2xl);
   margin-bottom: var(--space-2xl);
+  padding: 0 var(--space-lg);
 }
 
 /* Gallery Section */
@@ -131,6 +132,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
+  padding: 0 var(--space-sm);
 }
 
 .product-header {
@@ -397,6 +399,8 @@
   display: flex;
   gap: var(--space-md);
   align-items: center;
+  flex-wrap: wrap;
+  padding: 0 var(--space-sm);
 }
 
 .quantity-selector {
@@ -453,6 +457,9 @@
   transition: all var(--transition-fast);
   white-space: nowrap;
   min-width: fit-content;
+  flex: 1;
+  min-width: 150px;
+  max-width: 100%;
 }
 
 .add-to-cart-btn:hover {
@@ -509,9 +516,12 @@
   justify-content: center;
   gap: var(--space-sm);
   transition: all var(--transition-fast);
-  margin: var(--space-lg) 0;
-  white-space: nowrap;
-  min-width: fit-content;
+  margin: var(--space-lg) var(--space-sm);
+  white-space: normal;
+  min-width: auto;
+  max-width: 100%;
+  text-align: center;
+  padding: 0.75rem 1rem;
 }
 
 .call-to-order-btn:hover {
@@ -787,6 +797,7 @@
   .product-main-layout {
     grid-template-columns: 1fr;
     gap: var(--space-xl);
+    padding: 0 var(--space-md);
   }
 
   .related-products-grid {
@@ -796,7 +807,15 @@
 
 @media (max-width: 768px) {
   .product-details-page {
-    padding: var(--space-lg);
+    padding: var(--space-md);
+  }
+
+  .product-main-layout {
+    padding: 0 var(--space-sm);
+  }
+
+  .product-info-section {
+    padding: 0;
   }
 
   .product-title {
@@ -811,11 +830,13 @@
     flex-direction: row;
     flex-wrap: wrap;
     gap: var(--space-sm);
+    padding: 0;
   }
 
   .add-to-cart-btn {
-    flex: none;
-    min-width: auto;
+    flex: 1;
+    min-width: 140px;
+    max-width: 100%;
   }
 
   .action-buttons {
@@ -831,8 +852,10 @@
     white-space: normal;
     text-align: center;
     font-size: 0.85rem;
-    width: auto;
+    width: 100%;
     max-width: 100%;
+    margin: var(--space-md) 0;
+    padding: 0.75rem 1rem;
   }
 
   .form-row {
@@ -854,7 +877,15 @@
 
 @media (max-width: 480px) {
   .product-details-page {
-    padding: var(--space-md);
+    padding: var(--space-sm);
+  }
+
+  .product-main-layout {
+    padding: 0;
+  }
+
+  .product-info-section {
+    padding: 0;
   }
 
   .product-title {
@@ -863,6 +894,24 @@
 
   .price-tag {
     font-size: 1.25rem;
+  }
+
+  .purchase-controls {
+    flex-direction: column;
+    padding: 0;
+  }
+
+  .add-to-cart-btn {
+    width: 100%;
+    max-width: 100%;
+    flex: none;
+  }
+
+  .call-to-order-btn {
+    width: 100%;
+    max-width: 100%;
+    margin: var(--space-sm) 0;
+    padding: 0.75rem 1rem;
   }
 
   .related-products-grid {
