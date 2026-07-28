@@ -274,21 +274,22 @@ export default function ProductDetails() {
 
   // Build delivery info from product-specific fees
   // Only show delivery options that have been configured for this product (fee > 0)
+  // Column mapping: STC=greater_accra, VIP=lesser_accra, OA=dhl, VVIP=ups
   const deliveryOptions: { method: string; fee: string }[] = []
   if (product.delivery_fee_tamale !== undefined && product.delivery_fee_tamale !== null && product.delivery_fee_tamale > 0) {
     deliveryOptions.push({ method: 'Tamale Delivery', fee: formatCurrency(product.delivery_fee_tamale) })
   }
-  if (product.delivery_fee_stc !== undefined && product.delivery_fee_stc !== null && product.delivery_fee_stc > 0) {
-    deliveryOptions.push({ method: 'STC Transport', fee: formatCurrency(product.delivery_fee_stc) })
+  if (product.delivery_fee_greater_accra !== undefined && product.delivery_fee_greater_accra !== null && product.delivery_fee_greater_accra > 0) {
+    deliveryOptions.push({ method: 'STC Transport', fee: formatCurrency(product.delivery_fee_greater_accra) })
   }
-  if (product.delivery_fee_vip !== undefined && product.delivery_fee_vip !== null && product.delivery_fee_vip > 0) {
-    deliveryOptions.push({ method: 'VIP Transport', fee: formatCurrency(product.delivery_fee_vip) })
+  if (product.delivery_fee_lesser_accra !== undefined && product.delivery_fee_lesser_accra !== null && product.delivery_fee_lesser_accra > 0) {
+    deliveryOptions.push({ method: 'VIP Transport', fee: formatCurrency(product.delivery_fee_lesser_accra) })
   }
-  if (product.delivery_fee_oa !== undefined && product.delivery_fee_oa !== null && product.delivery_fee_oa > 0) {
-    deliveryOptions.push({ method: 'OA Transport', fee: formatCurrency(product.delivery_fee_oa) })
+  if (product.delivery_fee_dhl !== undefined && product.delivery_fee_dhl !== null && product.delivery_fee_dhl > 0) {
+    deliveryOptions.push({ method: 'OA Transport', fee: formatCurrency(product.delivery_fee_dhl) })
   }
-  if (product.delivery_fee_vvip !== undefined && product.delivery_fee_vvip !== null && product.delivery_fee_vvip > 0) {
-    deliveryOptions.push({ method: 'VVIP Transport', fee: formatCurrency(product.delivery_fee_vvip) })
+  if (product.delivery_fee_ups !== undefined && product.delivery_fee_ups !== null && product.delivery_fee_ups > 0) {
+    deliveryOptions.push({ method: 'VVIP Transport', fee: formatCurrency(product.delivery_fee_ups) })
   }
   if (product.delivery_fee_fedex !== undefined && product.delivery_fee_fedex !== null && product.delivery_fee_fedex > 0) {
     deliveryOptions.push({ method: 'FedEx Delivery', fee: formatCurrency(product.delivery_fee_fedex) })

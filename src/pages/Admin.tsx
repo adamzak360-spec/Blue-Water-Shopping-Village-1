@@ -53,12 +53,12 @@ const defaultFormState = {
   galleryImages: [] as File[],
   existingGalleryUrls: [] as string[],
   // Delivery Fees (must match database column names)
-  // Correct delivery options: Tamale, STC, VIP, OA, VVIP, FedEx
+  // Tamale, STC (greater_accra), VIP (lesser_accra), OA (dhl), VVIP (ups), FedEx
   delivery_fee_tamale: '',
-  delivery_fee_stc: '',
-  delivery_fee_vip: '',
-  delivery_fee_oa: '',
-  delivery_fee_vvip: '',
+  delivery_fee_greater_accra: '',
+  delivery_fee_lesser_accra: '',
+  delivery_fee_dhl: '',
+  delivery_fee_ups: '',
   delivery_fee_fedex: '',
 }
 
@@ -203,12 +203,12 @@ export default function Admin() {
         image_url: imageUrl,
         gallery_urls: gallery_urls,
         // Delivery Fees (must match database column names)
-        // Correct delivery options: Tamale, STC, VIP, OA, VVIP, FedEx
+        // Tamale, STC (greater_accra), VIP (lesser_accra), OA (dhl), VVIP (ups), FedEx
         delivery_fee_tamale: formData.delivery_fee_tamale ? parseFloat(formData.delivery_fee_tamale) : 0,
-        delivery_fee_stc: formData.delivery_fee_stc ? parseFloat(formData.delivery_fee_stc) : 0,
-        delivery_fee_vip: formData.delivery_fee_vip ? parseFloat(formData.delivery_fee_vip) : 0,
-        delivery_fee_oa: formData.delivery_fee_oa ? parseFloat(formData.delivery_fee_oa) : 0,
-        delivery_fee_vvip: formData.delivery_fee_vvip ? parseFloat(formData.delivery_fee_vvip) : 0,
+        delivery_fee_greater_accra: formData.delivery_fee_greater_accra ? parseFloat(formData.delivery_fee_greater_accra) : 0,
+        delivery_fee_lesser_accra: formData.delivery_fee_lesser_accra ? parseFloat(formData.delivery_fee_lesser_accra) : 0,
+        delivery_fee_dhl: formData.delivery_fee_dhl ? parseFloat(formData.delivery_fee_dhl) : 0,
+        delivery_fee_ups: formData.delivery_fee_ups ? parseFloat(formData.delivery_fee_ups) : 0,
         delivery_fee_fedex: formData.delivery_fee_fedex ? parseFloat(formData.delivery_fee_fedex) : 0,
       }
 
@@ -256,10 +256,10 @@ export default function Admin() {
       galleryImages: [],
       existingGalleryUrls: product.gallery_urls || [],
       delivery_fee_tamale: (product.delivery_fee_tamale || 0).toString(),
-      delivery_fee_stc: (product.delivery_fee_stc || 0).toString(),
-      delivery_fee_vip: (product.delivery_fee_vip || 0).toString(),
-      delivery_fee_oa: (product.delivery_fee_oa || 0).toString(),
-      delivery_fee_vvip: (product.delivery_fee_vvip || 0).toString(),
+      delivery_fee_greater_accra: (product.delivery_fee_greater_accra || 0).toString(),
+      delivery_fee_lesser_accra: (product.delivery_fee_lesser_accra || 0).toString(),
+      delivery_fee_dhl: (product.delivery_fee_dhl || 0).toString(),
+      delivery_fee_ups: (product.delivery_fee_ups || 0).toString(),
       delivery_fee_fedex: (product.delivery_fee_fedex || 0).toString(),
     })
     setView('edit')
@@ -1224,8 +1224,8 @@ export default function Admin() {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.delivery_fee_stc}
-                    onChange={(e) => setFormData({ ...formData, delivery_fee_stc: e.target.value })}
+                    value={formData.delivery_fee_greater_accra}
+                    onChange={(e) => setFormData({ ...formData, delivery_fee_greater_accra: e.target.value })}
                     placeholder="Optional - e.g., 25.00"
                   />
                 </div>
@@ -1235,8 +1235,8 @@ export default function Admin() {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.delivery_fee_vip}
-                    onChange={(e) => setFormData({ ...formData, delivery_fee_vip: e.target.value })}
+                    value={formData.delivery_fee_lesser_accra}
+                    onChange={(e) => setFormData({ ...formData, delivery_fee_lesser_accra: e.target.value })}
                     placeholder="Optional - e.g., 35.00"
                   />
                 </div>
@@ -1246,8 +1246,8 @@ export default function Admin() {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.delivery_fee_oa}
-                    onChange={(e) => setFormData({ ...formData, delivery_fee_oa: e.target.value })}
+                    value={formData.delivery_fee_dhl}
+                    onChange={(e) => setFormData({ ...formData, delivery_fee_dhl: e.target.value })}
                     placeholder="Optional - e.g., 40.00"
                   />
                 </div>
@@ -1257,8 +1257,8 @@ export default function Admin() {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.delivery_fee_vvip}
-                    onChange={(e) => setFormData({ ...formData, delivery_fee_vvip: e.target.value })}
+                    value={formData.delivery_fee_ups}
+                    onChange={(e) => setFormData({ ...formData, delivery_fee_ups: e.target.value })}
                     placeholder="Optional - e.g., 50.00"
                   />
                 </div>

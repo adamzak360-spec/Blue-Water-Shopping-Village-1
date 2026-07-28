@@ -35,18 +35,13 @@ export interface Product {
   // Size system
   has_sizes?: boolean
   sizes?: ProductSize[]
-  // Delivery Fees (correct names matching database)
+  // Delivery Fees (matching actual database columns)
   delivery_fee_tamale?: number
-  delivery_fee_stc?: number
-  delivery_fee_vip?: number
-  delivery_fee_oa?: number
-  delivery_fee_vvip?: number
+  delivery_fee_greater_accra?: number  // Used for STC Transport
+  delivery_fee_lesser_accra?: number   // Used for VIP Transport
+  delivery_fee_dhl?: number            // Used for OA Transport
+  delivery_fee_ups?: number            // Used for VVIP Transport
   delivery_fee_fedex?: number
-  // Legacy fields (may still exist in older products)
-  delivery_fee_greater_accra?: number
-  delivery_fee_lesser_accra?: number
-  delivery_fee_dhl?: number
-  delivery_fee_ups?: number
 }
 
 export interface Review {
@@ -86,12 +81,12 @@ export interface ProductFormData {
   // Size system
   has_sizes?: boolean
   sizes?: ProductSize[]
-  // Delivery Fees (correct names)
+  // Delivery Fees (matching actual database columns)
   delivery_fee_tamale?: string
-  delivery_fee_stc?: string
-  delivery_fee_vip?: string
-  delivery_fee_oa?: string
-  delivery_fee_vvip?: string
+  delivery_fee_greater_accra?: string  // Used for STC Transport
+  delivery_fee_lesser_accra?: string   // Used for VIP Transport
+  delivery_fee_dhl?: string            // Used for OA Transport
+  delivery_fee_ups?: string            // Used for VVIP Transport
   delivery_fee_fedex?: string
 }
 
