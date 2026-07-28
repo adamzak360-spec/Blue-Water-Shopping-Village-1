@@ -282,7 +282,8 @@
   overflow-y: visible !important;
 }
 
-.product-description {
+/* Scoped to description-section only - doesn't affect product grid cards */
+.description-section .product-description {
   color: var(--color-text-secondary);
   line-height: 1.8;
   margin: 0;
