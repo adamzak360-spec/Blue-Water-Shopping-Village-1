@@ -6,6 +6,8 @@ import {
   updateProduct,
   deleteProduct,
   uploadProductImage,
+  uploadProductVideo,
+  validateVideoFile,
   getDashboardStats,
 } from '../services/productService'
 import {
@@ -52,6 +54,9 @@ const defaultFormState = {
   existingImageUrl: '',
   galleryImages: [] as File[],
   existingGalleryUrls: [] as string[],
+  videos: [] as File[],
+  existingVideoUrls: [] as string[],
+  videoUploadErrors: {} as Record<number, string>,
   // Delivery Fees (must match database column names)
   // Tamale, STC (greater_accra), VIP (lesser_accra), OA (dhl), VVIP (ups), FedEx
   delivery_fee_tamale: '',
@@ -193,6 +198,13 @@ export default function Admin() {
       
       const gallery_urls = [...formData.existingGalleryUrls, ...newGalleryUrls]
 
+      // Upload product videos
+      const newVideoUrls = await Promise.all(
+        formData.videos.map(file => uploadProductVideo(file))
+      )
+      
+      const video_urls = [...formData.existingVideoUrls, ...newVideoUrls]
+
       const productData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
@@ -202,6 +214,7 @@ export default function Admin() {
         status: formData.status,
         image_url: imageUrl,
         gallery_urls: gallery_urls,
+        video_urls: video_urls,
         // Delivery Fees (must match database column names)
         // Tamale, STC (greater_accra), VIP (lesser_accra), OA (dhl), VVIP (ups), FedEx
         delivery_fee_tamale: formData.delivery_fee_tamale ? parseFloat(formData.delivery_fee_tamale) : 0,
@@ -255,6 +268,9 @@ export default function Admin() {
       existingImageUrl: product.image_url,
       galleryImages: [],
       existingGalleryUrls: product.gallery_urls || [],
+      videos: [],
+      existingVideoUrls: product.video_urls || [],
+      videoUploadErrors: {},
       delivery_fee_tamale: (product.delivery_fee_tamale || 0).toString(),
       delivery_fee_greater_accra: (product.delivery_fee_greater_accra || 0).toString(),
       delivery_fee_lesser_accra: (product.delivery_fee_lesser_accra || 0).toString(),
@@ -1199,6 +1215,77 @@ export default function Admin() {
                   />
                   <p className="help-text">Add more images to the product gallery</p>
                 </div>
+              </div>
+            </div>
+
+            {/* Product Videos Section */}
+            <div className="form-group full-width">
+              <label>Product Videos (Optional)</label>
+              <div className="gallery-upload-container">
+                <div className="existing-gallery">
+                  {formData.existingVideoUrls.map((url, idx) => (
+                    <div key={idx} className="gallery-preview-item">
+                      <video src={url} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <button 
+                        type="button" 
+                        className="remove-image"
+                        onClick={() => {
+                          const updated = [...formData.existingVideoUrls]
+                          updated.splice(idx, 1)
+                          setFormData({ ...formData, existingVideoUrls: updated })
+                        }}
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                  {formData.videos.map((file, idx) => (
+                    <div key={`new-${idx}`} className="gallery-preview-item new">
+                      <video src={URL.createObjectURL(file)} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      {formData.videoUploadErrors[idx] && (
+                        <div className="error-overlay" style={{ color: 'red', fontSize: '0.8rem', padding: '0.5rem' }}>
+                          {formData.videoUploadErrors[idx]}
+                        </div>
+                      )}
+                      <button 
+                        type="button" 
+                        className="remove-image"
+                        onClick={() => {
+                          const updated = [...formData.videos]
+                          updated.splice(idx, 1)
+                          const errors = { ...formData.videoUploadErrors }
+                          delete errors[idx]
+                          setFormData({ ...formData, videos: updated, videoUploadErrors: errors })
+                        }}
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <input
+                  type="file"
+                  accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || [])
+                    const errors: Record<number, string> = {}
+                    
+                    files.forEach((file, idx) => {
+                      const validation = validateVideoFile(file)
+                      if (!validation.valid) {
+                        errors[idx] = validation.error || 'Invalid video'
+                      }
+                    })
+                    
+                    setFormData({ 
+                      ...formData, 
+                      videos: [...formData.videos, ...files],
+                      videoUploadErrors: { ...formData.videoUploadErrors, ...errors }
+                    })
+                  }}
+                />
+                <p className="help-text">Add product videos (MP4, MOV, WEBM - max 500MB each)</p>
               </div>
             </div>
 

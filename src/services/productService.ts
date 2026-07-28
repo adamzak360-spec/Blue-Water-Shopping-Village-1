@@ -2,6 +2,11 @@ import { supabase, isSupabaseConfigured } from '../supabaseClient'
 import type { Product, DashboardStats } from '../types'
 
 const STORAGE_BUCKET = 'product-images'
+const VIDEO_STORAGE_BUCKET = 'product-videos'
+
+// Supported video formats
+const SUPPORTED_VIDEO_FORMATS = ['video/mp4', 'video/quicktime', 'video/webm']
+const SUPPORTED_VIDEO_EXTENSIONS = ['.mp4', '.mov', '.webm']
 
 export async function getAllProducts(): Promise<Product[]> {
   if (!isSupabaseConfigured || !supabase) {
@@ -159,5 +164,82 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     total: allProducts.length,
     active: allProducts.filter(p => p.status === 'active').length,
     outOfStock: allProducts.filter(p => p.status === 'out-of-stock' || p.stock_quantity === 0).length,
+  }
+}
+
+
+// Video upload and validation functions
+export function validateVideoFile(file: File): { valid: boolean; error?: string } {
+  // Check file size (max 500MB)
+  const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500MB
+  if (file.size > MAX_FILE_SIZE) {
+    return { valid: false, error: `Video file is too large. Maximum size is 500MB, but got ${(file.size / 1024 / 1024).toFixed(2)}MB.` }
+  }
+
+  // Check MIME type
+  if (!SUPPORTED_VIDEO_FORMATS.includes(file.type)) {
+    return { valid: false, error: `Unsupported video format: ${file.type}. Supported formats are: MP4, MOV, WEBM.` }
+  }
+
+  // Check file extension as additional validation
+  const fileName = file.name.toLowerCase()
+  const hasValidExtension = SUPPORTED_VIDEO_EXTENSIONS.some(ext => fileName.endsWith(ext))
+  if (!hasValidExtension) {
+    return { valid: false, error: `Unsupported file extension. Supported formats are: ${SUPPORTED_VIDEO_EXTENSIONS.join(', ')}` }
+  }
+
+  return { valid: true }
+}
+
+export async function uploadProductVideo(file: File): Promise<string> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  // Validate video file
+  const validation = validateVideoFile(file)
+  if (!validation.valid) {
+    throw new Error(validation.error || 'Invalid video file')
+  }
+
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${file.name}`
+
+  try {
+    const { data, error } = await supabase.storage
+      .from(VIDEO_STORAGE_BUCKET)
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false,
+      })
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    const { data: urlData } = supabase.storage
+      .from(VIDEO_STORAGE_BUCKET)
+      .getPublicUrl(data.path)
+
+    return urlData.publicUrl
+  } catch (err) {
+    throw new Error(`Failed to upload video: ${err instanceof Error ? err.message : 'Unknown error'}`)
+  }
+}
+
+export async function deleteProductVideo(storagePath: string): Promise<void> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  try {
+    const { error } = await supabase.storage
+      .from(VIDEO_STORAGE_BUCKET)
+      .remove([storagePath])
+
+    if (error) {
+      throw new Error(error.message)
+    }
+  } catch (err) {
+    throw new Error(`Failed to delete video: ${err instanceof Error ? err.message : 'Unknown error'}`)
   }
 }

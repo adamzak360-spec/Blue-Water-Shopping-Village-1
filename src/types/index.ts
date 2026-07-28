@@ -11,6 +11,7 @@ export interface Product {
   category: string
   image_url: string
   gallery_urls?: string[]
+  video_urls?: string[]
   stock_quantity: number
   low_stock_threshold?: number
   status: 'active' | 'inactive' | 'out-of-stock'
@@ -64,6 +65,8 @@ export interface ProductFormData {
   status: 'active' | 'inactive' | 'out-of-stock'
   image: File | null
   gallery_images: File[]
+  videos: File[]
+  existingVideoUrls: string[]
   // Extended fields
   brand?: string
   original_price?: string
