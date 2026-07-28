@@ -294,8 +294,9 @@
   overflow: visible !important;
   overflow-x: visible !important;
   overflow-y: visible !important;
-  /* Full description display - no truncation */
-  display: block;
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: unset !important;
+  display: block !important;
   width: 100%;
   padding-right: var(--space-md);
   box-sizing: border-box;
