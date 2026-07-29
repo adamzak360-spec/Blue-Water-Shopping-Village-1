@@ -15,7 +15,7 @@ export default function About() {
             <p>
               Reliable was founded with a simple mission: to make quality groceries
               accessible to every household in Ghana. What started as a small neighbourhood shop has grown
-              into a modern, full-service online supermarket that serves customers across the Northern Region
+              into a modern, full-service Reliable Premium Market that serves customers across Tamale, the Northern Region
               and throughout Ghana.
             </p>
             <p>
@@ -36,7 +36,7 @@ export default function About() {
           <section className="content-section">
             <h2>Our Vision</h2>
             <p>
-              To become Ghana's most trusted online supermarket, setting the standard for quality,
+              To become Ghana's most trusted Reliable Premium Market, setting the standard for quality,
               convenience, and customer satisfaction in the country's rapidly growing e-commerce landscape.
             </p>
           </section>
