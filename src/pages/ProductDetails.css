@@ -743,19 +743,23 @@
 
 .related-image-container {
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 1/1;
   background-color: var(--color-border-light);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  position: relative;
 }
 
 .related-image-container img {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: var(--space-sm);
+  padding: var(--space-xs);
 }
 
 .no-image {
@@ -926,17 +930,23 @@
 
   .related-products-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-md);
+    gap: var(--space-sm);
+  }
+
+  .related-image-container {
+    height: 160px;
+    aspect-ratio: auto;
   }
   
   .main-image-container {
     aspect-ratio: auto;
-    height: 350px;
-    padding: var(--space-md);
+    height: 300px;
+    padding: var(--space-sm);
   }
   
   .main-product-image {
     max-height: 100%;
     width: auto;
+    object-fit: contain;
   }
 }
