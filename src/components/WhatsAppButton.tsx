@@ -2,7 +2,6 @@ import { MessageCircle } from 'lucide-react'
 import './WhatsAppButton.css'
 
 export default function WhatsAppButton() {
-  const whatsappNumber = '0203355542'
   // Format for WhatsApp URL (international format for Ghana: +233)
   const formattedNumber = '233203355542'
   const message = 'Hello! I would like to inquire about a product.'
