@@ -44,6 +44,7 @@ import OrderDetails from './pages/OrderDetails'
 import CustomerSettings from './pages/CustomerSettings'
 import ProductDetails from './pages/ProductDetails'
 import TermsPopup from './components/TermsPopup'
+import WhatsAppButton from './components/WhatsAppButton'
 
 function App() {
   return (
@@ -230,6 +231,7 @@ function AppShell() {
       </main>
       <CartSidebar />
       {!isAdminRoute && !isCustomerRoute && <Footer />}
+      <WhatsAppButton />
     </div>
   )
 }
