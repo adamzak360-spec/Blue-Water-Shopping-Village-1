@@ -274,7 +274,7 @@
 }
 
 /* Description Section - FIXED */
-.description-section {
+.product-description-section {
   padding: var(--space-lg) 0;
   border-bottom: 1px solid var(--color-border-light);
   overflow: visible !important;
@@ -282,8 +282,8 @@
   overflow-y: visible !important;
 }
 
-/* Scoped to description-section only - doesn't affect product grid cards */
-.description-section .product-description {
+/* Scoped to product-description-section only - doesn't affect product grid cards */
+.product-description-section .product-description {
   color: var(--color-text-secondary);
   line-height: 1.8;
   margin: 0;
