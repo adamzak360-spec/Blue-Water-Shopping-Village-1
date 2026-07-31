@@ -90,6 +90,7 @@ function AppShell() {
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
             <Link to="/" className="brand-logo">
+              <img src="/reliable-logo-new.png" alt="Reliable" className="logo-icon" />
               <span className="logo-text">RELIABLE</span>
             </Link>
           </div>
@@ -126,6 +127,7 @@ function AppShell() {
       <aside className={`side-drawer ${isMenuOpen ? 'open' : ''}`}>
         <div className="drawer-header">
           <div className="drawer-logo">
+            <img src="/reliable-logo-new.png" alt="Reliable" className="logo-icon" />
             <span>RELIABLE</span>
           </div>
           <button onClick={toggleMenu}><X size={24} /></button>

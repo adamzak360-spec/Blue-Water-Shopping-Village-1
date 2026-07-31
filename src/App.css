@@ -57,6 +57,13 @@
   transition: all var(--transition-fast);
 }
 
+.brand-logo .logo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
 .brand-logo .logo-text {
   font-size: 1.5rem;
   font-weight: 800;
@@ -206,11 +213,19 @@
 .drawer-logo {
   display: flex;
   align-items: center;
+  gap: var(--space-sm);
   font-size: 1.5rem;
   font-weight: 800;
   color: var(--color-primary);
   text-transform: uppercase;
   letter-spacing: -0.02em;
+}
+
+.drawer-logo .logo-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: contain;
 }
 
 .drawer-nav {
