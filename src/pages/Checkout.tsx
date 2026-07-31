@@ -391,7 +391,7 @@ export default function Checkout() {
                   >
                     {Object.entries(deliveryMethods).map(([key, method]) => (
                       <option key={key} value={key}>
-                        {method.name} - GH₵{method.fee.toFixed(2)} ({method.days})
+                        {method.name} - GH₵{method.defaultFee.toFixed(2)} ({method.days})
                       </option>
                     ))}
                   </select>
