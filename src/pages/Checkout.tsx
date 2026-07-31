@@ -46,22 +46,22 @@ export default function Checkout() {
   const selectedDeliveryMethod = deliveryMethods[formData.deliveryMethod as keyof typeof deliveryMethods]
   
   // Calculate product-specific delivery fee
-  const calculateTotalDeliveryFee = () => {
-    if (!selectedDeliveryMethod) return 15.00;
+  const calculateMethodFee = (method: any) => {
+    if (!method) return 0;
 
     return cart.reduce((totalFee, item) => {
       // Get the fee for this specific product from its database field
       // Fallback to the method's default fee if the product doesn't have a specific fee set
-      const productFee = (item as any)[selectedDeliveryMethod.field];
+      const productFee = (item as any)[method.field];
       const fee = (productFee !== undefined && productFee !== null && productFee !== '') 
         ? Number(productFee) 
-        : selectedDeliveryMethod.defaultFee;
+        : method.defaultFee;
       
       return totalFee + (fee * item.quantity);
     }, 0);
   };
 
-  const deliveryFee = calculateTotalDeliveryFee()
+  const deliveryFee = calculateMethodFee(selectedDeliveryMethod)
   const total = cartSubtotal + deliveryFee
 
   // Load Paystack script
@@ -391,7 +391,7 @@ export default function Checkout() {
                   >
                     {Object.entries(deliveryMethods).map(([key, method]) => (
                       <option key={key} value={key}>
-                        {method.name} - GH₵{method.defaultFee.toFixed(2)} ({method.days})
+                        {method.name} - GH₵{calculateMethodFee(method).toFixed(2)} ({method.days})
                       </option>
                     ))}
                   </select>
