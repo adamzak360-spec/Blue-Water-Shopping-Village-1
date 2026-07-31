@@ -137,6 +137,7 @@ export default function Checkout() {
           items_count: cart.length,
           subtotal: cartSubtotal,
           delivery_fee: deliveryFee,
+          paystack_public_key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
         }
       })
 
