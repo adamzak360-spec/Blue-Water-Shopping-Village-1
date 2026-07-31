@@ -35,16 +35,33 @@ export default function Checkout() {
   })
 
   const deliveryMethods = {
-    tamale: { name: 'Tamale Delivery', fee: 15.00, days: '1-2 days' },
-    stc: { name: 'STC Transport', fee: 35.00, days: '3-5 days' },
-    vip: { name: 'VIP Transport', fee: 45.00, days: '2-3 days' },
-    oa: { name: 'OA Transport', fee: 40.00, days: '3-4 days' },
-    vvip: { name: 'VVIP Transport', fee: 50.00, days: '2-3 days' },
-    fedex: { name: 'FedEx Delivery', fee: 90.00, days: '1-2 days' }
+    tamale: { name: 'Tamale Delivery', field: 'delivery_fee_tamale', defaultFee: 15.00, days: '1-2 days' },
+    stc: { name: 'STC Transport', field: 'delivery_fee_greater_accra', defaultFee: 35.00, days: '3-5 days' },
+    vip: { name: 'VIP Transport', field: 'delivery_fee_lesser_accra', defaultFee: 45.00, days: '2-3 days' },
+    oa: { name: 'OA Transport', field: 'delivery_fee_dhl', defaultFee: 40.00, days: '3-4 days' },
+    vvip: { name: 'VVIP Transport', field: 'delivery_fee_ups', defaultFee: 50.00, days: '2-3 days' },
+    fedex: { name: 'FedEx Delivery', field: 'delivery_fee_fedex', defaultFee: 90.00, days: '1-2 days' }
   }
 
   const selectedDeliveryMethod = deliveryMethods[formData.deliveryMethod as keyof typeof deliveryMethods]
-  const deliveryFee = selectedDeliveryMethod?.fee || 15.00
+  
+  // Calculate product-specific delivery fee
+  const calculateTotalDeliveryFee = () => {
+    if (!selectedDeliveryMethod) return 15.00;
+
+    return cart.reduce((totalFee, item) => {
+      // Get the fee for this specific product from its database field
+      // Fallback to the method's default fee if the product doesn't have a specific fee set
+      const productFee = (item as any)[selectedDeliveryMethod.field];
+      const fee = (productFee !== undefined && productFee !== null && productFee !== '') 
+        ? Number(productFee) 
+        : selectedDeliveryMethod.defaultFee;
+      
+      return totalFee + (fee * item.quantity);
+    }, 0);
+  };
+
+  const deliveryFee = calculateTotalDeliveryFee()
   const total = cartSubtotal + deliveryFee
 
   // Load Paystack script
@@ -381,7 +398,7 @@ export default function Checkout() {
                 <div className="delivery-info-box">
                   <p><strong>Selected Delivery:</strong> {selectedDeliveryMethod?.name}</p>
                   <p><strong>Estimated Delivery:</strong> {selectedDeliveryMethod?.days}</p>
-                  <p><strong>Delivery Fee:</strong> GH₵{deliveryFee.toFixed(2)}</p>
+                  <p><strong>Delivery Fee:</strong> {formatCurrency(deliveryFee)}</p>
                 </div>
                 <div className="form-group">
                   <label htmlFor="notes">Additional Notes</label>
