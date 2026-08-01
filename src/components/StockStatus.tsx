@@ -17,7 +17,7 @@ interface StockStatusProps {
  */
 export default function StockStatus({
   stock,
-  lowStockThreshold = 5,
+  lowStockThreshold = 4,
   showLabel = true,
   size = 'small'
 }: StockStatusProps) {
@@ -32,6 +32,7 @@ export default function StockStatus({
 
   const getStatusText = () => {
     if (isOutOfStock) return 'Out of Stock'
+    if (isLowStock) return `${stock} items left`
     return `${stock} in stock`
   }
 

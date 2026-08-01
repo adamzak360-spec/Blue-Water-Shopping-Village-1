@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from '../supabaseClient'
-import type { Product, DashboardStats } from '../types'
+import type { Product, DashboardStats, ProductVariant } from '../types'
 
 const STORAGE_BUCKET = 'product-images'
 const VIDEO_STORAGE_BUCKET = 'product-videos'
@@ -241,5 +241,108 @@ export async function deleteProductVideo(storagePath: string): Promise<void> {
     }
   } catch (err) {
     throw new Error(`Failed to delete video: ${err instanceof Error ? err.message : 'Unknown error'}`)
+  }
+}
+
+export async function getProductVariants(productId: string): Promise<ProductVariant[]> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  const { data, error } = await supabase
+    .from('product_variants')
+    .select('*')
+    .eq('product_id', productId)
+    .eq('active', true)
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return (data as ProductVariant[]) || []
+}
+
+export async function createProductVariant(
+  variant: Omit<ProductVariant, 'id' | 'created_at' | 'updated_at'>
+): Promise<ProductVariant> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  const { data, error } = await supabase
+    .from('product_variants')
+    .insert(variant)
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return data as ProductVariant
+}
+
+export async function updateProductVariant(
+  id: string,
+  updates: Partial<Omit<ProductVariant, 'id' | 'created_at'>>
+): Promise<ProductVariant> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  const { data, error } = await supabase
+    .from('product_variants')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return data as ProductVariant
+}
+
+export async function deleteProductVariant(id: string): Promise<void> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  const { error } = await supabase
+    .from('product_variants')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
+export async function syncProductVariants(productId: string, variants: Omit<ProductVariant, 'id' | 'created_at' | 'updated_at'>[]): Promise<void> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  // Delete existing variants
+  const { error: deleteError } = await supabase
+    .from('product_variants')
+    .delete()
+    .eq('product_id', productId)
+
+  if (deleteError) {
+    throw new Error(deleteError.message)
+  }
+
+  // Insert new variants if any
+  if (variants.length > 0) {
+    const { error: insertError } = await supabase
+      .from('product_variants')
+      .insert(variants.map(v => ({ ...v, product_id: productId })))
+
+    if (insertError) {
+      throw new Error(insertError.message)
+    }
   }
 }

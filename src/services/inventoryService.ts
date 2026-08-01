@@ -45,6 +45,23 @@ export const validateCartStock = async (cartItems: CartItem[]) => {
       })
     })
     
+    // Fetch variant stock levels if any item has a selected size
+    const itemsWithSizes = cartItems.filter(item => item.selected_size)
+    const variantStockMap = new Map<string, number>()
+    
+    if (itemsWithSizes.length > 0) {
+      const { data: variants, error: variantError } = await getSupabase()
+        .from('product_variants')
+        .select('product_id, variant_value, stock_quantity')
+        .in('product_id', itemsWithSizes.map(item => item.id))
+      
+      if (!variantError && variants) {
+        variants.forEach(v => {
+          variantStockMap.set(`${v.product_id}-${v.variant_value}`, v.stock_quantity)
+        })
+      }
+    }
+
     // Check each cart item against available stock
     const insufficientStock: string[] = []
     const lowStockWarnings: string[] = []
@@ -56,15 +73,32 @@ export const validateCartStock = async (cartItems: CartItem[]) => {
         insufficientStock.push(`${item.name} is no longer available`)
         return
       }
-      
-      if (item.quantity > productStock.stock) {
-        insufficientStock.push(
-          `${item.name}: Only ${productStock.stock} in stock, but you requested ${item.quantity}`
-        )
-      } else if (item.quantity > productStock.stock - productStock.threshold) {
-        lowStockWarnings.push(
-          `${item.name}: Low stock! Only ${productStock.stock} available.`
-        )
+
+      // Check variant stock if size is selected
+      if (item.selected_size) {
+        const variantStock = variantStockMap.get(`${item.id}-${item.selected_size}`)
+        if (variantStock === undefined) {
+          insufficientStock.push(`${item.name} (Size: ${item.selected_size}) is no longer available`)
+        } else if (item.quantity > variantStock) {
+          insufficientStock.push(
+            `${item.name} (Size: ${item.selected_size}): Only ${variantStock} in stock, but you requested ${item.quantity}`
+          )
+        } else if (item.quantity > variantStock - productStock.threshold) {
+          lowStockWarnings.push(
+            `${item.name} (Size: ${item.selected_size}): Low stock! Only ${variantStock} available.`
+          )
+        }
+      } else {
+        // Standard product stock check
+        if (item.quantity > productStock.stock) {
+          insufficientStock.push(
+            `${item.name}: Only ${productStock.stock} in stock, but you requested ${item.quantity}`
+          )
+        } else if (item.quantity > productStock.stock - productStock.threshold) {
+          lowStockWarnings.push(
+            `${item.name}: Low stock! Only ${productStock.stock} available.`
+          )
+        }
       }
     })
     

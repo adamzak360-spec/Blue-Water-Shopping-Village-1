@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { getProductById, getAllProducts } from '../services/productService'
+import { getProductById, getAllProducts, getProductVariants } from '../services/productService'
 import { getApprovedReviewsByProductId, submitReview, getProductRatingStats } from '../services/reviewService'
-import type { Product, Review } from '../types'
+import type { Product, Review, ProductVariant } from '../types'
 import { useCart } from '../context/CartContext'
 import { formatCurrency } from '../utils/currency'
 import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock, Share2, Heart, ZoomIn, Phone } from 'lucide-react'
+import StockStatus from '../components/StockStatus'
 import './ProductDetails.css'
 
 export default function ProductDetails() {
@@ -13,6 +14,7 @@ export default function ProductDetails() {
   const { addToCart } = useCart()
 
   const [product, setProduct] = useState<Product | null>(null)
+  const [variants, setVariants] = useState<ProductVariant[]>([])
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
   const [ratingStats, setRatingStats] = useState({ averageRating: 0, totalReviews: 0 })
@@ -53,6 +55,11 @@ export default function ProductDetails() {
           return
         }
         setProduct(productData)
+
+        if (productData.has_sizes) {
+          const variantData = await getProductVariants(productId)
+          setVariants(variantData)
+        }
 
         getAllProducts().then(allProducts => {
           const related = allProducts
@@ -214,6 +221,11 @@ export default function ProductDetails() {
     ? Math.round(((product.original_price! - product.price) / product.original_price!) * 100)
     : 0
 
+  // Get current stock based on selection
+  const currentStock = product.has_sizes && selectedSize
+    ? variants.find(v => v.variant_value === selectedSize)?.stock_quantity || 0
+    : product.stock_quantity
+
   // Build delivery info from product-specific fees
   // Only show delivery options that have been configured for this product (fee > 0)
   // Column mapping: STC=greater_accra, VIP=lesser_accra, OA=dhl, VVIP=ups
@@ -345,6 +357,15 @@ export default function ProductDetails() {
                 </>
               )}
             </div>
+            <div className="stock-warning-container">
+              <StockStatus stock={currentStock} size="large" />
+              {currentStock > 0 && currentStock <= 4 && (
+                <div className="low-stock-warning">
+                  <span className="warning-icon">⚠</span>
+                  <span className="warning-text">{currentStock} {currentStock === 1 ? 'item' : 'items'} left</span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Description */}
@@ -354,22 +375,22 @@ export default function ProductDetails() {
           </div>
 
           {/* Size Selection */}
-          {product.has_sizes && product.sizes && product.sizes.length > 0 && (
-            <div className="size-selection">
-              <label>Select Size:</label>
+          {product.has_sizes && variants.length > 0 && (
+            <div className="size-selection-section">
+              <h3 className="section-title">Select Size</h3>
               <div className="size-options">
-                {product.sizes.map((sizeOption) => (
+                {variants.map((variant) => (
                   <button
-                    key={sizeOption.size}
-                    className={`size-button ${selectedSize === sizeOption.size ? 'selected' : ''}`}
-                    onClick={() => setSelectedSize(sizeOption.size)}
-                    disabled={sizeOption.stock === 0}
+                    key={variant.id}
+                    className={`size-btn ${selectedSize === variant.variant_value ? 'selected' : ''} ${variant.stock_quantity === 0 ? 'unavailable' : ''}`}
+                    onClick={() => setSelectedSize(variant.variant_value)}
+                    disabled={variant.stock_quantity === 0}
                   >
-                    {sizeOption.size}
+                    {variant.variant_value}
                   </button>
                 ))}
               </div>
-              {sizeError && <span className="error-text">{sizeError}</span>}
+              {sizeError && <span className="size-error">{sizeError}</span>}
             </div>
           )}
 

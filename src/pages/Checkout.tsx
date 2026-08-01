@@ -449,10 +449,13 @@ export default function Checkout() {
           <h2>Order Summary</h2>
           <div className="order-summary-card">
             <div className="summary-items">
-              {cart.map(item => (
-                <div key={item.id} className="summary-item">
+              {cart.map((item, index) => (
+                <div key={`${item.id}-${item.selected_size || index}`} className="summary-item">
                   <div className="summary-item-info">
                     <span className="summary-item-name">{item.name}</span>
+                    {item.selected_size && (
+                      <span className="summary-item-variant">Size: {item.selected_size}</span>
+                    )}
                     <span className="summary-item-qty">x {item.quantity}</span>
                   </div>
                   <span className="summary-item-price">{formatCurrency(item.price * item.quantity)}</span>

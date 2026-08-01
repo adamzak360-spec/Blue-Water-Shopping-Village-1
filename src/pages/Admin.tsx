@@ -9,6 +9,8 @@ import {
   uploadProductVideo,
   validateVideoFile,
   getDashboardStats,
+  getProductVariants,
+  syncProductVariants,
 } from '../services/productService'
 import {
   getAllOrders,
@@ -25,7 +27,7 @@ import {
   exportCustomersCSV,
 } from '../services/adminAnalyticsService'
 import { testEmailSending } from '../api/emailNotificationHandler'
-import type { Product, DashboardStats, Order, Review } from '../types'
+import type { Product, DashboardStats, Order, Review, ProductVariant } from '../types'
 import { formatCurrency } from '../utils/currency'
 import InventoryManagement from '../components/InventoryManagement'
 import AdminAnalytics from '../components/AdminAnalytics'
@@ -57,6 +59,8 @@ const defaultFormState = {
   videos: [] as File[],
   existingVideoUrls: [] as string[],
   videoUploadErrors: {} as Record<number, string>,
+  has_sizes: false,
+  variants: [] as Omit<ProductVariant, 'id' | 'created_at' | 'updated_at'>[],
   // Delivery Fees (must match database column names)
   // Tamale, STC (greater_accra), VIP (lesser_accra), OA (dhl), VVIP (ups), FedEx
   delivery_fee_tamale: '',
@@ -215,6 +219,7 @@ export default function Admin() {
         image_url: imageUrl,
         gallery_urls: gallery_urls,
         video_urls: video_urls,
+        has_sizes: formData.has_sizes,
         // Delivery Fees (must match database column names)
         // Tamale, STC (greater_accra), VIP (lesser_accra), OA (dhl), VVIP (ups), FedEx
         delivery_fee_tamale: formData.delivery_fee_tamale ? parseFloat(formData.delivery_fee_tamale) : 0,
@@ -225,11 +230,18 @@ export default function Admin() {
         delivery_fee_fedex: formData.delivery_fee_fedex ? parseFloat(formData.delivery_fee_fedex) : 0,
       }
 
+      let savedProduct: Product
       if (view === 'edit' && editProduct) {
-        await updateProduct(editProduct.id, productData)
+        savedProduct = await updateProduct(editProduct.id, productData)
+        if (formData.has_sizes) {
+          await syncProductVariants(editProduct.id, formData.variants)
+        }
         showNotification('Product updated successfully!')
       } else {
-        await createProduct(productData)
+        savedProduct = await createProduct(productData)
+        if (formData.has_sizes) {
+          await syncProductVariants(savedProduct.id, formData.variants)
+        }
         showNotification('Product added successfully!')
       }
 
@@ -255,8 +267,25 @@ export default function Admin() {
     }
   }
 
-  const handleEdit = (product: Product) => {
+  const handleEdit = async (product: Product) => {
     setEditProduct(product)
+    
+    let variants: Omit<ProductVariant, 'id' | 'created_at' | 'updated_at'>[] = []
+    if (product.has_sizes) {
+      try {
+        const variantData = await getProductVariants(product.id)
+        variants = variantData.map(v => ({
+          product_id: v.product_id,
+          variant_type: v.variant_type,
+          variant_value: v.variant_value,
+          stock_quantity: v.stock_quantity,
+          active: v.active
+        }))
+      } catch (err) {
+        console.error('Failed to load variants:', err)
+      }
+    }
+
     setFormData({
       name: product.name,
       description: product.description,
@@ -271,6 +300,8 @@ export default function Admin() {
       videos: [],
       existingVideoUrls: product.video_urls || [],
       videoUploadErrors: {},
+      has_sizes: product.has_sizes || false,
+      variants: variants,
       delivery_fee_tamale: (product.delivery_fee_tamale || 0).toString(),
       delivery_fee_greater_accra: (product.delivery_fee_greater_accra || 0).toString(),
       delivery_fee_lesser_accra: (product.delivery_fee_lesser_accra || 0).toString(),
@@ -1053,6 +1084,9 @@ export default function Admin() {
                         </td>
                         <td>
                           <div className="product-name">{item.name}</div>
+                          {item.selected_size && (
+                            <div className="product-variant-small">Size: <strong>{item.selected_size}</strong></div>
+                          )}
                           <div className="product-id-small">{item.id}</div>
                         </td>
                         <td>{item.quantity}</td>
@@ -1138,6 +1172,104 @@ export default function Admin() {
                   <option value="out-of-stock">Out of Stock</option>
                 </select>
               </div>
+
+              <div className="form-group full-width">
+                <div className="checkbox-group">
+                  <input
+                    type="checkbox"
+                    id="has_sizes"
+                    checked={formData.has_sizes}
+                    onChange={(e) => setFormData({ ...formData, has_sizes: e.target.checked })}
+                  />
+                  <label htmlFor="has_sizes">This product has variants (e.g. Sizes)</label>
+                </div>
+              </div>
+
+              {formData.has_sizes && (
+                <div className="form-group full-width variants-section">
+                  <h4>Product Variants</h4>
+                  <div className="variants-grid">
+                    {formData.variants.map((variant, idx) => (
+                      <div key={idx} className="variant-row">
+                        <div className="variant-inputs">
+                          <input
+                            type="text"
+                            placeholder="Size (e.g. M, XL, 42)"
+                            value={variant.variant_value}
+                            onChange={(e) => {
+                              const updated = [...formData.variants]
+                              updated[idx].variant_value = e.target.value
+                              setFormData({ ...formData, variants: updated })
+                            }}
+                          />
+                          <input
+                            type="number"
+                            placeholder="Stock"
+                            value={variant.stock_quantity}
+                            onChange={(e) => {
+                              const updated = [...formData.variants]
+                              updated[idx].stock_quantity = parseInt(e.target.value) || 0
+                              setFormData({ ...formData, variants: updated })
+                            }}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="btn-delete-small"
+                          onClick={() => {
+                            const updated = [...formData.variants]
+                            updated.splice(idx, 1)
+                            setFormData({ ...formData, variants: updated })
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="variant-actions">
+                    <button
+                      type="button"
+                      className="btn-add-variant"
+                      onClick={() => {
+                        const newVariant = {
+                          product_id: editProduct?.id || '',
+                          variant_type: 'size',
+                          variant_value: '',
+                          stock_quantity: 0,
+                          active: true
+                        }
+                        setFormData({ ...formData, variants: [...formData.variants, newVariant] })
+                      }}
+                    >
+                      + Add Size Variant
+                    </button>
+                    <div className="quick-sizes">
+                      {['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'].map(size => (
+                        <button
+                          key={size}
+                          type="button"
+                          className="btn-quick-size"
+                          onClick={() => {
+                            if (!formData.variants.some(v => v.variant_value === size)) {
+                              const newVariant = {
+                                product_id: editProduct?.id || '',
+                                variant_type: 'size',
+                                variant_value: size,
+                                stock_quantity: 0,
+                                active: true
+                              }
+                              setFormData({ ...formData, variants: [...formData.variants, newVariant] })
+                            }
+                          }}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="form-group full-width">
                 <label>Description</label>

@@ -3,6 +3,17 @@ export interface ProductSize {
   stock: number
 }
 
+export interface ProductVariant {
+  id: string
+  product_id: string
+  variant_type: string
+  variant_value: string
+  stock_quantity: number
+  active: boolean
+  created_at?: string
+  updated_at?: string
+}
+
 export interface Product {
   id: string
   name: string
@@ -36,6 +47,7 @@ export interface Product {
   // Size system
   has_sizes?: boolean
   sizes?: ProductSize[]
+  variants?: ProductVariant[]
   // Delivery Fees (matching actual database columns)
   delivery_fee_tamale?: number
   delivery_fee_greater_accra?: number  // Used for STC Transport
@@ -84,6 +96,7 @@ export interface ProductFormData {
   // Size system
   has_sizes?: boolean
   sizes?: ProductSize[]
+  variants?: ProductVariant[]
   // Delivery Fees (matching actual database columns)
   delivery_fee_tamale?: string
   delivery_fee_greater_accra?: string  // Used for STC Transport

@@ -30,8 +30,8 @@ export const CartSidebar: React.FC = () => {
               <button className="continue-btn" onClick={() => setIsCartOpen(false)}>Continue Shopping</button>
             </div>
           ) : (
-            cart.map(item => (
-              <div key={item.id} className="cart-item">
+            cart.map((item, index) => (
+              <div key={`${item.id}-${item.selected_size || index}`} className="cart-item">
                 <div className="item-image">
                   {item.image_url ? (
                     <img src={item.image_url} alt={item.name} />
@@ -41,15 +41,18 @@ export const CartSidebar: React.FC = () => {
                 </div>
                 <div className="item-details">
                   <h3>{item.name}</h3>
+                  {item.selected_size && (
+                    <p className="item-variant">Size: <strong>{item.selected_size}</strong></p>
+                  )}
                   <p className="item-price">{formatCurrency(item.price)}</p>
                   <div className="quantity-controls">
-                    <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>
+                    <button onClick={() => updateQuantity(item.id, item.quantity - 1, item.selected_size)}>-</button>
                     <span>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
+                    <button onClick={() => updateQuantity(item.id, item.quantity + 1, item.selected_size)}>+</button>
                   </div>
                   <p className="line-total">Total: {formatCurrency(item.price * item.quantity)}</p>
                 </div>
-                <button className="remove-item" onClick={() => removeFromCart(item.id)} title="Remove item">
+                <button className="remove-item" onClick={() => removeFromCart(item.id, item.selected_size)} title="Remove item">
                   &times;
                 </button>
               </div>
