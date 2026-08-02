@@ -362,7 +362,7 @@ export default function ProductDetails() {
               {currentStock > 0 && currentStock <= 4 && (
                 <div className="low-stock-warning">
                   <span className="warning-icon">⚠</span>
-                  <span className="warning-text">{currentStock} {currentStock === 1 ? 'item' : 'items'} left</span>
+                  <span className="warning-text">{currentStock} {currentStock === 1 ? 'unit' : 'units'} left</span>
                 </div>
               )}
             </div>

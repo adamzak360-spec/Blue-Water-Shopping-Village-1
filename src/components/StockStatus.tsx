@@ -32,7 +32,7 @@ export default function StockStatus({
 
   const getStatusText = () => {
     if (isOutOfStock) return 'Out of Stock'
-    if (isLowStock) return `${stock} items left`
+    if (isLowStock) return `${stock} ${stock === 1 ? 'unit' : 'units'} left`
     return `${stock} in stock`
   }
 
