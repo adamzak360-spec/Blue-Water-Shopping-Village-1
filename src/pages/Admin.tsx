@@ -33,9 +33,10 @@ import InventoryManagement from '../components/InventoryManagement'
 import AdminAnalytics from '../components/AdminAnalytics'
 import FinancialReports from '../components/FinancialReports'
 import SupplierManagement from '../components/SupplierManagement'
+import POS from './POS'
 import './Admin.css'
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'pos'
 
 interface ProductFormErrors {
   name?: string
@@ -82,6 +83,7 @@ export default function Admin() {
   const [orderSearchTerm, setOrderSearchTerm] = useState('')
   const [reviewSearchTerm, setReviewSearchTerm] = useState('')
   const [orderFilterStatus, setOrderFilterStatus] = useState('')
+  const [orderFilterSource, setOrderFilterSource] = useState('')
   const [reviewFilterProduct, setReviewFilterProduct] = useState('')
   const [filterCategory, setFilterCategory] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -328,7 +330,8 @@ export default function Admin() {
       order.customer_email.toLowerCase().includes(orderSearchTerm.toLowerCase()) ||
       (order.id && order.id.toLowerCase().includes(orderSearchTerm.toLowerCase()))
     const matchesStatus = !orderFilterStatus || order.status === orderFilterStatus
-    return matchesSearch && matchesStatus
+    const matchesSource = !orderFilterSource || order.source === orderFilterSource
+    return matchesSearch && matchesStatus && matchesSource
   })
 
   const filteredReviews = reviews.filter(review => {
@@ -550,6 +553,12 @@ export default function Admin() {
         >
           Suppliers
         </button>
+        <button
+          className={`tab ${view === 'pos' ? 'active' : ''}`}
+          onClick={() => setView('pos')}
+        >
+          🛒 POS
+        </button>
       </div>
 
       {/* Analytics View */}
@@ -563,6 +572,9 @@ export default function Admin() {
 
       {/* Supplier Management View */}
       {view === 'suppliers' && <SupplierManagement />}
+
+      {/* POS View */}
+      {view === 'pos' && <POS />}
 
       {/* Reviews Management View */}
       {view === 'reviews' && (
@@ -859,6 +871,15 @@ export default function Admin() {
               <option value="out-for-delivery">Out for Delivery</option>
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
+            </select>
+            <select
+              value={orderFilterSource}
+              onChange={(e) => setOrderFilterSource(e.target.value)}
+              className="filter-select"
+            >
+              <option value="">All Sources</option>
+              <option value="ONLINE">Online</option>
+              <option value="POS">POS</option>
             </select>
             <button onClick={handleExportOrders} className="btn-export" title="Export orders as CSV">
               Export Orders

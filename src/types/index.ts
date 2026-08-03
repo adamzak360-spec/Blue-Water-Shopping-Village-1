@@ -153,6 +153,7 @@ export interface Order {
   paid_at?: string
   transaction_id?: string
   delivery_method?: string
+  source?: string
   created_at?: string
 }
 

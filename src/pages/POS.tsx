@@ -1,0 +1,457 @@
+import { useState, useEffect } from 'react'
+import { getAllProducts } from '../services/productService'
+import { createOrder } from '../services/orderService'
+import type { Product, Order } from '../types'
+import { formatCurrency } from '../utils/currency'
+import { Plus, Minus, Trash2, Printer, X, Search } from 'lucide-react'
+import './POS.css'
+
+interface CartItem {
+  product: Product
+  quantity: number
+}
+
+interface POSState {
+  cartItems: CartItem[]
+  products: Product[]
+  isLoading: boolean
+  error: string
+  searchTerm: string
+  selectedCategory: string
+  showReceipt: boolean
+  lastOrder: Order | null
+  customerName: string
+  customerPhone: string
+  customerEmail: string
+  paymentMethod: 'cash' | 'card' | 'mobile'
+  amountPaid: number
+}
+
+export default function POS() {
+  const [state, setState] = useState<POSState>({
+    cartItems: [],
+    products: [],
+    isLoading: true,
+    error: '',
+    searchTerm: '',
+    selectedCategory: '',
+    showReceipt: false,
+    lastOrder: null,
+    customerName: '',
+    customerPhone: '',
+    customerEmail: '',
+    paymentMethod: 'cash',
+    amountPaid: 0,
+  })
+
+  // Fetch products on mount
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setState(prev => ({ ...prev, isLoading: true, error: '' }))
+        const products = await getAllProducts()
+        setState(prev => ({ ...prev, products, isLoading: false }))
+      } catch (err) {
+        setState(prev => ({
+          ...prev,
+          error: 'Failed to load products',
+          isLoading: false,
+        }))
+      }
+    }
+    fetchProducts()
+  }, [])
+
+  // Filter products based on search and category
+  const filteredProducts = state.products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+                         product.description?.toLowerCase().includes(state.searchTerm.toLowerCase())
+    const matchesCategory = !state.selectedCategory || product.category === state.selectedCategory
+    return matchesSearch && matchesCategory
+  })
+
+  // Get unique categories
+  const categories = Array.from(new Set(state.products.map(p => p.category)))
+
+  // Calculate totals
+  const subtotal = state.cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
+  const deliveryFee = 0 // POS orders don't have delivery fees
+  const total = subtotal + deliveryFee
+
+  // Add product to cart
+  const addToCart = (product: Product) => {
+    setState(prev => {
+      const existingItem = prev.cartItems.find(item => item.product.id === product.id)
+      if (existingItem) {
+        return {
+          ...prev,
+          cartItems: prev.cartItems.map(item =>
+            item.product.id === product.id
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          ),
+        }
+      }
+      return {
+        ...prev,
+        cartItems: [...prev.cartItems, { product, quantity: 1 }],
+      }
+    })
+  }
+
+  // Update quantity
+  const updateQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(productId)
+      return
+    }
+    setState(prev => ({
+      ...prev,
+      cartItems: prev.cartItems.map(item =>
+        item.product.id === productId ? { ...item, quantity } : item
+      ),
+    }))
+  }
+
+  // Remove from cart
+  const removeFromCart = (productId: string) => {
+    setState(prev => ({
+      ...prev,
+      cartItems: prev.cartItems.filter(item => item.product.id !== productId),
+    }))
+  }
+
+  // Process payment and create order
+  const processPayment = async () => {
+    if (!state.customerName.trim()) {
+      setState(prev => ({ ...prev, error: 'Customer name is required' }))
+      return
+    }
+
+    if (state.cartItems.length === 0) {
+      setState(prev => ({ ...prev, error: 'Cart is empty' }))
+      return
+    }
+
+    if (state.amountPaid < total) {
+      setState(prev => ({ ...prev, error: 'Insufficient payment amount' }))
+      return
+    }
+
+    try {
+      setState(prev => ({ ...prev, isLoading: true, error: '' }))
+
+      const orderData = {
+        customer_name: state.customerName,
+        customer_phone: state.customerPhone,
+        customer_email: state.customerEmail,
+        delivery_address: 'POS - In Store', // POS orders are in-store
+        city: 'POS',
+        region: 'POS',
+        notes: `Payment Method: ${state.paymentMethod}`,
+        items: state.cartItems.map(item => ({
+          id: item.product.id,
+          name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          image_url: item.product.image_url,
+          category: item.product.category,
+          status: item.product.status,
+        })),
+        subtotal,
+        delivery_fee: 0,
+        total,
+        status: 'delivered' as const, // POS orders are completed immediately
+        payment_status: 'paid' as const,
+        payment_method: state.paymentMethod,
+        source: 'POS', // Mark as POS order
+      }
+
+      const order = await createOrder(orderData as any)
+
+      setState(prev => ({
+        ...prev,
+        lastOrder: order,
+        showReceipt: true,
+        cartItems: [],
+        customerName: '',
+        customerPhone: '',
+        customerEmail: '',
+        amountPaid: 0,
+        isLoading: false,
+      }))
+    } catch (err) {
+      setState(prev => ({
+        ...prev,
+        error: 'Failed to process payment',
+        isLoading: false,
+      }))
+    }
+  }
+
+  // Print receipt
+  const printReceipt = () => {
+    if (!state.lastOrder) return
+    window.print()
+  }
+
+  // Close receipt modal
+  const closeReceipt = () => {
+    setState(prev => ({
+      ...prev,
+      showReceipt: false,
+      lastOrder: null,
+    }))
+  }
+
+  return (
+    <div className="pos-container">
+      <div className="pos-header">
+        <h1>Point of Sale (POS)</h1>
+        <p>Manage in-store transactions</p>
+      </div>
+
+      <div className="pos-layout">
+        {/* Products Section */}
+        <div className="pos-products-section">
+          <div className="pos-search-bar">
+            <Search size={20} />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={state.searchTerm}
+              onChange={(e) => setState(prev => ({ ...prev, searchTerm: e.target.value }))}
+            />
+          </div>
+
+          <div className="pos-categories">
+            <button
+              className={`category-btn ${!state.selectedCategory ? 'active' : ''}`}
+              onClick={() => setState(prev => ({ ...prev, selectedCategory: '' }))}
+            >
+              All
+            </button>
+            {categories.map(category => (
+              <button
+                key={category}
+                className={`category-btn ${state.selectedCategory === category ? 'active' : ''}`}
+                onClick={() => setState(prev => ({ ...prev, selectedCategory: category }))}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+
+          {state.isLoading ? (
+            <div className="pos-loading">Loading products...</div>
+          ) : (
+            <div className="pos-products-grid">
+              {filteredProducts.map(product => (
+                <div key={product.id} className="pos-product-card">
+                  <img src={product.image_url} alt={product.name} />
+                  <h3>{product.name}</h3>
+                  <p className="pos-price">{formatCurrency(product.price)}</p>
+                  <p className="pos-stock">Stock: {product.stock_quantity}</p>
+                  <button
+                    className="pos-add-btn"
+                    onClick={() => addToCart(product)}
+                    disabled={product.stock_quantity <= 0}
+                  >
+                    <Plus size={18} /> Add
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Cart Section */}
+        <div className="pos-cart-section">
+          <h2>Cart</h2>
+
+          {state.error && <div className="pos-error">{state.error}</div>}
+
+          <div className="pos-customer-info">
+            <input
+              type="text"
+              placeholder="Customer Name *"
+              value={state.customerName}
+              onChange={(e) => setState(prev => ({ ...prev, customerName: e.target.value }))}
+            />
+            <input
+              type="tel"
+              placeholder="Phone (optional)"
+              value={state.customerPhone}
+              onChange={(e) => setState(prev => ({ ...prev, customerPhone: e.target.value }))}
+            />
+            <input
+              type="email"
+              placeholder="Email (optional)"
+              value={state.customerEmail}
+              onChange={(e) => setState(prev => ({ ...prev, customerEmail: e.target.value }))}
+            />
+          </div>
+
+          <div className="pos-cart-items">
+            {state.cartItems.length === 0 ? (
+              <p className="pos-empty-cart">Cart is empty</p>
+            ) : (
+              state.cartItems.map(item => (
+                <div key={item.product.id} className="pos-cart-item">
+                  <div className="pos-item-info">
+                    <h4>{item.product.name}</h4>
+                    <p>{formatCurrency(item.product.price)} each</p>
+                  </div>
+                  <div className="pos-item-controls">
+                    <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)}>
+                      <Minus size={16} />
+                    </button>
+                    <input
+                      type="number"
+                      min="1"
+                      value={item.quantity}
+                      onChange={(e) => updateQuantity(item.product.id, parseInt(e.target.value) || 1)}
+                    />
+                    <button onClick={() => updateQuantity(item.product.id, item.quantity + 1)}>
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                  <div className="pos-item-total">
+                    {formatCurrency(item.product.price * item.quantity)}
+                  </div>
+                  <button
+                    className="pos-remove-btn"
+                    onClick={() => removeFromCart(item.product.id)}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="pos-totals">
+            <div className="pos-total-row">
+              <span>Subtotal:</span>
+              <span>{formatCurrency(subtotal)}</span>
+            </div>
+            <div className="pos-total-row">
+              <span>Delivery:</span>
+              <span>{formatCurrency(deliveryFee)}</span>
+            </div>
+            <div className="pos-total-row pos-grand-total">
+              <span>Total:</span>
+              <span>{formatCurrency(total)}</span>
+            </div>
+          </div>
+
+          <div className="pos-payment-section">
+            <label>Payment Method:</label>
+            <select
+              value={state.paymentMethod}
+              onChange={(e) => setState(prev => ({ ...prev, paymentMethod: e.target.value as any }))}
+            >
+              <option value="cash">Cash</option>
+              <option value="card">Card</option>
+              <option value="mobile">Mobile Money</option>
+            </select>
+
+            <label>Amount Paid:</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={state.amountPaid}
+              onChange={(e) => setState(prev => ({ ...prev, amountPaid: parseFloat(e.target.value) || 0 }))}
+              placeholder="0.00"
+            />
+
+            {state.amountPaid > 0 && (
+              <div className="pos-change">
+                Change: {formatCurrency(Math.max(0, state.amountPaid - total))}
+              </div>
+            )}
+          </div>
+
+          <button
+            className="pos-checkout-btn"
+            onClick={processPayment}
+            disabled={state.cartItems.length === 0 || state.isLoading}
+          >
+            {state.isLoading ? 'Processing...' : 'Complete Sale'}
+          </button>
+        </div>
+      </div>
+
+      {/* Receipt Modal */}
+      {state.showReceipt && state.lastOrder && (
+        <div className="pos-receipt-modal">
+          <div className="pos-receipt-content">
+            <button className="pos-close-receipt" onClick={closeReceipt}>
+              <X size={24} />
+            </button>
+
+            <div className="pos-receipt-print">
+              <h2>RECEIPT</h2>
+              <p className="pos-receipt-date">{state.lastOrder.created_at ? new Date(state.lastOrder.created_at).toLocaleString() : new Date().toLocaleString()}</p>
+
+              <div className="pos-receipt-customer">
+                <p><strong>Customer:</strong> {state.lastOrder.customer_name}</p>
+                {state.lastOrder.customer_phone && <p><strong>Phone:</strong> {state.lastOrder.customer_phone}</p>}
+                {state.lastOrder.customer_email && <p><strong>Email:</strong> {state.lastOrder.customer_email}</p>}
+              </div>
+
+              <table className="pos-receipt-items">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {state.lastOrder.items?.map((item: any, idx: number) => (
+                    <tr key={idx}>
+                      <td>{item.name}</td>
+                      <td>{item.quantity}</td>
+                      <td>{formatCurrency(item.price)}</td>
+                      <td>{formatCurrency(item.price * item.quantity)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className="pos-receipt-totals">
+                <div className="pos-receipt-total-row">
+                  <span>Subtotal:</span>
+                  <span>{formatCurrency(state.lastOrder.subtotal)}</span>
+                </div>
+                <div className="pos-receipt-total-row">
+                  <span>Delivery:</span>
+                  <span>{formatCurrency(state.lastOrder.delivery_fee)}</span>
+                </div>
+                <div className="pos-receipt-total-row pos-receipt-grand-total">
+                  <span>Total:</span>
+                  <span>{formatCurrency(state.lastOrder.total)}</span>
+                </div>
+              </div>
+
+              <div className="pos-receipt-payment">
+                <p><strong>Payment Method:</strong> {state.paymentMethod.toUpperCase()}</p>
+                <p><strong>Amount Paid:</strong> {formatCurrency(state.amountPaid)}</p>
+                <p><strong>Change:</strong> {formatCurrency(Math.max(0, state.amountPaid - state.lastOrder.total))}</p>
+              </div>
+
+              <p className="pos-receipt-footer">Thank you for your purchase!</p>
+            </div>
+
+            <button className="pos-print-btn" onClick={printReceipt}>
+              <Printer size={20} /> Print Receipt
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
