@@ -9,6 +9,7 @@ import './POS.css'
 interface CartItem {
   product: Product
   quantity: number
+  selected_size?: string
 }
 
 interface POSState {
@@ -157,6 +158,7 @@ export default function POS() {
           image_url: item.product.image_url,
           category: item.product.category,
           status: item.product.status,
+          selected_size: item.selected_size || null,
         })),
         subtotal,
         delivery_fee: 0,
