@@ -170,6 +170,7 @@ export default function POS() {
       }
 
       const order = await createOrder(orderData as any)
+      alert('Sale completed successfully!')
 
       setState(prev => ({
         ...prev,
@@ -184,6 +185,7 @@ export default function POS() {
       }))
     } catch (err: any) {
       console.error('POS Payment Error:', err)
+      alert('Error: ' + (err.message || 'Failed to process payment'))
       setState(prev => ({
         ...prev,
         error: err.message || 'Failed to process payment',
