@@ -180,10 +180,11 @@ export default function POS() {
         amountPaid: 0,
         isLoading: false,
       }))
-    } catch (err) {
+    } catch (err: any) {
+      console.error('POS Payment Error:', err)
       setState(prev => ({
         ...prev,
-        error: 'Failed to process payment',
+        error: err.message || 'Failed to process payment',
         isLoading: false,
       }))
     }
