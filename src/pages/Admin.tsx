@@ -326,9 +326,9 @@ export default function Admin() {
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
-      order.customer_name.toLowerCase().includes(orderSearchTerm.toLowerCase()) ||
-      order.customer_email.toLowerCase().includes(orderSearchTerm.toLowerCase()) ||
-      (order.id && order.id.toLowerCase().includes(orderSearchTerm.toLowerCase()))
+      (order.customer_name?.toLowerCase() || '').includes(orderSearchTerm.toLowerCase()) ||
+      (order.customer_email?.toLowerCase() || '').includes(orderSearchTerm.toLowerCase()) ||
+      (order.id?.toLowerCase() || '').includes(orderSearchTerm.toLowerCase())
     const matchesStatus = !orderFilterStatus || order.status === orderFilterStatus
     const matchesSource = !orderFilterSource || order.source === orderFilterSource
     return matchesSearch && matchesStatus && matchesSource
