@@ -21,28 +21,45 @@ import {
   Info
 } from 'lucide-react'
 import './App.css'
-import Home from './pages/Home'
-import Admin from './pages/Admin'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import ForgotPassword from './pages/ForgotPassword'
-import Products from './pages/Products'
-import Checkout from './pages/Checkout'
-import About from './pages/About'
-import Contact from './pages/Contact'
-import FAQ from './pages/FAQ'
-import Delivery from './pages/Delivery'
-import PrivacyPolicy from './pages/PrivacyPolicy'
-import Terms from './pages/Terms'
-import Returns from './pages/Returns'
+import { lazy, Suspense, useLayoutEffect } from 'react'
 import Footer from './components/Footer'
 import NotificationBell from './components/NotificationBell'
-import CustomerDashboard from './pages/CustomerDashboard'
-import CustomerProfile from './pages/CustomerProfile'
-import CustomerOrders from './pages/CustomerOrders'
-import OrderDetails from './pages/OrderDetails'
-import CustomerSettings from './pages/CustomerSettings'
-import ProductDetails from './pages/ProductDetails'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
+
+// Configure NProgress
+NProgress.configure({ showSpinner: false, speed: 400, minimum: 0.2 })
+
+// Lazy load pages for faster initial load
+const Home = lazy(() => import('./pages/Home'))
+const Admin = lazy(() => import('./pages/Admin'))
+const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
+const Products = lazy(() => import('./pages/Products'))
+const Checkout = lazy(() => import('./pages/Checkout'))
+const About = lazy(() => import('./pages/About'))
+const Contact = lazy(() => import('./pages/Contact'))
+const FAQ = lazy(() => import('./pages/FAQ'))
+const Delivery = lazy(() => import('./pages/Delivery'))
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
+const Terms = lazy(() => import('./pages/Terms'))
+const Returns = lazy(() => import('./pages/Returns'))
+const CustomerDashboard = lazy(() => import('./pages/CustomerDashboard'))
+const CustomerProfile = lazy(() => import('./pages/CustomerProfile'))
+const CustomerOrders = lazy(() => import('./pages/CustomerOrders'))
+const OrderDetails = lazy(() => import('./pages/OrderDetails'))
+const CustomerSettings = lazy(() => import('./pages/CustomerSettings'))
+const ProductDetails = lazy(() => import('./pages/ProductDetails'))
+
+// Prefetch functions for near-instant transitions
+const prefetchHome = () => import('./pages/Home')
+const prefetchAdmin = () => import('./pages/Admin')
+const prefetchProducts = () => import('./pages/Products')
+const prefetchAbout = () => import('./pages/About')
+const prefetchContact = () => import('./pages/Contact')
+const prefetchFAQ = () => import('./pages/FAQ')
+const prefetchLogin = () => import('./pages/Login')
 import TermsPopup from './components/TermsPopup'
 import WhatsAppButton from './components/WhatsAppButton'
 
@@ -73,9 +90,20 @@ function AppShell() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Close menu on route change
-  useEffect(() => {
+  // Close menu on route change and show progress bar
+  useLayoutEffect(() => {
     setIsMenuOpen(false)
+    NProgress.start()
+    
+    // Small delay to ensure the progress bar is visible during fast transitions
+    const timer = setTimeout(() => {
+      NProgress.done()
+    }, 100)
+    
+    return () => {
+      clearTimeout(timer)
+      NProgress.done()
+    }
   }, [location.pathname])
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
@@ -131,13 +159,13 @@ function AppShell() {
           <button onClick={toggleMenu}><X size={24} /></button>
         </div>
         <nav className="drawer-nav">
-          <Link to="/" className="drawer-item"><HomeIcon size={20} /> Home</Link>
-          <Link to="/products" className="drawer-item"><Package size={20} /> Categories</Link>
-          <Link to="/products?filter=deals" className="drawer-item"><Tag size={20} /> Deals</Link>
+          <Link to="/" className="drawer-item" onMouseEnter={prefetchHome}><HomeIcon size={20} /> Home</Link>
+          <Link to="/products" className="drawer-item" onMouseEnter={prefetchProducts}><Package size={20} /> Categories</Link>
+          <Link to="/products?filter=deals" className="drawer-item" onMouseEnter={prefetchProducts}><Tag size={20} /> Deals</Link>
           {user && (
             <>
               {isAdmin && (
-                <Link to="/admin" className="drawer-item admin-item" style={{ color: '#0066cc', fontWeight: 'bold' }}>
+                <Link to="/admin" className="drawer-item admin-item" onMouseEnter={prefetchAdmin} style={{ color: '#0066cc', fontWeight: 'bold' }}>
                   <Settings size={20} /> Admin Dashboard
                 </Link>
               )}
@@ -147,16 +175,16 @@ function AppShell() {
             </>
           )}
           <div className="drawer-divider"></div>
-          <Link to="/about" className="drawer-item"><Info size={20} /> About</Link>
-          <Link to="/contact" className="drawer-item"><Phone size={20} /> Contact</Link>
-          <Link to="/faq" className="drawer-item"><HelpCircle size={20} /> Support</Link>
+          <Link to="/about" className="drawer-item" onMouseEnter={prefetchAbout}><Info size={20} /> About</Link>
+          <Link to="/contact" className="drawer-item" onMouseEnter={prefetchContact}><Phone size={20} /> Contact</Link>
+          <Link to="/faq" className="drawer-item" onMouseEnter={prefetchFAQ}><HelpCircle size={20} /> Support</Link>
           <Link to="/customer/settings" className="drawer-item"><Settings size={20} /> Settings</Link>
           {user ? (
             <div className="drawer-footer">
               <LogoutButton />
             </div>
           ) : (
-            <Link to="/login" className="drawer-item login-item"><User size={20} /> Login / Register</Link>
+            <Link to="/login" className="drawer-item login-item" onMouseEnter={prefetchLogin}><User size={20} /> Login / Register</Link>
           )}
         </nav>
       </aside>
@@ -164,70 +192,72 @@ function AppShell() {
 
       <TermsPopup />
       <main className="app-main">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/product/:productId" element={<ProductDetails />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/delivery" element={<Delivery />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/returns" element={<Returns />} />
-          <Route
-            path="/admin/*"
-            element={
-              <ProtectedRoute adminOnly>
-                <Admin />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/customer"
-            element={
-              <ProtectedRoute>
-                <CustomerDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/customer/profile"
-            element={
-              <ProtectedRoute>
-                <CustomerProfile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/customer/orders"
-            element={
-              <ProtectedRoute>
-                <CustomerOrders />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/customer/orders/:orderId"
-            element={
-              <ProtectedRoute>
-                <OrderDetails />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/customer/settings"
-            element={
-              <ProtectedRoute>
-                <CustomerSettings />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+        <Suspense fallback={<div className="loading-screen">Loading...</div>}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/product/:productId" element={<ProductDetails />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/delivery" element={<Delivery />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/returns" element={<Returns />} />
+            <Route
+              path="/admin/*"
+              element={
+                <ProtectedRoute adminOnly>
+                  <Admin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/customer"
+              element={
+                <ProtectedRoute>
+                  <CustomerDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/customer/profile"
+              element={
+                <ProtectedRoute>
+                  <CustomerProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/customer/orders"
+              element={
+                <ProtectedRoute>
+                  <CustomerOrders />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/customer/orders/:orderId"
+              element={
+                <ProtectedRoute>
+                  <OrderDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/customer/settings"
+              element={
+                <ProtectedRoute>
+                  <CustomerSettings />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Suspense>
       </main>
       <CartSidebar />
       {!isAdminRoute && !isCustomerRoute && <Footer />}

@@ -29,12 +29,22 @@ import {
 import { testEmailSending } from '../api/emailNotificationHandler'
 import type { Product, DashboardStats, Order, Review, ProductVariant } from '../types'
 import { formatCurrency } from '../utils/currency'
-import InventoryManagement from '../components/InventoryManagement'
-import AdminAnalytics from '../components/AdminAnalytics'
-import FinancialReports from '../components/FinancialReports'
-import SupplierManagement from '../components/SupplierManagement'
-import POS from './POS'
+import { lazy, Suspense } from 'react'
 import './Admin.css'
+
+  // Lazy load admin sub-components for better performance
+  const InventoryManagement = lazy(() => import('../components/InventoryManagement'))
+  const AdminAnalytics = lazy(() => import('../components/AdminAnalytics'))
+  const FinancialReports = lazy(() => import('../components/FinancialReports'))
+  const SupplierManagement = lazy(() => import('../components/SupplierManagement'))
+  const POS = lazy(() => import('./POS'))
+
+  // Prefetch functions for near-instant transitions
+  const prefetchInventory = () => import('../components/InventoryManagement')
+  const prefetchAnalytics = () => import('../components/AdminAnalytics')
+  const prefetchReports = () => import('../components/FinancialReports')
+  const prefetchSuppliers = () => import('../components/SupplierManagement')
+  const prefetchPOS = () => import('./POS')
 
 type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'pos'
 
@@ -532,49 +542,56 @@ export default function Admin() {
         <button
           className={`tab ${view === 'inventory' ? 'active' : ''}`}
           onClick={() => setView('inventory')}
+          onMouseEnter={prefetchInventory}
         >
           Inventory
         </button>
         <button
           className={`tab ${view === 'analytics' ? 'active' : ''}`}
           onClick={() => setView('analytics')}
+          onMouseEnter={prefetchAnalytics}
         >
           Analytics
         </button>
         <button
           className={`tab ${view === 'reports' ? 'active' : ''}`}
           onClick={() => setView('reports')}
+          onMouseEnter={prefetchReports}
         >
           Reports
         </button>
         <button
           className={`tab ${view === 'suppliers' ? 'active' : ''}`}
           onClick={() => setView('suppliers')}
+          onMouseEnter={prefetchSuppliers}
         >
           Suppliers
         </button>
         <button
           className={`tab ${view === 'pos' ? 'active' : ''}`}
           onClick={() => setView('pos')}
+          onMouseEnter={prefetchPOS}
         >
           🛒 POS
         </button>
       </div>
 
-      {/* Analytics View */}
-      {view === 'analytics' && <AdminAnalytics />}
+      <Suspense fallback={<div className="admin-loading">Loading view...</div>}>
+        {/* Analytics View */}
+        {view === 'analytics' && <AdminAnalytics />}
 
-      {/* Inventory Management View */}
-      {view === 'inventory' && <InventoryManagement />}
+        {/* Inventory Management View */}
+        {view === 'inventory' && <InventoryManagement />}
 
-      {/* Financial Reports View */}
-      {view === 'reports' && <FinancialReports />}
+        {/* Financial Reports View */}
+        {view === 'reports' && <FinancialReports />}
 
-      {/* Supplier Management View */}
-      {view === 'suppliers' && <SupplierManagement />}
+        {/* Supplier Management View */}
+        {view === 'suppliers' && <SupplierManagement />}
 
-      {/* POS View */}
-      {view === 'pos' && <POS />}
+        {/* POS View */}
+        {view === 'pos' && <POS />}
+      </Suspense>
 
       {/* Reviews Management View */}
       {view === 'reviews' && (

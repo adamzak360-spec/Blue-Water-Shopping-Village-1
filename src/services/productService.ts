@@ -4,11 +4,30 @@ import type { Product, DashboardStats, ProductVariant } from '../types'
 const STORAGE_BUCKET = 'product-images'
 const VIDEO_STORAGE_BUCKET = 'product-videos'
 
+// In-memory cache for products to speed up page transitions
+let productsCache: Product[] | null = null
+let activeProductsCache: Product[] | null = null
+let cacheTimestamp = 0
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
+function isCacheValid() {
+  return productsCache !== null && (Date.now() - cacheTimestamp) < CACHE_DURATION
+}
+
+function clearCache() {
+  productsCache = null
+  activeProductsCache = null
+}
+
 // Supported video formats
 const SUPPORTED_VIDEO_FORMATS = ['video/mp4', 'video/quicktime', 'video/webm']
 const SUPPORTED_VIDEO_EXTENSIONS = ['.mp4', '.mov', '.webm']
 
 export async function getAllProducts(): Promise<Product[]> {
+  if (isCacheValid() && productsCache) {
+    return productsCache
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     throw new Error('Supabase not configured')
   }
@@ -22,10 +41,16 @@ export async function getAllProducts(): Promise<Product[]> {
     throw new Error(error.message)
   }
 
-  return (data as Product[]) || []
+  productsCache = (data as Product[]) || []
+  cacheTimestamp = Date.now()
+  return productsCache
 }
 
 export async function getActiveProducts(): Promise<Product[]> {
+  if (isCacheValid() && activeProductsCache) {
+    return activeProductsCache
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     throw new Error('Supabase not configured')
   }
@@ -40,7 +65,12 @@ export async function getActiveProducts(): Promise<Product[]> {
     throw new Error(error.message)
   }
 
-  return (data as Product[]) || []
+  activeProductsCache = (data as Product[]) || []
+  if (!productsCache) {
+    // If we don't have the full cache, we don't set the global timestamp yet
+    // to ensure getAllProducts still fetches fresh data if needed
+  }
+  return activeProductsCache
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
@@ -78,6 +108,7 @@ export async function createProduct(
     throw new Error(error.message)
   }
 
+  clearCache()
   return data as Product
 }
 
@@ -100,6 +131,7 @@ export async function updateProduct(
     throw new Error(error.message)
   }
 
+  clearCache()
   return data as Product
 }
 
@@ -116,6 +148,8 @@ export async function deleteProduct(id: string): Promise<void> {
   if (error) {
     throw new Error(error.message)
   }
+
+  clearCache()
 }
 
 export async function uploadProductImage(file: File): Promise<string> {

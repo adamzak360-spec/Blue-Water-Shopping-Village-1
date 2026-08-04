@@ -13,7 +13,7 @@ const HERO_BANNERS = [
     title: 'Premium Collection 2026',
     subtitle: 'Experience Excellence',
     description: 'Discover our curated selection of high-end products designed for the modern lifestyle.',
-    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1600',
+    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1200&fm=webp',
     cta: 'Shop Now',
     color: '#000000'
   },
@@ -22,7 +22,7 @@ const HERO_BANNERS = [
     title: 'Flash Deals',
     subtitle: 'Limited Time Only',
     description: 'Up to 50% off on selected electronics and home appliances. Grab them before they are gone!',
-    image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&q=80&w=1600',
+    image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&q=80&w=1200&fm=webp',
     cta: 'View Deals',
     color: '#2563eb'
   },
@@ -31,7 +31,7 @@ const HERO_BANNERS = [
     title: 'Fresh Arrivals',
     subtitle: 'New This Week',
     description: 'Check out our latest arrivals in fashion and accessories. Stay ahead of the trend.',
-    image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=1600',
+    image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=1200&fm=webp',
     cta: 'Explore New',
     color: '#059669'
   }
