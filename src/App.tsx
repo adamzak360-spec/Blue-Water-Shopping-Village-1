@@ -51,6 +51,7 @@ const CustomerOrders = lazy(() => import('./pages/CustomerOrders'))
 const OrderDetails = lazy(() => import('./pages/OrderDetails'))
 const CustomerSettings = lazy(() => import('./pages/CustomerSettings'))
 const ProductDetails = lazy(() => import('./pages/ProductDetails'))
+const BusinessStorefront = lazy(() => import('./pages/BusinessStorefront'))
 
 // Prefetch functions for near-instant transitions
 const prefetchHome = () => import('./pages/Home')
@@ -195,6 +196,7 @@ function AppShell() {
         <Suspense fallback={<div className="loading-screen">Loading...</div>}>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/store/:slug" element={<BusinessStorefront />} />
             <Route path="/products" element={<Products />} />
             <Route path="/product/:productId" element={<ProductDetails />} />
             <Route path="/checkout" element={<Checkout />} />
