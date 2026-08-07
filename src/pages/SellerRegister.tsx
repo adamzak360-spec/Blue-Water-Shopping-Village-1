@@ -6,7 +6,7 @@ import { supabase } from '../supabaseClient'
 import './Register.css'
 
 export default function SellerRegister() {
-  const { user, signUp, role } = useAuth()
+  const { user, signUp } = useAuth()
   const navigate = useNavigate()
   
   const [step, setStep] = useState<'register' | 'setup'>('register')
@@ -72,7 +72,7 @@ export default function SellerRegister() {
 
     try {
       // 1. Ensure profile exists and has seller role
-      const { error: profileError } = await supabase
+      const { error: profileError } = await supabase!
         .from('profiles')
         .upsert({
           id: user.id,
@@ -83,7 +83,7 @@ export default function SellerRegister() {
       if (profileError) throw profileError
 
       // 2. Create business
-      const { business, error: bizError } = await createBusinessForUser(user.id, {
+      const { error: bizError } = await createBusinessForUser(user.id, {
         name: storeName,
         slug: storeSlug.toLowerCase().replace(/[^a-z0-9-]/g, '-'),
         description
