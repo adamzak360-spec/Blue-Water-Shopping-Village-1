@@ -10,6 +10,10 @@ export interface Business {
   description?: string
   contact_email?: string
   contact_phone?: string
+  business_name?: string | null
+  phone?: string | null
+  location?: string | null
+  category?: string | null
   created_at: string
   updated_at: string
 }
@@ -40,6 +44,10 @@ export async function createBusinessForUser(
     description?: string
     contact_email?: string
     contact_phone?: string
+    business_name?: string
+    phone?: string
+    location?: string
+    category?: string
   }
 ): Promise<{ business: Business | null; error: Error | null }> {
   if (!isSupabaseConfigured || !supabase) {
@@ -56,6 +64,10 @@ export async function createBusinessForUser(
         description: businessData.description,
         contact_email: businessData.contact_email,
         contact_phone: businessData.contact_phone,
+        business_name: businessData.business_name,
+        phone: businessData.phone,
+        location: businessData.location,
+        category: businessData.category,
       },
     ])
     .select()

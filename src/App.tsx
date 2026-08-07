@@ -56,7 +56,8 @@ const SellerRegister = lazy(() => import('./pages/SellerRegister'))
 
 // Prefetch functions for near-instant transitions
 const prefetchHome = () => import('./pages/Home')
-const prefetchAdmin = () => import('./pages/Admin')
+const prefetchDashboard = () => import('./pages/Admin')
+const prefetchSellerRegister = () => import('./pages/SellerRegister')
 const prefetchProducts = () => import('./pages/Products')
 const prefetchAbout = () => import('./pages/About')
 const prefetchContact = () => import('./pages/Contact')
@@ -74,7 +75,7 @@ function App() {
 }
 
 function AppShell() {
-  const { user, isAdmin } = useAuth()
+  const { user, isAdmin, role } = useAuth()
   const { cartCount, setIsCartOpen } = useCart()
   const location = useLocation()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -137,6 +138,8 @@ function AppShell() {
           </div>
 
           <div className="header-right">
+            <Link to="/products" className="nav-text-link" onMouseEnter={prefetchProducts}>Shop</Link>
+            <Link to="/seller/register" className="nav-text-link nav-sell-link" onMouseEnter={prefetchSellerRegister}>Sell</Link>
             <Link to={user ? "/customer" : "/login"} className="nav-icon-link" title="Account">
               <User size={22} />
             </Link>
@@ -164,11 +167,14 @@ function AppShell() {
           <Link to="/" className="drawer-item" onMouseEnter={prefetchHome}><HomeIcon size={20} /> Home</Link>
           <Link to="/products" className="drawer-item" onMouseEnter={prefetchProducts}><Package size={20} /> Categories</Link>
           <Link to="/products?filter=deals" className="drawer-item" onMouseEnter={prefetchProducts}><Tag size={20} /> Deals</Link>
+          <Link to="/seller/register" className="drawer-item" style={{ color: '#059669', fontWeight: 'bold' }} onMouseEnter={prefetchSellerRegister}>
+            <Tag size={20} /> Start Selling
+          </Link>
           {user && (
             <>
-              {isAdmin && (
-                <Link to="/admin" className="drawer-item admin-item" onMouseEnter={prefetchAdmin} style={{ color: '#0066cc', fontWeight: 'bold' }}>
-                  <Settings size={20} /> Admin Dashboard
+              {(isAdmin || role === 'seller') && (
+                <Link to="/dashboard" className="drawer-item admin-item" onMouseEnter={prefetchDashboard} style={{ color: '#0066cc', fontWeight: 'bold' }}>
+                  <Settings size={20} /> {isAdmin ? 'Admin Dashboard' : 'Seller Dashboard'}
                 </Link>
               )}
               <Link to="/customer/orders" className="drawer-item"><Package size={20} /> Orders</Link>
@@ -204,6 +210,14 @@ function AppShell() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/seller/register" element={<SellerRegister />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute sellerOrAdminOnly>
+                  <Admin />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />

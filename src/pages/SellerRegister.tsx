@@ -3,24 +3,44 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { createBusinessForUser, getBusinessByOwner } from '../services/businessService'
 import { supabase } from '../supabaseClient'
+import { Store, MapPin, Phone, Tag, Building2, FileText } from 'lucide-react'
 import './Login.css' // Reuse shared authentication styles
 
+const CATEGORIES = [
+  'Electronics',
+  'Fashion',
+  'Home & Garden',
+  'Groceries',
+  'Health & Beauty',
+  'Sports',
+  'Motorcycle',
+  'New Cars Collection',
+  'Software Developer/Engineer',
+  'Other',
+]
+
+const DASHBOARD_PATH = '/dashboard'
+
 export default function SellerRegister() {
-  const { user, signUp } = useAuth()
+  const { user, signUp, role, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
-  
+
   const [step, setStep] = useState<'register' | 'setup'>('register')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
+  const [businessName, setBusinessName] = useState('')
   const [storeName, setStoreName] = useState('')
   const [storeSlug, setStoreSlug] = useState('')
+  const [phone, setPhone] = useState('')
+  const [location, setLocation] = useState('')
+  const [category, setCategory] = useState('')
   const [description, setDescription] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (user) {
+    if (user && step === 'register') {
       checkExistingBusiness()
     }
   }, [user])
@@ -31,7 +51,7 @@ export default function SellerRegister() {
     try {
       const business = await getBusinessByOwner(user.id)
       if (business) {
-        navigate('/admin')
+        navigate(DASHBOARD_PATH, { replace: true })
       } else {
         setStep('setup')
       }
@@ -43,6 +63,17 @@ export default function SellerRegister() {
     }
   }
 
+  // Ensure the seller role lands the user on /dashboard regardless of route
+  useEffect(() => {
+    if (!authLoading && user && role === 'seller') {
+      getBusinessByOwner(user.id).then((b) => {
+        if (b && window.location.pathname === '/seller/register') {
+          navigate(DASHBOARD_PATH, { replace: true })
+        }
+      }).catch(() => {})
+    }
+  }, [user, role, authLoading, navigate])
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -51,10 +82,6 @@ export default function SellerRegister() {
     try {
       const { error } = await signUp(email, password, { full_name: fullName })
       if (error) throw error
-      
-      // Update role to seller in profiles table
-      // Note: signUp metadata might not trigger profile creation immediately depending on triggers
-      // We'll handle this in the setup step or via trigger
       setStep('setup')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
@@ -66,32 +93,47 @@ export default function SellerRegister() {
   const handleSetupStore = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return
-    
+
     setIsLoading(true)
     setError('')
 
-    try {
-      // 1. Ensure profile exists and has seller role
-      const { error: profileError } = await supabase!
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          full_name: fullName || user.user_metadata.full_name,
-          role: 'seller'
-        })
-      
-      if (profileError) throw profileError
+    const finalSlug = (storeSlug || storeName).toLowerCase().replace(/[^a-z0-9-]/g, '-')
 
-      // 2. Create business
+    try {
+      // 1. Ensure a profiles row exists with seller role.
+      //    The table may not exist yet (migration pending) — detect by error
+      //    message and fall back gracefully so the business still gets created.
+      try {
+        const { error: profileError } = await supabase!
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            full_name: fullName || user.user_metadata.full_name,
+            role: 'seller',
+          })
+
+        if (profileError) {
+          console.warn('Profile upsert failed (will be retried by admin):', profileError.message)
+        }
+      } catch (profileErr) {
+        console.warn('Profile upsert exception (will be retried by admin):', profileErr)
+      }
+
+      // 2. Create the business with all onboarding fields
       const { error: bizError } = await createBusinessForUser(user.id, {
         name: storeName,
-        slug: storeSlug.toLowerCase().replace(/[^a-z0-9-]/g, '-'),
-        description
+        slug: finalSlug,
+        description,
+        contact_email: email,
+        business_name: businessName || storeName,
+        phone,
+        location,
+        category: category || 'Other',
       })
 
       if (bizError) throw bizError
-      
-      navigate('/admin')
+
+      navigate(DASHBOARD_PATH, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Store setup failed')
     } finally {
@@ -102,8 +144,18 @@ export default function SellerRegister() {
   const handleStoreNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value
     setStoreName(name)
-    // Auto-generate slug
-    setStoreSlug(name.toLowerCase().replace(/[^a-z0-9-]/g, '-'))
+    // Auto-generate slug only when user hasn't typed a custom one
+    if (name && !storeSlug) {
+      setStoreSlug(name.toLowerCase().replace(/[^a-z0-9-]/g, '-'))
+    }
+  }
+
+  const handleBusinessNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value
+    setBusinessName(name)
+    if (!storeName && !storeSlug) {
+      setStoreSlug(name.toLowerCase().replace(/[^a-z0-9-]/g, '-'))
+    }
   }
 
   if (isLoading && step === 'register') {
@@ -112,14 +164,14 @@ export default function SellerRegister() {
 
   return (
     <div className="register-container">
-      <div className="register-card">
+      <div className="register-card seller-register-card">
         {step === 'register' ? (
           <>
             <h1>Become a Seller</h1>
             <p>Join Reliable and start selling your products today.</p>
-            
+
             {error && <div className="error-message">{error}</div>}
-            
+
             <form onSubmit={handleRegister}>
               <div className="form-group">
                 <label htmlFor="fullName">Full Name</label>
@@ -164,12 +216,28 @@ export default function SellerRegister() {
           <>
             <h1>Setup Your Store</h1>
             <p>Tell us about your business to get started.</p>
-            
+
             {error && <div className="error-message">{error}</div>}
-            
+
             <form onSubmit={handleSetupStore}>
               <div className="form-group">
-                <label htmlFor="storeName">Store Name</label>
+                <label htmlFor="businessName">
+                  <Building2 size={15} style={{ marginRight: 6 }} />
+                  Business / Company Name
+                </label>
+                <input
+                  type="text"
+                  id="businessName"
+                  value={businessName}
+                  onChange={handleBusinessNameChange}
+                  placeholder="e.g. Zak Enterprises Ltd"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="storeName">
+                  <Store size={15} style={{ marginRight: 6 }} />
+                  Store Name <span style={{ color: '#dc2626' }}>*</span>
+                </label>
                 <input
                   type="text"
                   id="storeName"
@@ -180,7 +248,7 @@ export default function SellerRegister() {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="storeSlug">Store URL Slug</label>
+                <label htmlFor="storeSlug">Store URL</label>
                 <div className="slug-input-wrapper">
                   <span>reliable-now.vercel.app/store/</span>
                   <input
@@ -192,8 +260,60 @@ export default function SellerRegister() {
                   />
                 </div>
               </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="category">
+                    <Tag size={15} style={{ marginRight: 6 }} />
+                    Category <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
+                  <select
+                    id="category"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    required
+                  >
+                    <option value="">Select a category</option>
+                    {CATEGORIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="phone">
+                    <Phone size={15} style={{ marginRight: 6 }} />
+                    Phone Number <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                    placeholder="e.g. +233 53 855 7781"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="location">
+                    <MapPin size={15} style={{ marginRight: 6 }} />
+                    Location <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="location"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    required
+                    placeholder="e.g. Accra, Ghana"
+                  />
+                </div>
+              </div>
               <div className="form-group">
-                <label htmlFor="description">Store Description</label>
+                <label htmlFor="description">
+                  <FileText size={15} style={{ marginRight: 6 }} />
+                  Store Description
+                </label>
                 <textarea
                   id="description"
                   value={description}

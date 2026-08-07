@@ -59,7 +59,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (u.email === 'adamzak360@gmail.com') {
           setRole('admin')
           setIsAdmin(true)
-        } else {
+          return
+        }
+        // Fallback: if the user owns a business, treat them as a seller
+        // even when the profiles row is missing or the table does not exist yet.
+        try {
+          const { data: business } = await supabase!
+            .from('businesses')
+            .select('id')
+            .eq('owner_id', u.id)
+            .single()
+          if (business) {
+            setRole('seller')
+            setIsAdmin(false)
+          } else {
+            setRole('customer')
+            setIsAdmin(false)
+          }
+        } catch {
           setRole('customer')
           setIsAdmin(false)
         }

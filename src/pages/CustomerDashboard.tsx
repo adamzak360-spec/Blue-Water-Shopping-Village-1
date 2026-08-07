@@ -9,7 +9,7 @@ import { formatCurrency } from '../utils/currency'
 import './CustomerDashboard.css'
 
 export default function CustomerDashboard() {
-  const { user, signOut, isAdmin } = useAuth()
+  const { user, signOut, isAdmin, role } = useAuth()
   const navigate = useNavigate()
   const [profile, setProfile] = useState<CustomerProfile | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
@@ -153,6 +153,16 @@ export default function CustomerDashboard() {
                 >
                   <span className="icon">🛡️</span>
                   <span>Admin Dashboard</span>
+                </button>
+              )}
+              {role === 'seller' && (
+                <button 
+                  className="action-btn admin-btn" 
+                  onClick={() => navigate('/dashboard')}
+                  style={{ backgroundColor: '#059669', color: 'white' }}
+                >
+                  <span className="icon">🏪</span>
+                  <span>Seller Dashboard</span>
                 </button>
               )}
               <button className="action-btn" onClick={() => navigate('/customer/profile')}>

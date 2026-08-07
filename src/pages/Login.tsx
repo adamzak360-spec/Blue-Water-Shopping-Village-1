@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import './Login.css'
 
 export default function Login() {
-  const { user, signIn, isLoading: authLoading } = useAuth()
+  const { user, signIn, isLoading: authLoading, role } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -32,12 +32,15 @@ export default function Login() {
       } else if (isAdmin) {
         // Redirect admins to admin dashboard
         navigate('/admin', { replace: true });
+      } else if (role === 'seller') {
+        // Redirect sellers to the seller dashboard
+        navigate('/dashboard', { replace: true });
       } else {
         // Default: redirect to customer dashboard
         navigate('/customer', { replace: true });
       }
     }
-  }, [user, isAdmin, navigate])
+  }, [user, isAdmin, role, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -72,7 +75,7 @@ export default function Login() {
 
   if (user) {
     const params = new URLSearchParams(window.location.search);
-    const redirect = params.get('redirect') || (isAdmin ? '/admin' : '/customer');
+    const redirect = params.get('redirect') || (isAdmin ? '/admin' : role === 'seller' ? '/dashboard' : '/customer');
     return <Navigate to={redirect} replace />
   }
 

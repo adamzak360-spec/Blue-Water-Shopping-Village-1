@@ -516,14 +516,23 @@ export default function Admin() {
       {/* Header */}
       <div className="admin-header animate-fade-in">
         <div className="header-title-group">
-          <h2>Admin Dashboard</h2>
-          <p className="admin-subtitle">Manage your marketplace operations</p>
+          <h2>{role === 'seller' ? 'Seller Dashboard' : 'Admin Dashboard'}</h2>
+          <p className="admin-subtitle">
+            {role === 'seller'
+              ? (business ? `Manage your store: ${business.name}` : 'Manage your store')
+              : 'Manage your marketplace operations'}
+          </p>
         </div>
         <div className="admin-user-info">
           <div className="user-badge">
             <span className="user-email">{user?.email}</span>
-            <span className="badge badge-primary">Admin</span>
+            <span className="badge badge-primary">{role === 'seller' ? 'Seller' : 'Admin'}</span>
           </div>
+          {role === 'seller' && business && (
+            <a href={`/store/${business.slug}`} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm">
+              View My Store
+            </a>
+          )}
           <button 
             onClick={handleTestEmail} 
             className="btn-secondary btn-sm" 

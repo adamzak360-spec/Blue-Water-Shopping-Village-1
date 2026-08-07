@@ -182,3 +182,88 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* --- Seller register additions --- */
+.register-card {
+  max-width: 480px;
+  width: 100%;
+}
+.register-container {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.register-container h1 {
+  font-size: 1.75rem;
+  margin: 0 0 0.5rem;
+  color: var(--text-primary, #111827);
+}
+.register-container p {
+  color: var(--text-secondary, #6b7280);
+  margin: 0 0 1.5rem;
+}
+.register-button {
+  margin-top: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.register-button:hover:not(:disabled) { background-color: #1d4ed8; }
+.register-button:disabled { opacity: 0.7; cursor: not-allowed; }
+.error-message {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  color: #dc2626;
+  font-size: 0.9rem;
+}
+.auth-footer { margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-secondary, #9ca3af); }
+.auth-footer a { color: #2563eb; text-decoration: none; font-weight: 600; }
+.seller-register-card .form-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 0.5rem;
+}
+.seller-register-card .form-row .form-group { flex: 1; }
+.seller-register-card select {
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--input-border, #d1d5db);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: var(--input-bg, #ffffff);
+  color: var(--text-primary, #111827);
+  outline: none;
+}
+.seller-register-card select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+.slug-input-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--input-border, #d1d5db);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--input-bg, #ffffff);
+}
+.slug-input-wrapper:focus-within { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+.slug-input-wrapper span {
+  padding: 0 10px;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+  background: #f5f5f5;
+  border-right: 1px solid var(--input-border, #d1d5db);
+  white-space: nowrap;
+}
+.slug-input-wrapper input { border: none !important; border-radius: 0 !important; box-shadow: none !important; flex: 1; }
+@media (max-width: 600px) {
+  .seller-register-card .form-row { flex-direction: column; gap: 0; }
+  .slug-input-wrapper span { display: none; }
+}
