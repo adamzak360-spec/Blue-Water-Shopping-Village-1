@@ -83,11 +83,17 @@ export const createOrder = async (orderData: Omit<Order, 'id' | 'created_at'>) =
   return createdOrder;
 }
 
-export const getAllOrders = async () => {
-  const { data, error } = await getSupabase()
+export const getAllOrders = async (businessId?: string) => {
+  let query = getSupabase()
     .from('orders')
     .select('*')
     .order('created_at', { ascending: false })
+
+  if (businessId) {
+    query = query.eq('business_id', businessId)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     console.error('Error fetching orders:', error)

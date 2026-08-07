@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { getBusinessByOwner, type Business } from '../services/businessService'
 import {
   getAllProducts,
   createProduct,
@@ -83,7 +84,8 @@ const defaultFormState = {
 }
 
 export default function Admin() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, role } = useAuth()
+  const [business, setBusiness] = useState<Business | null>(null)
   const [view, setView] = useState<AdminView>('dashboard')
   const [products, setProducts] = useState<Product[]>([])
   const [orders, setOrders] = useState<Order[]>([])
@@ -123,16 +125,33 @@ export default function Admin() {
   }, [])
 
   const loadData = useCallback(async () => {
+    if (!user) return
+    
     setIsLoading(true)
     setError('')
+    
+    let currentBusiness = business
+    if (!currentBusiness && role === 'seller') {
+      try {
+        const b = await getBusinessByOwner(user.id)
+        if (b) {
+          setBusiness(b)
+          currentBusiness = b
+        }
+      } catch (err) {
+        console.error('Error fetching business:', err)
+      }
+    }
+
+    const businessId = role === 'admin' ? undefined : currentBusiness?.id
     
     // Load products and stats independently
     setProductsLoading(true)
     setProductsError('')
     try {
       const [allProducts, statsData] = await Promise.all([
-        getAllProducts(),
-        getDashboardStats()
+        getAllProducts(businessId),
+        getDashboardStats(businessId)
       ])
       setProducts(allProducts)
       setStats(statsData)
@@ -150,7 +169,7 @@ export default function Admin() {
     setOrdersLoading(true)
     setOrdersError('')
     try {
-      const ordersData = await getAllOrders()
+      const ordersData = await getAllOrders(businessId)
       setOrders(ordersData)
       setOrdersError('')
     } catch (err) {
@@ -177,11 +196,19 @@ export default function Admin() {
     }
 
     setIsLoading(false)
-  }, [])
+  }, [user, role, business])
 
   useEffect(() => {
     loadData()
-  }, [loadData])
+  }, [user, role, business])
+
+  const businessId = role === 'admin' ? undefined : business?.id
+
+  const filteredReviewsByStore = reviews.filter(review => {
+    if (!businessId) return true
+    const businessProductIds = new Set(products.map(p => p.id))
+    return businessProductIds.has(review.product_id)
+  })
 
   const validateForm = (): boolean => {
     const errors: ProductFormErrors = {}
@@ -240,6 +267,7 @@ export default function Admin() {
         delivery_fee_dhl: formData.delivery_fee_dhl ? parseFloat(formData.delivery_fee_dhl) : 0,
         delivery_fee_ups: formData.delivery_fee_ups ? parseFloat(formData.delivery_fee_ups) : 0,
         delivery_fee_fedex: formData.delivery_fee_fedex ? parseFloat(formData.delivery_fee_fedex) : 0,
+        business_id: business?.id
       }
 
       let savedProduct: Product
@@ -344,7 +372,7 @@ export default function Admin() {
     return matchesSearch && matchesStatus && matchesSource
   })
 
-  const filteredReviews = reviews.filter(review => {
+  const filteredReviews = filteredReviewsByStore.filter(review => {
     const product = products.find(p => p.id === review.product_id)
     const productName = product ? product.name.toLowerCase() : ''
     const matchesSearch = 

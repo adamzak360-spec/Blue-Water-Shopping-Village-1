@@ -4,10 +4,11 @@ import { useAuth } from '../context/AuthContext'
 interface ProtectedRouteProps {
   children: React.ReactNode
   adminOnly?: boolean
+  sellerOrAdminOnly?: boolean
 }
 
-export function ProtectedRoute({ children, adminOnly = false }: ProtectedRouteProps) {
-  const { user, isAdmin, isLoading } = useAuth()
+export function ProtectedRoute({ children, adminOnly = false, sellerOrAdminOnly = false }: ProtectedRouteProps) {
+  const { user, isAdmin, role, isLoading } = useAuth()
 
   if (isLoading) {
     return (
@@ -23,6 +24,10 @@ export function ProtectedRoute({ children, adminOnly = false }: ProtectedRoutePr
   }
 
   if (adminOnly && !isAdmin) {
+    return <Navigate to="/" replace />
+  }
+
+  if (sellerOrAdminOnly && !(isAdmin || role === 'seller')) {
     return <Navigate to="/" replace />
   }
 

@@ -23,8 +23,8 @@ function clearCache() {
 const SUPPORTED_VIDEO_FORMATS = ['video/mp4', 'video/quicktime', 'video/webm']
 const SUPPORTED_VIDEO_EXTENSIONS = ['.mp4', '.mov', '.webm']
 
-export async function getAllProducts(): Promise<Product[]> {
-  if (isCacheValid() && productsCache) {
+export async function getAllProducts(businessId?: string): Promise<Product[]> {
+  if (!businessId && isCacheValid() && productsCache) {
     return productsCache
   }
 
@@ -32,18 +32,29 @@ export async function getAllProducts(): Promise<Product[]> {
     throw new Error('Supabase not configured')
   }
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('products')
     .select('*')
     .order('created_at', { ascending: false })
+
+  if (businessId) {
+    query = query.eq('business_id', businessId)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     throw new Error(error.message)
   }
 
-  productsCache = (data as Product[]) || []
-  cacheTimestamp = Date.now()
-  return productsCache
+  const products = (data as Product[]) || []
+  
+  if (!businessId) {
+    productsCache = products
+    cacheTimestamp = Date.now()
+  }
+  
+  return products
 }
 
 export async function getActiveProducts(): Promise<Product[]> {
@@ -191,8 +202,8 @@ export async function deleteProductImage(storagePath: string): Promise<void> {
   }
 }
 
-export async function getDashboardStats(): Promise<DashboardStats> {
-  const allProducts = await getAllProducts()
+export async function getDashboardStats(businessId?: string): Promise<DashboardStats> {
+  const allProducts = await getAllProducts(businessId)
 
   return {
     total: allProducts.length,

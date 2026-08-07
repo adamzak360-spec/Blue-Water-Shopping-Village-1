@@ -13,6 +13,7 @@ interface AuthContextType {
   changePassword: (newPassword: string) => Promise<{ error: Error | null }>
   resetPasswordEmail: (email: string) => Promise<{ error: Error | null }>
   isAdmin: boolean
+  role: string | null
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -26,6 +27,7 @@ const AuthContext = createContext<AuthContextType>({
   changePassword: async () => ({ error: new Error('Supabase not configured') }),
   resetPasswordEmail: async () => ({ error: new Error('Supabase not configured') }),
   isAdmin: false,
+  role: null,
 })
 
 export const useAuth = () => useContext(AuthContext)
@@ -35,11 +37,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [role, setRole] = useState<string | null>(null)
 
-  const checkIsAdmin = (u: User | null) => {
-    if (!u) return false
-    // Current admin identification logic based on migration files
-    return u.email === 'adamzak360@gmail.com'
+  const fetchProfile = async (u: User | null) => {
+    if (!u) {
+      setRole(null)
+      setIsAdmin(false)
+      return
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', u.id)
+        .single()
+
+      if (error) {
+        console.error('Error fetching profile:', error)
+        // Fallback for admin if profile doesn't exist yet
+        if (u.email === 'adamzak360@gmail.com') {
+          setRole('admin')
+          setIsAdmin(true)
+        } else {
+          setRole('customer')
+          setIsAdmin(false)
+        }
+      } else {
+        setRole(data.role)
+        setIsAdmin(data.role === 'admin')
+      }
+    } catch (err) {
+      console.error('Unexpected error fetching profile:', err)
+      setRole('customer')
+      setIsAdmin(false)
+    }
   }
 
   useEffect(() => {
@@ -53,8 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session)
       const u = session?.user ?? null
       setUser(u)
-      setIsAdmin(checkIsAdmin(u))
-      setIsLoading(false)
+      fetchProfile(u).then(() => setIsLoading(false))
     })
 
     // Listen for auth changes
@@ -64,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session)
       const u = session?.user ?? null
       setUser(u)
-      setIsAdmin(checkIsAdmin(u))
+      fetchProfile(u)
     })
 
     return () => {
@@ -157,7 +188,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updateUserMetadata, 
       changePassword,
       resetPasswordEmail,
-      isAdmin
+      isAdmin,
+      role
     }}>
       {children}
     </AuthContext.Provider>
