@@ -145,6 +145,7 @@ export default function Login() {
 
         <div className="login-footer">
           <p>Don't have an account? <Link to="/register">Create Account</Link></p>
+          <p>Want to sell on Reliable? <Link to="/seller/register">Register as a Seller</Link></p>
         </div>
       </div>
     </div>
