@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { createBusinessForUser, getBusinessByOwner } from '../services/businessService'
 import { supabase } from '../supabaseClient'
-import './Register.css'
+import './Login.css' // Reuse shared authentication styles
 
 export default function SellerRegister() {
   const { user, signUp } = useAuth()
