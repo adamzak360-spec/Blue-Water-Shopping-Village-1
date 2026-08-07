@@ -42,6 +42,14 @@ export default function Login() {
     }
   }, [user, isAdmin, role, navigate])
 
+  // Role may resolve after the initial navigation (e.g. when /customer loads the business lookup);
+  // if we are still on /customer and the role turns out to be seller, redirect to the seller dashboard.
+  useEffect(() => {
+    if (user && role === 'seller' && window.location.pathname === '/customer') {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, role, navigate])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
