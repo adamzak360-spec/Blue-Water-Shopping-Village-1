@@ -16,6 +16,9 @@ import './Checkout.css'
 
 const GUEST_CHECKOUT_ENABLED = true
 
+// Default marketplace business (multi-tenant foundation migration)
+const DEFAULT_BUSINESS_ID = '00000000-0000-0000-0000-000000000001'
+
 export default function Checkout() {
   const { cart, cartSubtotal, clearCart } = useCart()
   const { user } = useAuth()
@@ -196,6 +199,8 @@ export default function Checkout() {
           payment_status: 'paid' as const,
           payment_method: 'paystack',
           paystack_reference: paymentReference,
+          business_id: DEFAULT_BUSINESS_ID,
+          source: 'ONLINE',
           amount_paid: verification.data.amount / 100, // Convert from kobo
           payment_date: new Date().toISOString(),
           paid_at: verification.data.paid_at,
@@ -276,6 +281,8 @@ export default function Checkout() {
             payment_status: 'failed' as const,
             payment_method: 'paystack',
             paystack_reference: paymentReference,
+            business_id: DEFAULT_BUSINESS_ID,
+            source: 'ONLINE',
           }
           
           if (user) {

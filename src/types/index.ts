@@ -154,6 +154,7 @@ export interface Order {
   transaction_id?: string
   delivery_method?: string
   source?: string
+  business_id?: string
   created_at?: string
 }
 
