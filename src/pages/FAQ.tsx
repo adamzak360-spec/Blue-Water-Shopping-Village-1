@@ -2,7 +2,7 @@ import './StaticPages.css'
 
 export default function FAQ() {
   return (
-    <div className="static-page">
+    <div className="static-page policy-page">
       <div className="static-page-container">
         <div className="page-hero">
           <h1>Frequently Asked Questions</h1>

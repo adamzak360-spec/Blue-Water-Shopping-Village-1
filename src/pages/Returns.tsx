@@ -2,7 +2,7 @@ import './StaticPages.css'
 
 export default function Returns() {
   return (
-    <div className="static-page">
+    <div className="static-page policy-page">
       <div className="static-page-container">
         <div className="page-hero">
           <h1>Return &amp; Refund Policy</h1>
