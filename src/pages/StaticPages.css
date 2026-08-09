@@ -368,7 +368,7 @@
   font-size: 1.25rem;
   line-height: 1.35;
   padding-bottom: 0.55rem;
-  border-bottom: 1px solid #d9eeee;
+  border-bottom: 1px solid #b8eee9;
 }
 
 .policy-page .content-section h4,
@@ -409,12 +409,12 @@
 }
 
 .policy-page .steps-list li::before {
-  background: #159b9b;
+  background: #00C4B4;
 }
 
 .policy-page .notes-list li {
-  background: #f0fafa;
-  border-left-color: #159b9b;
+  background: #eafcf9;
+  border-left-color: #00C4B4;
   color: #4c5d6b;
 }
 
