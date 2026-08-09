@@ -6,7 +6,7 @@ export default function PrivacyPolicy() {
       <div className="static-page-container">
         <div className="page-hero">
           <h1>Privacy Policy</h1>
-          <p className="hero-subtitle">How Reliable collects, uses, shares, and protects personal information</p>
+          <p className="hero-subtitle">How Reliable handles personal information</p>
           <p className="page-date">Last updated: August 2026</p>
         </div>
 

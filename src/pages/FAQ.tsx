@@ -6,7 +6,7 @@ export default function FAQ() {
       <div className="static-page-container">
         <div className="page-hero">
           <h1>Frequently Asked Questions</h1>
-          <p className="hero-subtitle">Clear answers about shopping, seller stores, orders, delivery, and support</p>
+          <p className="hero-subtitle">Answers about shopping and support</p>
           <p className="page-date">Last updated: August 2026</p>
         </div>
 

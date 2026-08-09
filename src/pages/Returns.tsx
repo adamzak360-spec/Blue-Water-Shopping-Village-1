@@ -6,7 +6,7 @@ export default function Returns() {
       <div className="static-page-container">
         <div className="page-hero">
           <h1>Return &amp; Refund Policy</h1>
-          <p className="hero-subtitle">How we handle damaged, incorrect, defective, and eligible returned products</p>
+          <p className="hero-subtitle">How returns and refunds work</p>
           <p className="page-date">Last updated: August 2026</p>
         </div>
 

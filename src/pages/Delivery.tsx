@@ -6,7 +6,7 @@ export default function Delivery() {
       <div className="static-page-container">
         <div className="page-hero">
           <h1>Delivery Information</h1>
-          <p className="hero-subtitle">Where we deliver, how timing works, and what to expect after checkout</p>
+          <p className="hero-subtitle">What to expect from delivery</p>
           <p className="page-date">Last updated: August 2026</p>
         </div>
 

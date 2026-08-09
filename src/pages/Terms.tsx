@@ -6,7 +6,7 @@ export default function Terms() {
       <div className="static-page-container">
         <div className="page-hero">
           <h1>Terms &amp; Conditions</h1>
-          <p className="hero-subtitle">The rules for using Reliable, shopping on the marketplace, and operating a seller store</p>
+          <p className="hero-subtitle">Rules for using Reliable and its marketplace</p>
           <p className="page-date">Last updated: August 2026</p>
         </div>
 
