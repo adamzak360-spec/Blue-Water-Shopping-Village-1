@@ -45,14 +45,36 @@ export default function BusinessStorefront() {
       setBusiness(biz)
 
       // Fetch products for this business
-      const { data: prodData, error: prodError } = await supabase
+      let { data: prodData } = await supabase
         .from('products')
         .select('*')
         .eq('business_id', biz.id)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
 
-      if (!prodError && prodData) {
+      // If no products found with business_id or if it's the default store, also check for null business_id or fallback to all active products
+      if ((!prodData || prodData.length === 0) && biz.slug === 'reliable-marketplace') {
+        const { data: allActive } = await supabase
+          .from('products')
+          .select('*')
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+        if (allActive) {
+          prodData = allActive
+        }
+      } else if (!prodData || prodData.length === 0) {
+        // Fallback to all active products if specific store has none yet
+        const { data: allActive } = await supabase
+          .from('products')
+          .select('*')
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+        if (allActive) {
+          prodData = allActive
+        }
+      }
+
+      if (prodData) {
         setProducts(prodData as Product[])
       }
 
@@ -116,11 +138,15 @@ export default function BusinessStorefront() {
           <div className="products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '24px' }}>
             {products.map(product => (
               <div key={product.id} className="product-card" style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', background: 'white', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ height: '200px', background: '#f3f4f6', position: 'relative' }}>
+                <div style={{ height: '220px', background: '#f9fafb', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
                   {product.image_url ? (
-                    <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img 
+                      src={product.image_url} 
+                      alt={product.name} 
+                      style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} 
+                    />
                   ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9ca3af' }}>No image</div>
+                    <div style={{ color: '#9ca3af' }}>No image</div>
                   )}
                 </div>
                 <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
