@@ -18,22 +18,46 @@ export interface Business {
   updated_at: string
 }
 
-export async function getBusinessByOwner(userId: string): Promise<Business | null> {
+export async function getAllBusinessesByOwner(userId: string): Promise<Business[]> {
   if (!isSupabaseConfigured || !supabase) {
-    return null
+    return []
   }
 
   const { data, error } = await supabase
     .from('businesses')
     .select('*')
     .eq('owner_id', userId)
-    .single()
+    .order('created_at', { ascending: true })
 
   if (error) {
+    console.error('Error fetching businesses for owner:', error)
+    return []
+  }
+
+  return (data as Business[]) || []
+}
+
+export async function getBusinessByOwner(userId: string): Promise<Business | null> {
+  if (!isSupabaseConfigured || !supabase) {
     return null
   }
 
-  return data as Business
+  // Use a limited query instead of .single() so the call succeeds even
+  // when a user owns multiple businesses (the original `.single()` threw
+  // "JSON object requested, multiple (or no) rows returned" and broke
+  // the dashboard data load for multi-store owners).
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('*')
+    .eq('owner_id', userId)
+    .order('created_at', { ascending: true })
+    .limit(1)
+
+  if (error || !data || data.length === 0) {
+    return null
+  }
+
+  return data[0] as Business
 }
 
 export async function createBusinessForUser(

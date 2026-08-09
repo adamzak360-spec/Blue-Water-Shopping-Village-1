@@ -83,13 +83,16 @@ export const createOrder = async (orderData: Omit<Order, 'id' | 'created_at'>) =
   return createdOrder;
 }
 
-export const getAllOrders = async (businessId?: string) => {
+export const getAllOrders = async (businessId?: string, businessIds?: string[]) => {
   let query = getSupabase()
     .from('orders')
     .select('*')
     .order('created_at', { ascending: false })
 
-  if (businessId) {
+  if (businessIds && businessIds.length > 0) {
+    // Sellers may own multiple businesses: aggregate orders across all of them
+    query = query.in('business_id', businessIds)
+  } else if (businessId) {
     query = query.eq('business_id', businessId)
   }
 

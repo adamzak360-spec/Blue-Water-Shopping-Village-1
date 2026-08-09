@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { getBusinessByOwner, type Business } from '../services/businessService'
+import { getBusinessByOwner, getAllBusinessesByOwner, type Business } from '../services/businessService'
 import {
   getAllProducts,
   createProduct,
@@ -143,6 +143,18 @@ export default function Admin() {
       }
     }
 
+    // Sellers can own multiple businesses: aggregate orders (and stats)
+    // across every store they own so nothing is hidden from them.
+    let ownerBusinessIds: string[] = []
+    if (role === 'seller') {
+      try {
+        const owned = await getAllBusinessesByOwner(user.id)
+        ownerBusinessIds = owned.map((b) => b.id)
+      } catch (err) {
+        console.error('Error fetching owned businesses:', err)
+      }
+    }
+
     const businessId = role === 'admin' ? undefined : currentBusiness?.id
     
     // Load products and stats independently
@@ -169,7 +181,7 @@ export default function Admin() {
     setOrdersLoading(true)
     setOrdersError('')
     try {
-      const ordersData = await getAllOrders(businessId)
+      const ordersData = await getAllOrders(businessId, role === 'seller' && ownerBusinessIds.length > 0 ? ownerBusinessIds : undefined)
       setOrders(ordersData)
       setOrdersError('')
     } catch (err) {
