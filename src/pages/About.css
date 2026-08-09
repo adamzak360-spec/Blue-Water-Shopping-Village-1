@@ -79,13 +79,17 @@
 }
 
 .about-primary-action {
-  background: #00C4B4;
-  color: #ffffff;
+  background: #ffffff;
+  color: #087b7f;
+  border: 2px solid #ffffff;
+  box-shadow: 0 3px 0 rgba(0, 80, 75, 0.18);
 }
 
 .about-secondary-action {
-  border: 1px solid #00C4B4;
+  background: #ffffff;
+  border: 2px solid #ffffff;
   color: #087b7f;
+  box-shadow: 0 3px 0 rgba(0, 80, 75, 0.18);
 }
 
 .about-primary-action:hover,
@@ -96,8 +100,10 @@
   box-shadow: var(--shadow-sm);
 }
 
+.about-primary-action:hover,
 .about-secondary-action:hover {
   background: #eafcf9;
+  color: #006f69;
 }
 
 .about-section-label {
