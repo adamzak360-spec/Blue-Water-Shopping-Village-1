@@ -20,7 +20,7 @@
 .stores-eyebrow {
   display: block;
   margin-bottom: .75rem;
-  color: #69e5d1;
+  color: #8af7e5;
   font-size: .78rem;
   font-weight: 800;
   letter-spacing: .14em;
@@ -29,15 +29,19 @@
 
 .stores-hero h1 {
   margin: 0;
+  color: #ffffff;
   font-size: clamp(2rem, 5vw, 3.5rem);
   line-height: 1.05;
+  text-shadow: 0 2px 12px rgba(0, 20, 45, .35);
 }
 
 .stores-hero p {
   max-width: 650px;
   margin: 1rem 0 2rem;
-  color: #d8f2f0;
+  color: #f4fffe;
   font-size: 1.05rem;
+  line-height: 1.6;
+  text-shadow: 0 1px 8px rgba(0, 20, 45, .3);
 }
 
 .stores-search-row {
@@ -164,6 +168,7 @@
   display: grid;
   place-items: center;
   min-height: 260px;
+  padding: 2rem 1rem;
   text-align: center;
   color: #5e7284;
 }

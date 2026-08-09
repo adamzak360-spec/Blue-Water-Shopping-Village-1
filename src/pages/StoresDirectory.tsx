@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MapPin, Search, Store as StoreIcon } from 'lucide-react'
 import { getPublicBusinesses, type Business } from '../services/businessService'
@@ -6,16 +6,44 @@ import './StoresDirectory.css'
 
 export default function StoresDirectory() {
   const [businesses, setBusinesses] = useState<Business[]>([])
+  const [availableCategories, setAvailableCategories] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [category, setCategory] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
+    getPublicBusinesses('', '')
+      .then((data) => {
+        if (!cancelled) {
+          setAvailableCategories(Array.from(new Set(data.map((business) => business.category).filter(Boolean) as string[])).sort())
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setError('We could not load store categories right now. Please try again.')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const hasDiscoveryFilter = searchTerm.trim().length > 0 || category !== ''
+
+  useEffect(() => {
+    let cancelled = false
     setError('')
-    getPublicBusinesses(searchTerm, category)
+
+    if (!hasDiscoveryFilter) {
+      setBusinesses([])
+      setIsLoading(false)
+      return () => {
+        cancelled = true
+      }
+    }
+
+    setIsLoading(true)
+    getPublicBusinesses(searchTerm.trim(), category)
       .then((data) => {
         if (!cancelled) setBusinesses(data)
       })
@@ -28,11 +56,7 @@ export default function StoresDirectory() {
     return () => {
       cancelled = true
     }
-  }, [searchTerm, category])
-
-  const categories = useMemo(() => {
-    return Array.from(new Set(businesses.map((business) => business.category).filter(Boolean) as string[])).sort()
-  }, [businesses])
+  }, [searchTerm, category, hasDiscoveryFilter])
 
   return (
     <section className="stores-page">
@@ -52,7 +76,7 @@ export default function StoresDirectory() {
           </label>
           <select aria-label="Filter stores by category" value={category} onChange={(event) => setCategory(event.target.value)}>
             <option value="">All categories</option>
-            {categories.map((item) => <option key={item} value={item}>{item}</option>)}
+            {availableCategories.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
         </div>
       </div>
@@ -63,8 +87,8 @@ export default function StoresDirectory() {
         {!isLoading && !error && businesses.length === 0 && (
           <div className="stores-state">
             <StoreIcon size={40} aria-hidden="true" />
-            <h2>No stores found</h2>
-            <p>Try a different search or check back soon for new sellers.</p>
+            <h2>{hasDiscoveryFilter ? 'No stores found' : 'Find a store to get started'}</h2>
+            <p>{hasDiscoveryFilter ? 'Try a different search or category.' : 'Search by store name, category, or location, or choose a category above.'}</p>
           </div>
         )}
         {!isLoading && !error && businesses.length > 0 && (
