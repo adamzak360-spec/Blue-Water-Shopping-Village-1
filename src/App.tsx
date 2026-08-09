@@ -168,7 +168,6 @@ function AppShell() {
         </div>
         <nav className="drawer-nav">
           <Link to="/" className="drawer-item" onMouseEnter={prefetchHome}><HomeIcon size={20} /> Home</Link>
-          <Link to="/stores" className="drawer-item"><StoreIcon size={20} /> Stores</Link>
           <Link to="/products" className="drawer-item" onMouseEnter={prefetchProducts}><Package size={20} /> Categories</Link>
           <Link to="/products?filter=deals" className="drawer-item" onMouseEnter={prefetchProducts}><Tag size={20} /> Deals</Link>
           <Link to="/seller/register" className="drawer-item" style={{ color: '#059669', fontWeight: 'bold' }} onMouseEnter={prefetchSellerRegister}>
@@ -182,6 +181,7 @@ function AppShell() {
                 </Link>
               )}
               <Link to="/customer/orders" className="drawer-item"><Package size={20} /> Orders</Link>
+              <Link to="/stores" className="drawer-item"><StoreIcon size={20} /> Stores</Link>
               <Link to="/customer/wishlist" className="drawer-item"><Heart size={20} /> Wishlist</Link>
               <Link to="/customer" className="drawer-item"><User size={20} /> Account</Link>
             </>
@@ -196,7 +196,10 @@ function AppShell() {
               <LogoutButton />
             </div>
           ) : (
-            <Link to="/login" className="drawer-item login-item" onMouseEnter={prefetchLogin}><User size={20} /> Login / Register</Link>
+            <>
+              <Link to="/stores" className="drawer-item"><StoreIcon size={20} /> Stores</Link>
+              <Link to="/login" className="drawer-item login-item" onMouseEnter={prefetchLogin}><User size={20} /> Login / Register</Link>
+            </>
           )}
         </nav>
       </aside>
