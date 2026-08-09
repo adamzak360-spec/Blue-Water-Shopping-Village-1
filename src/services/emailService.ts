@@ -14,6 +14,12 @@ export interface EmailPayload {
   replyTo?: string
 }
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function isDeliverableEmail(value: string | undefined): value is string {
+  return Boolean(value && EMAIL_PATTERN.test(value.trim()))
+}
+
 class EmailService {
   private provider: string
   private fromEmail: string
@@ -31,6 +37,19 @@ class EmailService {
    */
   async sendEmail(payload: EmailPayload): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
+      if (!isDeliverableEmail(payload.to)) {
+        const error = 'Recipient email address is invalid or missing'
+        console.warn('[EMAIL SERVICE] Skipping email send:', error)
+        return { success: false, error }
+      }
+
+      const replyTo = payload.replyTo || this.fromEmail
+      if (!isDeliverableEmail(replyTo)) {
+        const error = 'Reply-to email address is invalid or missing'
+        console.warn('[EMAIL SERVICE] Skipping email send:', error)
+        return { success: false, error }
+      }
+
       console.log(`[EMAIL SERVICE] Requesting email send to: ${payload.to}, Subject: ${payload.subject}`);
       
       // If provider is console, just log and return success
@@ -48,7 +67,7 @@ class EmailService {
           to: payload.to,
           subject: payload.subject,
           html: payload.html,
-          replyTo: payload.replyTo || this.fromEmail,
+          replyTo,
         }),
       });
 
