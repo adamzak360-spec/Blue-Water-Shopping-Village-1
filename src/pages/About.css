@@ -1,0 +1,253 @@
+.about-page .page-content {
+  gap: 1.5rem;
+}
+
+.about-hero {
+  background: linear-gradient(135deg, #12365c 0%, #0b7891 100%);
+  padding: clamp(2.25rem, 5vw, 4rem) clamp(1.5rem, 5vw, 3.5rem);
+}
+
+.about-eyebrow,
+.about-section-label {
+  display: inline-block;
+  color: #0b8f91;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 1.3;
+}
+
+.about-hero .about-eyebrow {
+  color: #8ff1df;
+  margin-bottom: 0.9rem;
+}
+
+.about-hero h1 {
+  max-width: 720px;
+  font-size: clamp(2rem, 5vw, 3.35rem);
+  line-height: 1.08;
+  margin-bottom: 1rem;
+}
+
+.about-hero .hero-subtitle {
+  max-width: 680px;
+  color: #f3fffd;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  line-height: 1.65;
+  opacity: 1;
+}
+
+.about-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1.5rem;
+}
+
+.about-primary-action,
+.about-secondary-action,
+.about-inline-action,
+.about-model-card a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border-radius: 8px;
+  padding: 0.7rem 1.15rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+}
+
+.about-primary-action {
+  background: #ffffff;
+  color: #12365c;
+}
+
+.about-secondary-action {
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  color: #ffffff;
+}
+
+.about-primary-action:hover,
+.about-secondary-action:hover,
+.about-inline-action:hover,
+.about-model-card a:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.about-secondary-action:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.about-section-label {
+  margin-bottom: 0.6rem;
+}
+
+.about-intro {
+  border-top: 4px solid #0b8f91;
+}
+
+.about-intro h2,
+.about-goal-section h2 {
+  margin-top: 0;
+}
+
+.about-model-grid,
+.about-benefits-grid,
+.about-workflow-grid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.about-model-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.about-model-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.about-model-marketplace {
+  border-top: 4px solid #2563eb;
+}
+
+.about-model-store {
+  border-top: 4px solid #0b8f91;
+}
+
+.about-model-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+  background: #e6f7f5;
+  color: #087b7f;
+  font-weight: 800;
+}
+
+.about-model-card h3 {
+  margin: 0 0 0.6rem;
+  color: #12365c;
+  font-size: 1.2rem;
+}
+
+.about-model-card p {
+  flex: 1;
+  margin-bottom: 1rem;
+}
+
+.about-model-card a,
+.about-inline-action {
+  background: #e6f7f5;
+  color: #087b7f;
+}
+
+.about-highlight {
+  margin: 1.25rem 0;
+  border-left: 4px solid #0b8f91;
+  border-radius: 0 8px 8px 0;
+  padding: 1rem 1.1rem;
+  background: #e6f7f5;
+  color: #12365c;
+  font-weight: 800;
+}
+
+.about-benefits-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 1.25rem;
+}
+
+.about-benefits-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border-radius: 10px;
+  padding: 1rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+
+.about-benefits-grid strong {
+  color: #12365c;
+}
+
+.about-benefits-grid span {
+  color: #4b5563;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.about-workflow-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.about-workflow-grid h2 {
+  margin-top: 0;
+}
+
+.about-step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 0;
+  margin: 1rem 0 0;
+  list-style: none;
+}
+
+.about-step-list li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 0.75rem;
+  align-items: start;
+  color: #4b5563;
+  line-height: 1.55;
+}
+
+.about-step-number {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 50%;
+  background: #12365c;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.about-step-list strong {
+  display: block;
+  margin-bottom: 0.15rem;
+  color: #12365c;
+}
+
+.about-goal-section {
+  background: linear-gradient(180deg, #f3fbfb 0%, var(--color-surface) 100%);
+}
+
+@media (max-width: 768px) {
+  .about-model-grid,
+  .about-benefits-grid,
+  .about-workflow-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-hero h1 {
+    font-size: 2rem;
+  }
+
+  .about-primary-action,
+  .about-secondary-action {
+    width: 100%;
+  }
+}
