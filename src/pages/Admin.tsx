@@ -38,6 +38,7 @@ import './Admin.css'
   const AdminAnalytics = lazy(() => import('../components/AdminAnalytics'))
   const FinancialReports = lazy(() => import('../components/FinancialReports'))
   const SupplierManagement = lazy(() => import('../components/SupplierManagement'))
+  const RegisteredSellerManagement = lazy(() => import('../components/RegisteredSellerManagement'))
   const POS = lazy(() => import('./POS'))
 
   // Prefetch functions for near-instant transitions
@@ -45,9 +46,10 @@ import './Admin.css'
   const prefetchAnalytics = () => import('../components/AdminAnalytics')
   const prefetchReports = () => import('../components/FinancialReports')
   const prefetchSuppliers = () => import('../components/SupplierManagement')
+  const prefetchRegisteredSellers = () => import('../components/RegisteredSellerManagement')
   const prefetchPOS = () => import('./POS')
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'pos'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos'
 
 interface ProductFormErrors {
   name?: string
@@ -616,6 +618,15 @@ export default function Admin() {
         >
           Suppliers
         </button>
+        {role === 'admin' && (
+          <button
+            className={`tab ${view === 'registered-sellers' ? 'active' : ''}`}
+            onClick={() => setView('registered-sellers')}
+            onMouseEnter={prefetchRegisteredSellers}
+          >
+            Registered Sellers
+          </button>
+        )}
         <button
           className={`tab ${view === 'pos' ? 'active' : ''}`}
           onClick={() => setView('pos')}
@@ -637,6 +648,9 @@ export default function Admin() {
 
         {/* Supplier Management View */}
         {view === 'suppliers' && <SupplierManagement />}
+
+        {/* Registered Sellers Management View */}
+        {view === 'registered-sellers' && role === 'admin' && <RegisteredSellerManagement />}
 
         {/* POS View */}
         {view === 'pos' && <POS />}

@@ -1,0 +1,147 @@
+.registered-sellers-content {
+  padding: 1.5rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+}
+
+.registered-sellers-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.section-eyebrow {
+  margin: 0 0 .35rem;
+  color: #0f766e;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.registered-sellers-header h2 {
+  margin: 0;
+  color: #0f2f56;
+  font-size: 1.55rem;
+}
+
+.registered-sellers-header p:not(.section-eyebrow) {
+  margin: .45rem 0 0;
+  color: #64748b;
+}
+
+.seller-management-count {
+  flex: 0 0 auto;
+  padding: .55rem .8rem;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #075985;
+  font-weight: 700;
+}
+
+.registered-sellers-toolbar {
+  display: flex;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+
+.registered-sellers-toolbar .search-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.seller-management-error {
+  margin-bottom: 1rem;
+  padding: .8rem 1rem;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.registered-sellers-table-wrap {
+  overflow-x: auto;
+}
+
+.registered-sellers-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.registered-sellers-table th,
+.registered-sellers-table td {
+  padding: .9rem .75rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.registered-sellers-table th {
+  color: #475569;
+  font-size: .78rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.registered-sellers-table td {
+  color: #1e293b;
+}
+
+.registered-sellers-table a {
+  color: #0369a1;
+  font-weight: 600;
+}
+
+.seller-slug,
+.seller-owner {
+  display: block;
+}
+
+.seller-slug {
+  margin-top: .2rem;
+  color: #64748b;
+  font-size: .78rem;
+  overflow-wrap: anywhere;
+}
+
+.protected-store {
+  color: #64748b;
+  font-size: .8rem;
+  font-weight: 600;
+}
+
+.seller-management-empty {
+  padding: 2rem;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #475569;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .registered-sellers-content {
+    padding: 1rem;
+  }
+
+  .registered-sellers-header {
+    display: block;
+  }
+
+  .seller-management-count {
+    display: inline-block;
+    margin-top: .8rem;
+  }
+
+  .registered-sellers-toolbar {
+    display: block;
+  }
+
+  .registered-sellers-toolbar .btn-secondary {
+    width: 100%;
+    margin-top: .65rem;
+  }
+}

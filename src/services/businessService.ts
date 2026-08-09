@@ -18,6 +18,40 @@ export interface Business {
   updated_at: string
 }
 
+export async function getAllBusinesses(): Promise<Business[]> {
+  if (!isSupabaseConfigured || !supabase) {
+    return []
+  }
+
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('*')
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching all businesses:', error)
+    throw new Error(error.message)
+  }
+
+  return (data as Business[]) || []
+}
+
+export async function deleteBusiness(businessId: string): Promise<void> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  const { error } = await supabase
+    .from('businesses')
+    .delete()
+    .eq('id', businessId)
+
+  if (error) {
+    console.error('Error deleting business:', error)
+    throw new Error(error.message)
+  }
+}
+
 export async function getAllBusinessesByOwner(userId: string): Promise<Business[]> {
   if (!isSupabaseConfigured || !supabase) {
     return []
