@@ -28,6 +28,7 @@ export interface Product {
   status: 'active' | 'inactive' | 'out-of-stock'
   created_at: string
   updated_at: string
+  business_id?: string
   average_rating?: number
   review_count?: number
   // Extended fields
