@@ -317,18 +317,18 @@
 }
 
 .policy-page .page-hero {
-  background: #ffffff;
-  color: #102f4f;
-  padding: 0 1.25rem 1.5rem;
-  border-radius: 0;
-  margin: 0 auto 2rem;
+  background: #00C4B4;
+  color: #ffffff;
+  padding: 2rem 1.5rem;
+  border-radius: 8px;
+  margin: 0 auto 1.5rem;
   box-shadow: none;
-  border-bottom: 1px solid #dbe5eb;
+  border-bottom: none;
   text-align: center;
 }
 
 .policy-page .page-hero h1 {
-  color: #102f4f;
+  color: #ffffff;
   font-size: clamp(1.8rem, 4vw, 2.35rem);
   line-height: 1.2;
   letter-spacing: -0.015em;
@@ -338,13 +338,13 @@
 .policy-page .hero-subtitle {
   max-width: 560px;
   margin: 0 auto 0.45rem;
-  color: #536575;
+  color: #ffffff;
   opacity: 1;
   line-height: 1.55;
 }
 
 .policy-page .page-date {
-  color: #728291;
+  color: rgba(255, 255, 255, 0.86);
   opacity: 1;
   font-size: 0.82rem;
 }
@@ -429,7 +429,7 @@
   }
 
   .policy-page .page-hero {
-    padding-bottom: 1.25rem;
+    padding: 1.5rem 1rem;
     margin-bottom: 1.25rem;
   }
 
