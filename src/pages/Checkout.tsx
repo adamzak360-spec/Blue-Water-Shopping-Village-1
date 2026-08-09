@@ -186,7 +186,16 @@ export default function Checkout() {
       // Verify payment with Paystack
       const verification = await verifyPayment(paymentReference)
 
-      if (verification.status && verification.data.status === 'success') {
+      const expectedAmountInKobo = Math.round(total * 100)
+      const verifiedReference = verification.data?.reference
+      const verifiedAmount = verification.data?.amount
+
+      if (
+        verification.status &&
+        verification.data.status === 'success' &&
+        verifiedReference === paymentReference &&
+        verifiedAmount >= expectedAmountInKobo
+      ) {
         console.log('[Checkout] Payment verified successfully')
 
         // Create order with payment details
@@ -254,6 +263,10 @@ export default function Checkout() {
           // For guests, navigate to home or a success page since they can't access /customer/orders
           navigate('/')
         }
+      } else if (verification.data?.reference !== paymentReference) {
+        throw new Error('Payment reference mismatch. Please contact support before retrying.')
+      } else if ((verification.data?.amount || 0) < expectedAmountInKobo) {
+        throw new Error('The verified payment amount does not cover this order total.')
       } else {
         throw new Error('Payment was not successful. Please try again.')
       }
