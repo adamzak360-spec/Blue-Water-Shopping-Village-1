@@ -6,67 +6,73 @@ export default function Returns() {
       <div className="static-page-container">
         <div className="page-hero">
           <h1>Return &amp; Refund Policy</h1>
-          <p className="hero-subtitle">Our commitment to your satisfaction</p>
-          <p className="page-date">Last updated: July 2026</p>
+          <p className="hero-subtitle">How we handle damaged, incorrect, defective, and eligible returned products</p>
+          <p className="page-date">Last updated: August 2026</p>
         </div>
 
         <div className="page-content">
           <section className="content-section">
-            <h2>1. Our Return Policy</h2>
+            <h2>1. Purpose and Scope</h2>
             <p>
-              At Reliable, we want you to be completely satisfied with your
-              purchase. If for any reason you are not satisfied, we are here to help. This
-              policy outlines the conditions under which you may return products and receive
-              a refund or replacement.
+              This policy explains how Reliable handles returns, replacements, refunds, and delivery
+              complaints for products purchased through the Reliable marketplace or an independent
+              seller store. The relevant seller may be responsible for the product and fulfilment,
+              while Reliable coordinates the platform support process. Nothing in this policy limits
+              a right that cannot lawfully be excluded.
             </p>
           </section>
 
           <section className="content-section">
-            <h2>2. Eligible Returns</h2>
-            <p>You may return items under the following conditions:</p>
+            <h2>2. Eligible Reasons for a Return</h2>
+            <p>You may contact us about a return or resolution where an item is:</p>
             <ul className="content-list">
-              <li>
-                <strong>Defective or damaged products:</strong> Items that arrive damaged,
-                defective, or not as described on our website.
-              </li>
-              <li>
-                <strong>Incorrect items:</strong> Products that were delivered incorrectly or
-                do not match your order.
-              </li>
-              <li>
-                <strong>Expired or spoiled goods:</strong> Perishable items that are past their
-                expiry date or are not in a fresh condition upon delivery.
-              </li>
+              <li>Damaged on arrival or materially defective.</li>
+              <li>Incorrect or materially different from the product ordered.</li>
+              <li>Materially not as described in the listing.</li>
+              <li>Expired, spoiled, unsafe, or unsuitable on delivery where the product is perishable.</li>
             </ul>
-          </section>
-
-          <section className="content-section">
-            <h2>3. Return Timeframe</h2>
             <p>
-              All return requests must be made within 7 days of receiving your order. For
-              perishable items, please report any issues within 24 hours of delivery to ensure
-              a swift resolution.
+              We may request information from you and the seller, review the listing and order,
+              inspect evidence, and determine the appropriate resolution based on the product,
+              circumstances, and applicable law.
             </p>
           </section>
 
           <section className="content-section">
-            <h2>4. How to Request a Return</h2>
+            <h2>3. Time Limits</h2>
+            <p>
+              Report non-perishable product issues within 7 days after delivery. Report damaged,
+              spoiled, expired, or otherwise unsafe perishable products as soon as possible and,
+              where practicable, within 24 hours of delivery. Late reports may be harder to verify and
+              may not qualify unless applicable law requires otherwise.
+            </p>
+            <p>
+              The date of delivery or the date an order is marked delivered may be used to calculate
+              the applicable reporting period. Contact support promptly even if you are unsure whether
+              the issue qualifies.
+            </p>
+          </section>
+
+          <section className="content-section">
+            <h2>4. How to Request a Return or Resolution</h2>
             <ol className="steps-list">
               <li>
-                <strong>Contact Us:</strong> Reach out to our customer service team via email
-                or phone with your order number and a description of the issue.
+                <strong>Contact support:</strong> Provide your order number, seller/store, contact
+                details, and a clear description of the issue.
               </li>
               <li>
-                <strong>Provide Evidence:</strong> If possible, include photos or a description
-                of the damaged or incorrect item to help us process your request quickly.
+                <strong>Provide evidence:</strong> Where possible, send photographs, video, packaging
+                details, delivery information, or other reasonable evidence. Do not discard an item
+                until we advise you, unless it is unsafe or perishable.
               </li>
               <li>
-                <strong>Return Authorisation:</strong> Our team will review your request and
-                provide instructions for the return process.
+                <strong>Await instructions:</strong> Do not send an item back without return
+                instructions or authorisation. The return address and responsible party may differ by
+                seller and product.
               </li>
               <li>
-                <strong>Resolution:</strong> Once your return is approved, we will process a
-                refund or arrange a replacement as appropriate.
+                <strong>Resolution:</strong> After review, we may approve a refund, replacement,
+                repair, partial remedy, delivery correction, or another appropriate resolution.
               </li>
             </ol>
           </section>
@@ -74,64 +80,85 @@ export default function Returns() {
           <section className="content-section">
             <h2>5. Refunds</h2>
             <p>
-              Approved refunds will be processed within 5 to 7 business days. The refund will
-              be issued using the same payment method you used for the original purchase, where
-              possible. For cash on delivery orders, we will arrange an alternative refund method.
+              Approved refunds are generally initiated within 5 to 7 business days after approval,
+              subject to payment-provider processing times, bank or mobile-money procedures, and any
+              required return or inspection. Refunds are normally sent to the original payment method
+              where practical and lawful.
             </p>
             <p>
-              Refunds cover the cost of the returned item(s). Delivery fees are not refundable
-              unless the return is due to an error on our part.
-            </p>
-          </section>
-
-          <section className="content-section">
-            <h2>6. Replacements</h2>
-            <p>
-              If you prefer a replacement over a refund, we will dispatch the replacement item
-              as soon as possible at no additional cost. The replacement will be delivered within
-              the standard delivery timeframe.
+              For cash-on-delivery orders, we will contact you to agree on a reasonable refund method
+              and may require verification of the recipient. A refund may cover the affected product
+              and applicable delivery charges where the issue was caused by Reliable, the seller, or
+              delivery handling. Original delivery fees may not be refundable for a change of mind or
+              an issue not caused by us or the seller.
             </p>
           </section>
 
           <section className="content-section">
-            <h2>7. Non-Returnable Items</h2>
+            <h2>6. Replacements and Exchanges</h2>
             <p>
-              The following items cannot be returned unless they are defective or were delivered
-              incorrectly:
+              Where a replacement is available and approved, the seller or Reliable may dispatch an
+              equivalent or corrected product. If the product is unavailable, we may offer a refund or
+              another resolution. Replacement delivery timing depends on stock, seller processing,
+              location, and logistics availability.
+            </p>
+          </section>
+
+          <section className="content-section">
+            <h2>7. Items That May Not Qualify</h2>
+            <p>
+              Unless defective, unsafe, incorrect, or otherwise protected by applicable law, a return
+              may not be approved for:
             </p>
             <ul className="content-list">
-              <li>Perishable items (fresh produce, dairy, baked goods) after 24 hours of delivery</li>
-              <li>Items that have been opened or used, unless defective</li>
-              <li>Items returned after the 7-day return window</li>
+              <li>Perishable products reported after the stated reporting period.</li>
+              <li>Products that have been used, altered, damaged, washed, installed, or opened in a way that caused the issue.</li>
+              <li>Personalised, made-to-order, hygiene-sensitive, or sealed products where return is restricted for safety or legal reasons.</li>
+              <li>Products returned without authorisation or outside the applicable reporting period.</li>
+              <li>Change-of-mind returns where the listing or applicable law does not provide for them.</li>
             </ul>
           </section>
 
           <section className="content-section">
-            <h2>8. Delivery Issues</h2>
+            <h2>8. Cancellation and Delivery Problems</h2>
             <p>
-              If your order was not delivered, was partially delivered, or arrived significantly
-              later than expected, please contact our customer service team immediately. We will
-              investigate the issue and work with you to find a satisfactory resolution.
+              Contact support as soon as possible if you need to change or cancel an order. We may be
+              able to help before dispatch, but cancellation may not be possible after processing or
+              dispatch. An order that was not delivered, was partially delivered, or arrived with a
+              serious delivery issue should be reported promptly so we can investigate with the seller
+              and delivery provider.
             </p>
           </section>
 
           <section className="content-section">
-            <h2>9. Changes to This Policy</h2>
+            <h2>9. Fraud and Abuse</h2>
             <p>
-              We may update this Return &amp; Refund Policy from time to time. Any changes will
-              be posted on this page with an updated date.
+              We may refuse a request, pause a refund, request further evidence, or restrict an
+              account where there is reasonable evidence of misuse, repeated false claims, payment
+              abuse, tampering, or fraud. This does not prevent a legitimate customer from reporting
+              a genuine issue or exercising a right protected by law.
             </p>
           </section>
 
           <section className="content-section">
-            <h2>10. Contact Us</h2>
+            <h2>10. Changes to This Policy</h2>
             <p>
-              If you have any questions about our Return &amp; Refund Policy, please contact us at:
+              We may update this policy to reflect changes to the marketplace, seller operations,
+              payment methods, delivery arrangements, or applicable requirements. The current version
+              and “Last updated” date will be posted on this page. The policy applicable to an order
+              will be interpreted consistently with the Terms and any mandatory legal rights.
+            </p>
+          </section>
+
+          <section className="content-section">
+            <h2>11. Contact Us</h2>
+            <p>
+              To request a return, report a delivery issue, or ask about a refund, contact:
             </p>
             <p>
               <strong>Email:</strong> support@reliable.com<br />
               <strong>Phone:</strong> +233 53 855 7781<br />
-              <strong>Hours:</strong> Mon - Sat, 8:00 AM - 8:00 PM
+              <strong>Hours:</strong> Monday–Saturday, 8:00 AM–8:00 PM
             </p>
           </section>
         </div>
@@ -139,3 +166,6 @@ export default function Returns() {
     </div>
   )
 }
+
+// Working draft for legal review before reliance or publication.
+// Confirm product-specific rules and the final return/refund authority with a qualified lawyer.

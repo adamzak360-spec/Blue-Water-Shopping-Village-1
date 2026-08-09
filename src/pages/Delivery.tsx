@@ -6,18 +6,22 @@ export default function Delivery() {
       <div className="static-page-container">
         <div className="page-hero">
           <h1>Delivery Information</h1>
-          <p className="hero-subtitle">Everything you need to know about our delivery services</p>
+          <p className="hero-subtitle">Where we deliver, how timing works, and what to expect after checkout</p>
+          <p className="page-date">Last updated: August 2026</p>
         </div>
 
         <div className="page-content">
           <section className="content-section">
             <h2>Delivery Areas</h2>
             <p>
-              Reliable currently delivers to all areas across Ghana. Our primary hub is located in Tamale, Northern Region, but we serve customers nationwide.
+              Reliable supports delivery across Ghana, subject to the product, seller, destination,
+              courier availability, and the delivery options shown at checkout. Our primary operations
+              are based in Tamale, Northern Region. We also work with logistics partners where
+              available for other locations.
             </p>
             <p>
-              Within the Northern Region, we cover Tamale Central, Nyohini, Lamashegu, Vittin, 
-              Kumbungu, Savelugu, and all surrounding communities. For other regions, we use our trusted logistics partners to ensure your products reach you safely.
+              Coverage, delivery times, and fees may differ between seller stores and products.
+              Always review the delivery information shown for your order before confirming checkout.
             </p>
           </section>
 
@@ -25,35 +29,40 @@ export default function Delivery() {
             <h2>Delivery Times</h2>
             <div className="info-grid">
               <div className="info-card">
-                <h4>Standard Delivery</h4>
-                <p>Same day or next day delivery</p>
-                <p className="info-note">Available for all areas within Tamale</p>
+                <h4>Tamale</h4>
+                <p>Often same-day or next-day delivery</p>
+                <p className="info-note">Subject to seller processing, stock, address, and rider availability.</p>
               </div>
               <div className="info-card">
-                <h4>Processing Time</h4>
-                <p>Orders are processed within 2 hours</p>
-                <p className="info-note">Orders placed before 4:00 PM are processed the same day</p>
+                <h4>Other locations</h4>
+                <p>Usually 1–3 business days or longer</p>
+                <p className="info-note">Timing varies by distance, route, seller, courier, and logistics conditions.</p>
               </div>
               <div className="info-card">
-                <h4>Delivery Window</h4>
-                <p>8:00 AM - 8:00 PM</p>
-                <p className="info-note">Monday through Saturday</p>
+                <h4>Delivery window</h4>
+                <p>Generally 8:00 AM–8:00 PM</p>
+                <p className="info-note">Monday through Saturday, unless a different arrangement is confirmed.</p>
               </div>
             </div>
+            <p>
+              Delivery timeframes are estimates rather than guaranteed deadlines. Weather, traffic,
+              holidays, high demand, stock issues, seller processing, courier capacity, security
+              conditions, and inaccurate delivery details may affect timing.
+            </p>
           </section>
 
           <section className="content-section">
             <h2>Delivery Fees</h2>
             <p>
-              Our delivery fees are designed to be fair and transparent. The standard delivery
-              fee is GH₵15.00 for orders within Tamale. Delivery fees are
-              calculated based on your location and displayed clearly at checkout before you
-              confirm your order.
+              Delivery fees are calculated from the destination, order, seller, product, and logistics
+              requirements. The applicable fee should be displayed at checkout before you confirm the
+              order. The standard reference fee within Tamale is GH₵15.00 where the checkout page
+              presents that rate; other locations or orders may have different fees.
             </p>
             <div className="info-card" style={{ maxWidth: '600px' }}>
-              <h4>Standard Delivery Fee</h4>
+              <h4>Reference Tamale fee</h4>
               <p style={{ fontSize: '1.5rem', fontWeight: 700, color: '#2563eb' }}>GH₵15.00</p>
-              <p className="info-note">Within Tamale. Delivery fees for other regions will be calculated based on the distance and logistics requirements.</p>
+              <p className="info-note">The checkout total is the controlling amount for the order before confirmation.</p>
             </div>
           </section>
 
@@ -61,47 +70,62 @@ export default function Delivery() {
             <h2>How Delivery Works</h2>
             <ol className="steps-list">
               <li>
-                <strong>Place Your Order</strong> — Browse our catalogue, add items to your cart,
-                and complete the checkout process.
+                <strong>Place your order</strong> — Review the seller, products, address, delivery
+                option, fees, and total before confirming checkout.
               </li>
               <li>
-                <strong>Order Processing</strong> — Our team picks and packs your items with care,
-                ensuring freshness and quality.
+                <strong>Seller processing</strong> — The relevant seller prepares the products and
+                confirms availability for fulfilment.
               </li>
               <li>
-                <strong>Dispatch</strong> — Your order is dispatched and assigned to a delivery
-                rider in your area.
+                <strong>Dispatch</strong> — Reliable or a logistics partner coordinates dispatch and
+                delivery where the available service permits.
               </li>
               <li>
-                <strong>Delivery</strong> — Your order arrives at your specified address.
-                You will receive notification updates throughout the process.
+                <strong>Delivery</strong> — The order is delivered to the address provided. Keep your
+                phone available in case the seller or delivery team needs directions or confirmation.
               </li>
             </ol>
           </section>
 
           <section className="content-section">
-            <h2>Important Notes</h2>
+            <h2>Your Responsibilities</h2>
             <ul className="notes-list">
-              <li>
-                Ensure that the delivery address and phone number provided are accurate to avoid
-                delays or failed delivery attempts.
-              </li>
-              <li>
-                If you are not available at the delivery address, the rider will attempt to contact
-                you. Unclaimed orders may be returned to our facility.
-              </li>
-              <li>
-                For perishable items, we take extra care with packaging and handling to ensure
-                products arrive in optimal condition.
-              </li>
-              <li>
-                Delivery times may be affected by weather conditions, traffic, or high order volume
-                during peak periods.
-              </li>
+              <li>Provide a complete address, accurate phone number, and useful delivery directions.</li>
+              <li>Be available to receive the order or arrange a safe authorised recipient.</li>
+              <li>Check the package and products promptly and report a problem under the Return &amp; Refund Policy.</li>
+              <li>Do not provide false delivery details or use an address where receipt is not authorised.</li>
+              <li>Respond to reasonable contact from the seller, courier, or Reliable support team.</li>
             </ul>
+          </section>
+
+          <section className="content-section">
+            <h2>Failed or Delayed Delivery</h2>
+            <p>
+              If a delivery fails because an address is incomplete, access is unavailable, the phone
+              cannot be reached, or the order is not accepted, additional attempts, a revised fee,
+              return-to-seller handling, or cancellation may apply. Contact us promptly if an order is
+              late, missing, partially delivered, or marked delivered incorrectly so we can investigate
+              with the seller and delivery provider.
+            </p>
+          </section>
+
+          <section className="content-section">
+            <h2>Contact Us</h2>
+            <p>
+              For delivery questions or an order that has not arrived, contact:
+            </p>
+            <p>
+              <strong>Email:</strong> support@reliable.com<br />
+              <strong>Phone:</strong> +233 53 855 7781<br />
+              <strong>Hours:</strong> Monday–Saturday, 8:00 AM–8:00 PM
+            </p>
           </section>
         </div>
       </div>
     </div>
   )
 }
+
+// Working draft for legal and operational review before reliance or publication.
+// Confirm actual delivery coverage, partner commitments, fees, and service-level promises before final use.
