@@ -60,6 +60,35 @@ export async function getBusinessByOwner(userId: string): Promise<Business | nul
   return data[0] as Business
 }
 
+export async function getPublicBusinesses(searchTerm = '', category = ''): Promise<Business[]> {
+  if (!isSupabaseConfigured || !supabase) {
+    return []
+  }
+
+  let query = supabase
+    .from('businesses')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (category) {
+    query = query.eq('category', category)
+  }
+
+  const { data, error } = await query
+  if (error) {
+    console.error('Error fetching public businesses:', error)
+    return []
+  }
+
+  const normalizedSearch = searchTerm.trim().toLowerCase()
+  return ((data as Business[]) || []).filter((business) => {
+    if (!normalizedSearch) return true
+    return [business.name, business.business_name, business.description, business.category, business.location]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(normalizedSearch))
+  })
+}
+
 export async function createBusinessForUser(
   userId: string,
   businessData: {
