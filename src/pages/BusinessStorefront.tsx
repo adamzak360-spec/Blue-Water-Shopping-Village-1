@@ -44,39 +44,20 @@ export default function BusinessStorefront() {
       const biz = bizData as Business
       setBusiness(biz)
 
-      // Fetch products for this business
-      let { data: prodData } = await supabase
+      // Only show active products assigned to this business. An empty store must
+      // remain empty instead of falling back to the marketplace catalog.
+      const { data: prodData, error: productsError } = await supabase
         .from('products')
         .select('*')
         .eq('business_id', biz.id)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
 
-      // If no products found with business_id or if it's the default store, also check for null business_id or fallback to all active products
-      if ((!prodData || prodData.length === 0) && biz.slug === 'reliable-marketplace') {
-        const { data: allActive } = await supabase
-          .from('products')
-          .select('*')
-          .eq('status', 'active')
-          .order('created_at', { ascending: false })
-        if (allActive) {
-          prodData = allActive
-        }
-      } else if (!prodData || prodData.length === 0) {
-        // Fallback to all active products if specific store has none yet
-        const { data: allActive } = await supabase
-          .from('products')
-          .select('*')
-          .eq('status', 'active')
-          .order('created_at', { ascending: false })
-        if (allActive) {
-          prodData = allActive
-        }
+      if (productsError) {
+        console.error('Error loading store products:', productsError)
       }
 
-      if (prodData) {
-        setProducts(prodData as Product[])
-      }
+      setProducts((prodData || []) as Product[])
 
       setIsLoading(false)
     }
