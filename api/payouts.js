@@ -129,6 +129,16 @@ module.exports = async (req, res) => {
   const action = req.query?.action || req.body?.action || (req.method === 'GET' ? 'process-queue' : null);
   if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   try {
+    if (action === 'process-queue') {
+      const workerSecret = process.env.PAYOUT_WORKER_SECRET;
+      const cronSecret = process.env.CRON_SECRET;
+      const suppliedSecret = req.headers['x-payout-worker-secret'] || (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+      if ((!workerSecret || suppliedSecret !== workerSecret) && (!cronSecret || suppliedSecret !== cronSecret)) return res.status(401).json({ error: 'Unauthorized' });
+      const admin = supabaseAdmin();
+      const result = await processQueue(admin, req.body?.limit || req.query?.limit);
+      return res.status(200).json(result);
+    }
+
     const admin = supabaseAdmin();
 
     if (action === 'webhook') {
@@ -147,15 +157,6 @@ module.exports = async (req, res) => {
         await recordTransferEvent(admin, eventKey, mapped, reference, transfer);
       }
       return res.status(200).json({ received: true });
-    }
-
-    if (action === 'process-queue') {
-      const workerSecret = process.env.PAYOUT_WORKER_SECRET;
-      const cronSecret = process.env.CRON_SECRET;
-      const suppliedSecret = req.headers['x-payout-worker-secret'] || (req.headers.authorization || '').replace(/^Bearer\\s+/i, '');
-      if ((!workerSecret || suppliedSecret !== workerSecret) && (!cronSecret || suppliedSecret !== cronSecret)) return res.status(401).json({ error: 'Unauthorized' });
-      const result = await processQueue(admin, req.body?.limit || req.query?.limit);
-      return res.status(200).json(result);
     }
 
     return res.status(400).json({ error: 'Invalid action' });
