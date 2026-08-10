@@ -108,6 +108,7 @@ export default function Admin() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [showOrderModal, setShowOrderModal] = useState(false)
   const [isTestingEmail, setIsTestingEmail] = useState(false)
+  const [sellerBusinessIds, setSellerBusinessIds] = useState<string[]>([])
   const [productsLoading, setProductsLoading] = useState(false)
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [reviewsLoading, setReviewsLoading] = useState(false)
@@ -145,14 +146,15 @@ export default function Admin() {
 
     // Sellers can own multiple businesses: aggregate orders (and stats)
     // across every store they own so nothing is hidden from them.
-    let ownerBusinessIds: string[] = []
     if (role === 'seller') {
       try {
         const owned = await getAllBusinessesByOwner(user.id)
-        ownerBusinessIds = owned.map((b) => b.id)
+        setSellerBusinessIds(owned.map((b) => b.id))
       } catch (err) {
         console.error('Error fetching owned businesses:', err)
       }
+    } else {
+      setSellerBusinessIds([])
     }
 
     const businessId = role === 'admin' ? undefined : currentBusiness?.id
@@ -181,7 +183,7 @@ export default function Admin() {
     setOrdersLoading(true)
     setOrdersError('')
     try {
-      const ordersData = await getAllOrders(businessId, role === 'seller' && ownerBusinessIds.length > 0 ? ownerBusinessIds : undefined)
+      const ordersData = await getAllOrders(businessId, role === 'seller' && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined)
       setOrders(ordersData)
       setOrdersError('')
     } catch (err) {
@@ -627,19 +629,19 @@ export default function Admin() {
 
       <Suspense fallback={<div className="admin-loading">Loading view...</div>}>
         {/* Analytics View */}
-        {view === 'analytics' && <AdminAnalytics />}
+        {view === 'analytics' && <AdminAnalytics businessIds={role === 'seller' && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}
 
         {/* Inventory Management View */}
-        {view === 'inventory' && <InventoryManagement />}
+        {view === 'inventory' && <InventoryManagement businessIds={role === 'seller' && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}
 
         {/* Financial Reports View */}
-        {view === 'reports' && <FinancialReports />}
+        {view === 'reports' && <FinancialReports businessIds={role === 'seller' && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}
 
         {/* Supplier Management View */}
         {view === 'suppliers' && <SupplierManagement />}
 
         {/* POS View */}
-        {view === 'pos' && <POS />}
+        {view === 'pos' && <POS businessIds={role === 'seller' && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}
       </Suspense>
 
       {/* Reviews Management View */}

@@ -57,11 +57,15 @@ export interface CustomerSpending {
   averageOrderValue: number
 }
 
-export const getSalesAnalytics = async (): Promise<SalesStats> => {
-  const { data: orders, error } = await getSupabase()
+export const getSalesAnalytics = async (businessIds?: string[]): Promise<SalesStats> => {
+  let query = getSupabase()
     .from('orders')
     .select('*')
     .neq('status', 'cancelled')
+  if (businessIds && businessIds.length > 0) {
+    query = query.in('business_id', businessIds)
+  }
+  const { data: orders, error } = await query
 
   if (error) throw error
 
@@ -114,12 +118,17 @@ export const getSalesAnalytics = async (): Promise<SalesStats> => {
   }
 }
 
-export const getDailySalesReport = async (days: number = 30): Promise<DailySalesReport[]> => {
-  const { data: orders, error } = await getSupabase()
+export const getDailySalesReport = async (days: number = 30, businessIds?: string[]): Promise<DailySalesReport[]> => {
+  let query = getSupabase()
     .from('orders')
     .select('*')
     .neq('status', 'cancelled')
-    .gte('created_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString())
+  if (businessIds && businessIds.length > 0) {
+    query = query.in('business_id', businessIds)
+  }
+  query = query.gte('created_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString())
+
+  const { data: orders, error } = await query
 
   if (error) throw error
 
@@ -143,12 +152,17 @@ export const getDailySalesReport = async (days: number = 30): Promise<DailySales
   }))
 }
 
-export const getWeeklySalesReport = async (): Promise<DailySalesReport[]> => {
-  const { data: orders, error } = await getSupabase()
+export const getWeeklySalesReport = async (businessIds?: string[]): Promise<DailySalesReport[]> => {
+  let query = getSupabase()
     .from('orders')
     .select('*')
     .neq('status', 'cancelled')
-    .gte('created_at', new Date(Date.now() - 52 * 7 * 24 * 60 * 60 * 1000).toISOString())
+  if (businessIds && businessIds.length > 0) {
+    query = query.in('business_id', businessIds)
+  }
+  query = query.gte('created_at', new Date(Date.now() - 52 * 7 * 24 * 60 * 60 * 1000).toISOString())
+
+  const { data: orders, error } = await query
 
   if (error) throw error
 
@@ -175,11 +189,15 @@ export const getWeeklySalesReport = async (): Promise<DailySalesReport[]> => {
   }))
 }
 
-export const getMonthlySalesReport = async (): Promise<DailySalesReport[]> => {
-  const { data: orders, error } = await getSupabase()
+export const getMonthlySalesReport = async (businessIds?: string[]): Promise<DailySalesReport[]> => {
+  let query = getSupabase()
     .from('orders')
     .select('*')
     .neq('status', 'cancelled')
+  if (businessIds && businessIds.length > 0) {
+    query = query.in('business_id', businessIds)
+  }
+  const { data: orders, error } = await query
 
   if (error) throw error
 
@@ -203,11 +221,15 @@ export const getMonthlySalesReport = async (): Promise<DailySalesReport[]> => {
   }))
 }
 
-export const getYearlySalesReport = async (): Promise<DailySalesReport[]> => {
-  const { data: orders, error } = await getSupabase()
+export const getYearlySalesReport = async (businessIds?: string[]): Promise<DailySalesReport[]> => {
+  let query = getSupabase()
     .from('orders')
     .select('*')
     .neq('status', 'cancelled')
+  if (businessIds && businessIds.length > 0) {
+    query = query.in('business_id', businessIds)
+  }
+  const { data: orders, error } = await query
 
   if (error) throw error
 
@@ -231,11 +253,15 @@ export const getYearlySalesReport = async (): Promise<DailySalesReport[]> => {
   }))
 }
 
-export const getSalesByCategory = async (): Promise<CategorySalesReport[]> => {
-  const { data: orders, error } = await getSupabase()
+export const getSalesByCategory = async (businessIds?: string[]): Promise<CategorySalesReport[]> => {
+  let query = getSupabase()
     .from('orders')
     .select('*')
     .neq('status', 'cancelled')
+  if (businessIds && businessIds.length > 0) {
+    query = query.in('business_id', businessIds)
+  }
+  const { data: orders, error } = await query
 
   if (error) throw error
 
@@ -261,11 +287,15 @@ export const getSalesByCategory = async (): Promise<CategorySalesReport[]> => {
   }))
 }
 
-export const getBestSellingProducts = async (limit: number = 10): Promise<ProductPerformance[]> => {
-  const { data: orders, error } = await getSupabase()
+export const getBestSellingProducts = async (limit: number = 10, businessIds?: string[]): Promise<ProductPerformance[]> => {
+  let query = getSupabase()
     .from('orders')
     .select('*')
     .neq('status', 'cancelled')
+  if (businessIds && businessIds.length > 0) {
+    query = query.in('business_id', businessIds)
+  }
+  const { data: orders, error } = await query
 
   if (error) throw error
 
@@ -294,11 +324,15 @@ export const getBestSellingProducts = async (limit: number = 10): Promise<Produc
     .slice(0, limit)
 }
 
-export const getLeastSellingProducts = async (limit: number = 10): Promise<ProductPerformance[]> => {
-  const { data: orders, error } = await getSupabase()
+export const getLeastSellingProducts = async (limit: number = 10, businessIds?: string[]): Promise<ProductPerformance[]> => {
+  let query = getSupabase()
     .from('orders')
     .select('*')
     .neq('status', 'cancelled')
+  if (businessIds && businessIds.length > 0) {
+    query = query.in('business_id', businessIds)
+  }
+  const { data: orders, error } = await query
 
   if (error) throw error
 
@@ -327,11 +361,15 @@ export const getLeastSellingProducts = async (limit: number = 10): Promise<Produ
     .slice(0, limit)
 }
 
-export const getTopCustomersBySpending = async (limit: number = 10): Promise<CustomerSpending[]> => {
-  const { data: orders, error } = await getSupabase()
+export const getTopCustomersBySpending = async (limit: number = 10, businessIds?: string[]): Promise<CustomerSpending[]> => {
+  let query = getSupabase()
     .from('orders')
     .select('*')
     .neq('status', 'cancelled')
+  if (businessIds && businessIds.length > 0) {
+    query = query.in('business_id', businessIds)
+  }
+  const { data: orders, error } = await query
 
   if (error) throw error
 
@@ -358,11 +396,15 @@ export const getTopCustomersBySpending = async (limit: number = 10): Promise<Cus
     .slice(0, limit)
 }
 
-export const getRevenueReport = async (): Promise<{ totalRevenue: number; totalOrders: number; averageOrderValue: number }> => {
-  const { data: orders, error } = await getSupabase()
+export const getRevenueReport = async (businessIds?: string[]): Promise<{ totalRevenue: number; totalOrders: number; averageOrderValue: number }> => {
+  let query = getSupabase()
     .from('orders')
     .select('*')
     .neq('status', 'cancelled')
+  if (businessIds && businessIds.length > 0) {
+    query = query.in('business_id', businessIds)
+  }
+  const { data: orders, error } = await query
 
   if (error) throw error
 
@@ -427,15 +469,19 @@ export const exportProductsCSV = async (products: any[]): Promise<string> => {
   }
 }
 
-export const exportCustomersCSV = async (): Promise<string> => {
+export const exportCustomersCSV = async (businessIds?: string[]): Promise<string> => {
   try {
     const supabaseClient = getSupabase()
     
     // Get all customers from orders
-    const { data: orders, error: ordersError } = await supabaseClient
+    let query = supabaseClient
       .from('orders')
       .select('customer_name, customer_email, customer_phone, total, created_at')
       .neq('status', 'cancelled')
+    if (businessIds && businessIds.length > 0) {
+      query = query.in('business_id', businessIds)
+    }
+    const { data: orders, error: ordersError } = await query
     
     if (ordersError) throw ordersError
     
@@ -485,19 +531,21 @@ export const exportCustomersCSV = async (): Promise<string> => {
   }
 }
 
-export const exportSalesReportCSV = async (days: number = 30): Promise<string> => {
+export const exportSalesReportCSV = async (days: number = 30, businessIds?: string[]): Promise<string> => {
   try {
     const supabaseClient = getSupabase()
-    
     // Get orders from the last N days
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
-    
-    const { data: orders, error } = await supabaseClient
+    let query = supabaseClient
       .from('orders')
       .select('*')
       .gte('created_at', startDate.toISOString())
       .neq('status', 'cancelled')
+    if (businessIds && businessIds.length > 0) {
+      query = query.in('business_id', businessIds)
+    }
+    const { data: orders, error } = await query
     
     if (error) throw error
     

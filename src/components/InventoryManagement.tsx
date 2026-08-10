@@ -33,7 +33,7 @@ interface InventorySummary {
   totalProducts: number
 }
 
-export default function InventoryManagement() {
+export default function InventoryManagement({ businessIds }: { businessIds?: string[] } = {}) {
   const [view, setView] = useState<InventoryView>('overview')
   const [products, setProducts] = useState<Product[]>([])
   const [lowStockProducts, setLowStockProducts] = useState<Product[]>([])
@@ -58,9 +58,9 @@ export default function InventoryManagement() {
     setError('')
     try {
       const [allProducts, lowStock, inventorySummary, allSuppliers] = await Promise.all([
-        getAllProductsWithInventory(),
-        adminGetLowStockProducts(),
-        adminGetInventorySummary(),
+        getAllProductsWithInventory(businessIds),
+        adminGetLowStockProducts(businessIds),
+        adminGetInventorySummary(businessIds),
         supplierService.getSuppliers()
       ])
       setProducts(allProducts)
@@ -138,7 +138,7 @@ export default function InventoryManagement() {
 
   const handleExportCSV = async () => {
     try {
-      const csv = await adminExportInventoryCSV()
+      const csv = await adminExportInventoryCSV(businessIds)
       const blob = new Blob([csv], { type: 'text/csv' })
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')

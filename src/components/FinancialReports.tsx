@@ -17,7 +17,7 @@ import {
 } from '../services/adminAnalyticsService'
 import { formatCurrency } from '../utils/currency'
 
-export default function FinancialReports() {
+export default function FinancialReports({ businessIds }: { businessIds?: string[] } = {}) {
   const [activeReport, setActiveReport] = useState<'revenue' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'category' | 'best' | 'least' | 'customers'>('revenue')
   const [revenueData, setRevenueData] = useState<any>(null)
   const [dailyData, setDailyData] = useState<DailySalesReport[]>([])
@@ -37,15 +37,15 @@ export default function FinancialReports() {
       setError('')
       try {
         const [revenue, daily, weekly, monthly, yearly, category, best, least, customers] = await Promise.all([
-          getRevenueReport(),
-          getDailySalesReport(30),
-          getWeeklySalesReport(),
-          getMonthlySalesReport(),
-          getYearlySalesReport(),
-          getSalesByCategory(),
-          getBestSellingProducts(10),
-          getLeastSellingProducts(10),
-          getTopCustomersBySpending(10)
+          getRevenueReport(businessIds),
+          getDailySalesReport(30, businessIds),
+          getWeeklySalesReport(businessIds),
+          getMonthlySalesReport(businessIds),
+          getYearlySalesReport(businessIds),
+          getSalesByCategory(businessIds),
+          getBestSellingProducts(10, businessIds),
+          getLeastSellingProducts(10, businessIds),
+          getTopCustomersBySpending(10, businessIds)
         ])
         setRevenueData(revenue)
         setDailyData(daily)
@@ -64,7 +64,7 @@ export default function FinancialReports() {
       }
     }
     loadData()
-  }, [])
+  }, [businessIds])
 
   const downloadCSV = (csv: string, filename: string) => {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
@@ -81,7 +81,7 @@ export default function FinancialReports() {
 
   const handleExportSalesReport = async () => {
     try {
-      const csv = await exportSalesReportCSV(30)
+      const csv = await exportSalesReportCSV(30, businessIds)
       downloadCSV(csv, `sales-report-${new Date().toISOString().split('T')[0]}.csv`)
     } catch (err) {
       console.error('Failed to export sales report:', err)

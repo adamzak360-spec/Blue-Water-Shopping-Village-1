@@ -200,14 +200,17 @@ export const adjustProductStock = async (productId: string, delta: number): Prom
  * Get all products with low stock (below threshold)
  * @returns Array of products with low stock
  */
-export const getLowStockProducts = async (): Promise<Product[]> => {
+export const getLowStockProducts = async (businessIds?: string[]): Promise<Product[]> => {
   try {
     // Note: Supabase doesn't support column-to-column comparison in filters directly.
     // We fetch all products and filter client-side for low stock.
-    const { data, error } = await getSupabase()
+    let query = getSupabase()
       .from('products')
       .select('*')
-      .order('stock_quantity', { ascending: true })
+    if (businessIds && businessIds.length > 0) {
+      query = query.in('business_id', businessIds)
+    }
+    const { data, error } = await query.order('stock_quantity', { ascending: true })
     
     if (error) {
       console.error('[InventoryService] Error fetching products for low stock check:', error)
@@ -226,11 +229,15 @@ export const getLowStockProducts = async (): Promise<Product[]> => {
  * Get inventory summary statistics
  * @returns Object with inventory stats
  */
-export const getInventorySummary = async () => {
+export const getInventorySummary = async (businessIds?: string[]) => {
   try {
-    const { data, error } = await getSupabase()
+    let query = getSupabase()
       .from('products')
       .select('stock_quantity, low_stock_threshold, status')
+    if (businessIds && businessIds.length > 0) {
+      query = query.in('business_id', businessIds)
+    }
+    const { data, error } = await query
     
     if (error) {
       console.error('[InventoryService] Error fetching inventory summary:', error)

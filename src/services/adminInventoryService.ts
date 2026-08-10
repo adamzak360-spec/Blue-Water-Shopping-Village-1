@@ -24,14 +24,17 @@ const getSupabase = () => {
  * Get all products with inventory details
  * @returns Array of products with stock information
  */
-export const getAllProductsWithInventory = async (): Promise<Product[]> => {
+export const getAllProductsWithInventory = async (businessIds?: string[]): Promise<Product[]> => {
   try {
-    console.log('[AdminInventory] Fetching all products with inventory')
+    console.log('[AdminInventory] Fetching all products with inventory', businessIds ? `scoped to ${businessIds.length} business(es)` : 'no scope (admin)')
     
-    const { data, error } = await getSupabase()
+    let query = getSupabase()
       .from('products')
       .select('*')
-      .order('name', { ascending: true })
+    if (businessIds && businessIds.length > 0) {
+      query = query.in('business_id', businessIds)
+    }
+    const { data, error } = await query.order('name', { ascending: true })
     
     if (error) {
       console.error('[AdminInventory] Error fetching products:', error)
@@ -81,10 +84,10 @@ export const adminAdjustProductStock = async (productId: string, delta: number):
  * Get low stock alert products
  * @returns Array of products with low stock
  */
-export const adminGetLowStockProducts = async (): Promise<Product[]> => {
+export const adminGetLowStockProducts = async (businessIds?: string[]): Promise<Product[]> => {
   try {
-    console.log('[AdminInventory] Fetching low stock products')
-    return await getLowStockProducts()
+    console.log('[AdminInventory] Fetching low stock products', businessIds ? `scoped to ${businessIds.length} business(es)` : 'no scope (admin)')
+    return await getLowStockProducts(businessIds)
   } catch (error: any) {
     console.error('[AdminInventory] Error getting low stock products:', error)
     throw error
@@ -95,10 +98,10 @@ export const adminGetLowStockProducts = async (): Promise<Product[]> => {
  * Get inventory summary for dashboard
  * @returns Inventory statistics
  */
-export const adminGetInventorySummary = async () => {
+export const adminGetInventorySummary = async (businessIds?: string[]) => {
   try {
-    console.log('[AdminInventory] Fetching inventory summary')
-    return await getInventorySummary()
+    console.log('[AdminInventory] Fetching inventory summary', businessIds ? `scoped to ${businessIds.length} business(es)` : 'no scope (admin)')
+    return await getInventorySummary(businessIds)
   } catch (error: any) {
     console.error('[AdminInventory] Error getting inventory summary:', error)
     throw error
@@ -140,12 +143,12 @@ export const adminBulkUpdateStock = async (
  * Get detailed inventory report
  * @returns Detailed inventory statistics
  */
-export const adminGetInventoryReport = async () => {
+export const adminGetInventoryReport = async (businessIds?: string[]) => {
   try {
-    console.log('[AdminInventory] Generating inventory report')
+    console.log('[AdminInventory] Generating inventory report', businessIds ? `scoped to ${businessIds.length} business(es)` : 'no scope (admin)')
     
-    const products = await getAllProductsWithInventory()
-    const summary = await getInventorySummary()
+    const products = await getAllProductsWithInventory(businessIds)
+    const summary = await getInventorySummary(businessIds)
     
     // Calculate additional metrics
     const totalValue = products.reduce((sum, p) => sum + (p.stock_quantity * p.price), 0)
@@ -190,11 +193,11 @@ export const adminGetInventoryReport = async () => {
  * Export inventory data as CSV format
  * @returns CSV string
  */
-export const adminExportInventoryCSV = async (): Promise<string> => {
+export const adminExportInventoryCSV = async (businessIds?: string[]): Promise<string> => {
   try {
-    console.log('[AdminInventory] Exporting inventory as CSV')
+    console.log('[AdminInventory] Exporting inventory as CSV', businessIds ? `scoped to ${businessIds.length} business(es)` : 'no scope (admin)')
     
-    const report = await adminGetInventoryReport()
+    const report = await adminGetInventoryReport(businessIds)
     
     // Create CSV header - matching spec: Product, Category, Current Stock, Low Stock Threshold, Stock Status
     const headers = ['Product', 'Category', 'Current Stock', 'Low Stock Threshold', 'Stock Status']

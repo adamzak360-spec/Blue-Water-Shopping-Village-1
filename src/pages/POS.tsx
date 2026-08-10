@@ -28,7 +28,7 @@ interface POSState {
   amountPaid: number
 }
 
-export default function POS() {
+export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
   const [state, setState] = useState<POSState>({
     cartItems: [],
     products: [],
@@ -51,7 +51,12 @@ export default function POS() {
       try {
         setState(prev => ({ ...prev, isLoading: true, error: '' }))
         const products = await getAllProducts()
-        setState(prev => ({ ...prev, products, isLoading: false }))
+        // Sellers must only see products from their own stores in POS
+        const scopedProducts =
+          businessIds && businessIds.length > 0
+            ? products.filter(p => businessIds.includes(p.business_id || ''))
+            : products
+        setState(prev => ({ ...prev, products: scopedProducts, isLoading: false }))
       } catch (err) {
         setState(prev => ({
           ...prev,
@@ -167,6 +172,9 @@ export default function POS() {
         payment_status: 'paid' as const,
         payment_method: state.paymentMethod,
         source: 'POS', // Mark as POS order
+        // Sellers' POS orders are tagged with their own store so dashboard
+        // data stays scoped to the seller's businesses
+        business_id: businessIds && businessIds.length === 1 ? businessIds[0] : undefined,
       }
 
       const order = await createOrder(orderData as any)
