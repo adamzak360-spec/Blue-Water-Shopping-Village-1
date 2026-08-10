@@ -181,8 +181,8 @@
 }
 
 .wishlist-nav-link .wishlist-badge {
-  top: 2px;
-  right: 2px;
+  top: -7px;
+  right: 0;
 }
 
 .drawer-count {
