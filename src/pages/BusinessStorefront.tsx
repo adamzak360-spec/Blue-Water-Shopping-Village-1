@@ -44,17 +44,20 @@ export default function BusinessStorefront() {
       const biz = bizData as Business
       setBusiness(biz)
 
-      // Fetch products for this business
-      const { data: prodData, error: prodError } = await supabase
+      // Only show active products assigned to this business. An empty store must
+      // remain empty instead of falling back to the marketplace catalog.
+      const { data: prodData, error: productsError } = await supabase
         .from('products')
         .select('*')
         .eq('business_id', biz.id)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
 
-      if (!prodError && prodData) {
-        setProducts(prodData as Product[])
+      if (productsError) {
+        console.error('Error loading store products:', productsError)
       }
+
+      setProducts((prodData || []) as Product[])
 
       setIsLoading(false)
     }
@@ -116,11 +119,15 @@ export default function BusinessStorefront() {
           <div className="products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '24px' }}>
             {products.map(product => (
               <div key={product.id} className="product-card" style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', background: 'white', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ height: '200px', background: '#f3f4f6', position: 'relative' }}>
+                <div style={{ height: '220px', background: '#f9fafb', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
                   {product.image_url ? (
-                    <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img 
+                      src={product.image_url} 
+                      alt={product.name} 
+                      style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} 
+                    />
                   ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9ca3af' }}>No image</div>
+                    <div style={{ color: '#9ca3af' }}>No image</div>
                   )}
                 </div>
                 <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>

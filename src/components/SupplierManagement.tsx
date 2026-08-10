@@ -3,7 +3,11 @@ import { supplierService, Supplier, SupplierFormData } from '../services/supplie
 import { Plus, Edit2, Trash2, Building2, User, Phone, Mail, MapPin, X, Check, Download, AlertTriangle } from 'lucide-react';
 import '../pages/Admin.css';
 
-const SupplierManagement: React.FC = () => {
+interface SupplierManagementProps {
+  productIds?: string[]
+}
+
+const SupplierManagement: React.FC<SupplierManagementProps> = ({ productIds }) => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,14 +26,10 @@ const SupplierManagement: React.FC = () => {
     status: 'Active'
   });
 
-  useEffect(() => {
-    fetchSuppliers();
-  }, []);
-
   const fetchSuppliers = async () => {
     try {
       setLoading(true);
-      const data = await supplierService.getSuppliers();
+      const data = await supplierService.getSuppliers(productIds);
       setSuppliers(data);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch suppliers');
@@ -37,6 +37,10 @@ const SupplierManagement: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchSuppliers();
+  }, [productIds]);
 
   const filteredSuppliers = useMemo(() => {
     return suppliers.filter(s => {
@@ -78,7 +82,7 @@ const SupplierManagement: React.FC = () => {
 
   const handleExportCSV = async () => {
     try {
-      const csv = await supplierService.exportSuppliersCSV();
+      const csv = await supplierService.exportSuppliersCSV(productIds);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');

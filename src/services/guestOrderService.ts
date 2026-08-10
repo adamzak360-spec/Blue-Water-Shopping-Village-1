@@ -26,6 +26,10 @@ interface GuestOrderPayload {
   paystack_reference?: string
   amount_paid?: number
   payment_date?: string
+  paid_at?: string
+  transaction_id?: string
+  business_id?: string
+  source?: string
 }
 
 /**
@@ -143,6 +147,10 @@ export async function createGuestOrder(
     paystack_reference: payload.paystack_reference || null,
     amount_paid: payload.amount_paid || null,
     payment_date: payload.payment_date || null,
+    paid_at: payload.paid_at || null,
+    transaction_id: payload.transaction_id || null,
+    business_id: payload.business_id || null,
+    source: payload.source || 'ONLINE',
     user_id: null,
   }
 

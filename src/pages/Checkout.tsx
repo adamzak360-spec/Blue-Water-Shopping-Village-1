@@ -10,7 +10,6 @@ import {
   verifyPayment, 
   generatePaymentReference,
 } from '../services/paystackService'
-import { handleNewOrder } from '../api/emailNotificationHandler'
 import { formatCurrency } from '../utils/currency'
 import './Checkout.css'
 
@@ -66,6 +65,10 @@ export default function Checkout() {
 
   const deliveryFee = calculateMethodFee(selectedDeliveryMethod)
   const total = cartSubtotal + deliveryFee
+  const cartBusinessIds = Array.from(new Set(
+    cart.map(item => item.business_id || DEFAULT_BUSINESS_ID)
+  ))
+  const checkoutBusinessId = cartBusinessIds.length === 1 ? cartBusinessIds[0] : undefined
 
   // Load Paystack script
   useEffect(() => {
@@ -120,6 +123,10 @@ export default function Checkout() {
 
     try {
       console.log('[Checkout] Form validation started')
+
+      if (!checkoutBusinessId) {
+        throw new Error('Your cart contains products from multiple stores. Please checkout one store at a time.')
+      }
       
       // Initialize payment with Paystack
       const reference = generatePaymentReference()
@@ -179,7 +186,16 @@ export default function Checkout() {
       // Verify payment with Paystack
       const verification = await verifyPayment(paymentReference)
 
-      if (verification.status && verification.data.status === 'success') {
+      const expectedAmountInKobo = Math.round(total * 100)
+      const verifiedReference = verification.data?.reference
+      const verifiedAmount = verification.data?.amount
+
+      if (
+        verification.status &&
+        verification.data.status === 'success' &&
+        verifiedReference === paymentReference &&
+        verifiedAmount >= expectedAmountInKobo
+      ) {
         console.log('[Checkout] Payment verified successfully')
 
         // Create order with payment details
@@ -199,7 +215,7 @@ export default function Checkout() {
           payment_status: 'paid' as const,
           payment_method: 'paystack',
           paystack_reference: paymentReference,
-          business_id: DEFAULT_BUSINESS_ID,
+          business_id: checkoutBusinessId,
           source: 'ONLINE',
           amount_paid: verification.data.amount / 100, // Convert from kobo
           payment_date: new Date().toISOString(),
@@ -237,15 +253,6 @@ export default function Checkout() {
 
         console.log('[Checkout] Order created successfully:', result.id)
         
-        // Send email notifications
-        try {
-          await handleNewOrder(result, formData.email)
-          console.log('[Checkout] Email notifications sent')
-        } catch (emailError) {
-          console.warn('[Checkout] Failed to send email notifications:', emailError)
-          // Don't block the checkout flow if email fails
-        }
-
         localStorage.removeItem('checkout_state')
         clearCart()
         alert('Payment successful! Your order has been placed. A confirmation email has been sent.')
@@ -256,6 +263,10 @@ export default function Checkout() {
           // For guests, navigate to home or a success page since they can't access /customer/orders
           navigate('/')
         }
+      } else if (verification.data?.reference !== paymentReference) {
+        throw new Error('Payment reference mismatch. Please contact support before retrying.')
+      } else if ((verification.data?.amount || 0) < expectedAmountInKobo) {
+        throw new Error('The verified payment amount does not cover this order total.')
       } else {
         throw new Error('Payment was not successful. Please try again.')
       }
@@ -281,7 +292,7 @@ export default function Checkout() {
             payment_status: 'failed' as const,
             payment_method: 'paystack',
             paystack_reference: paymentReference,
-            business_id: DEFAULT_BUSINESS_ID,
+            business_id: checkoutBusinessId,
             source: 'ONLINE',
           }
           

@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react'
 import { getSalesAnalytics, SalesStats } from '../services/adminAnalyticsService'
 import { formatCurrency } from '../utils/currency'
 
-export default function AdminAnalytics({ businessIds }: { businessIds?: string[] } = {}) {
+interface AdminAnalyticsProps {
+  businessIds?: string[]
+}
+
+export default function AdminAnalytics({ businessIds }: AdminAnalyticsProps) {
   const [stats, setStats] = useState<SalesStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')

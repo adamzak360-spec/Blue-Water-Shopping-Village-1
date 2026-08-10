@@ -1,87 +1,223 @@
-import './StaticPages.css'
+import { Link } from 'react-router-dom'
+import './About.css'
+
+const customerSteps = [
+  { number: '1', title: 'Discover', text: 'Browse products, categories, and registered stores on Reliable.' },
+  { number: '2', title: 'Explore Stores', text: 'Visit a seller storefront and explore the products they offer.' },
+  { number: '3', title: 'Choose Products', text: 'Review product details, add what you need to your cart, and choose where to shop.' },
+  { number: '4', title: 'Order', text: 'Complete checkout and manage your order through the platform.' },
+]
+
+const businessSteps = [
+  { number: '1', title: 'Register', text: 'Create a business account on Reliable.' },
+  { number: '2', title: 'Create Store', text: 'Set up your public storefront with your business information.' },
+  { number: '3', title: 'Add Products', text: 'Upload products, images, prices, categories, and stock information.' },
+  { number: '4', title: 'Manage & Grow', text: 'Use your seller dashboard to manage products, inventory, and store orders.' },
+]
+
+const benefits = [
+  {
+    title: 'Two-Sided Platform',
+    description: 'Customers discover products through both the shared marketplace and independent seller stores.'
+  },
+  {
+    title: 'Easy Setup',
+    description: 'Businesses can create and manage their own online stores without building from scratch.'
+  },
+  {
+    title: 'Trusted Community',
+    description: 'A connected place where customers find trustworthy businesses and businesses reach more shoppers.'
+  },
+  {
+    title: 'Complete Tools',
+    description: 'Everything you need to manage inventory, orders, and grow your online presence.'
+  }
+]
 
 export default function About() {
   return (
-    <div className="static-page">
-      <div className="static-page-container">
-        <div className="page-hero">
+    <div className="about-page">
+      {/* Hero Section */}
+      <section className="about-hero">
+        <div className="about-hero-content">
           <h1>About Reliable</h1>
-          <p className="hero-subtitle">Bringing Ghana's finest groceries to your doorstep</p>
+          <p className="hero-subtitle">
+            Reliable is an e-commerce platform connecting customers with products and businesses with the tools to create and manage their own online stores.
+          </p>
+          <div className="hero-cta">
+            <Link to="/stores" className="cta-primary">Browse Stores</Link>
+            <Link to="/seller/register" className="cta-secondary">Start Selling</Link>
+          </div>
         </div>
+      </section>
 
-        <div className="page-content">
-          <section className="content-section">
-            <h2>Our Story</h2>
-            <p>
-              Reliable was founded with a simple mission: to make quality groceries
-              accessible to every household in Ghana. What started as a small neighbourhood shop has grown
-              into a modern, full-service Reliable Premium Market that serves customers across Tamale, the Northern Region
-              and throughout Ghana.
-            </p>
-            <p>
-              Our name reflects our commitment to clarity and transparency in everything we do. From the
-              freshness of our products to the honesty of our pricing, we believe our customers deserve
-              the best experience possible when they shop with us.
-            </p>
-          </section>
+      {/* Main Content */}
+      <div className="about-container">
+        
+        {/* What is Reliable */}
+        <section className="about-section">
+          <div className="section-header">
+            <h2>What is Reliable?</h2>
+            <p>A marketplace with two connected sides</p>
+          </div>
+          <div className="model-cards">
+            <article className="model-card">
+              <div className="card-icon">M</div>
+              <h3>Reliable Marketplace</h3>
+              <p>
+                A shared shopping space where customers can browse products, search by need, explore categories, discover registered businesses, and choose what to order.
+              </p>
+              <Link to="/products" className="card-link">Browse Products →</Link>
+            </article>
+            <article className="model-card">
+              <div className="card-icon">S</div>
+              <h3>Independent Seller Stores</h3>
+              <p>
+                Public online stores created and managed by businesses on Reliable. Customers can visit a store directly, view its products, and shop from that seller.
+              </p>
+              <Link to="/stores" className="card-link">Explore Stores →</Link>
+            </article>
+          </div>
+        </section>
 
-          <section className="content-section">
-            <h2>Our Mission</h2>
+        {/* For Customers */}
+        <section className="about-section">
+          <div className="section-header">
+            <h2>For Customers</h2>
+            <p>Find products and businesses with confidence</p>
+          </div>
+          <div className="section-content">
             <p>
-              To provide Ghanaians with convenient, affordable access to fresh, high-quality groceries
-              and household essentials, delivered with care and reliability.
+              Reliable gives customers a convenient place to discover products and the businesses behind them. You can start with a product search, browse a category, or explore stores and then continue to a seller's storefront.
             </p>
-          </section>
-
-          <section className="content-section">
-            <h2>Our Vision</h2>
+            <div className="flow-diagram">
+              <span className="flow-step">Browse</span>
+              <span className="flow-arrow">→</span>
+              <span className="flow-step">Discover Stores</span>
+              <span className="flow-arrow">→</span>
+              <span className="flow-step">View Products</span>
+              <span className="flow-arrow">→</span>
+              <span className="flow-step">Order</span>
+            </div>
             <p>
-              To become Ghana's most trusted Reliable Premium Market, setting the standard for quality,
-              convenience, and customer satisfaction in the country's rapidly growing e-commerce landscape.
+              Whether you are shopping from Tamale, elsewhere in Ghana, or from another supported location, the experience is designed to be simple: find what you need, review the details, add it to your cart, and complete your order through the available checkout process.
             </p>
-          </section>
+          </div>
+        </section>
 
-          <section className="content-section">
-            <h2>What We Offer</h2>
-            <div className="values-grid">
-              <div className="value-card">
-                <div className="value-icon">&#127793;</div>
-                <h4>Fresh Products</h4>
-                <p>We source fresh produce daily from trusted local and international suppliers to ensure you receive the highest quality products.</p>
+        {/* For Businesses */}
+        <section className="about-section">
+          <div className="section-header">
+            <h2>For Businesses</h2>
+            <p>Build an online presence without starting from scratch</p>
+          </div>
+          <div className="section-content">
+            <p>
+              Businesses do not need to build a complete e-commerce system on their own. Reliable provides the foundation for creating an online store, presenting products, managing inventory, and handling orders from a seller dashboard.
+            </p>
+            <div className="benefits-grid">
+              <div className="benefit-item">
+                <h4>Create Your Store</h4>
+                <p>Present your business through an independent public storefront.</p>
               </div>
-              <div className="value-card">
-                <div className="value-icon">&#128666;</div>
-                <h4>Fast Delivery</h4>
-                <p>Our dedicated delivery team ensures your orders arrive promptly and in perfect condition, right to your doorstep.</p>
+              <div className="benefit-item">
+                <h4>Manage Products</h4>
+                <p>Add product information, images, prices, categories, and stock.</p>
               </div>
-              <div className="value-card">
-                <div className="value-icon">&#128176;</div>
-                <h4>Fair Pricing</h4>
-                <p>We offer competitive prices without compromising on quality, making everyday essentials affordable for every family.</p>
+              <div className="benefit-item">
+                <h4>Manage Orders</h4>
+                <p>Review and manage customer orders related to your store.</p>
               </div>
-              <div className="value-card">
-                <div className="value-icon">&#128170;</div>
-                <h4>Reliable Service</h4>
-                <p>Our customer support team is always available to assist you with orders, inquiries, and any concerns you may have.</p>
+              <div className="benefit-item">
+                <h4>Reach More Shoppers</h4>
+                <p>Make your store discoverable through both its own link and the Reliable marketplace.</p>
               </div>
             </div>
-          </section>
+            <Link to="/seller/register" className="section-cta">Register Your Business</Link>
+          </div>
+        </section>
 
-          <section className="content-section">
-            <h2>Our Commitment</h2>
+        {/* How It Works */}
+        <section className="about-section">
+          <div className="section-header">
+            <h2>How Reliable Works</h2>
+            <p>Simple steps for customers and businesses</p>
+          </div>
+          <div className="workflow-grid">
+            <div className="workflow-column">
+              <h3>For Customers</h3>
+              <ol className="step-list">
+                {customerSteps.map((step) => (
+                  <li key={step.number}>
+                    <span className="step-number">{step.number}</span>
+                    <div className="step-content">
+                      <strong>{step.title}</strong>
+                      <p>{step.text}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div className="workflow-column">
+              <h3>For Businesses</h3>
+              <ol className="step-list">
+                {businessSteps.map((step) => (
+                  <li key={step.number}>
+                    <span className="step-number">{step.number}</span>
+                    <div className="step-content">
+                      <strong>{step.title}</strong>
+                      <p>{step.text}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </section>
+
+        {/* Why Reliable */}
+        <section className="about-section">
+          <div className="section-header">
+            <h2>Why Reliable?</h2>
+            <p>The platform built for African commerce</p>
+          </div>
+          <div className="benefits-showcase">
+            {benefits.map((benefit, index) => (
+              <div key={index} className="benefit-card">
+                <h3>{benefit.title}</h3>
+                <p>{benefit.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Our Goal */}
+        <section className="about-section about-goal">
+          <div className="section-header">
+            <h2>Our Goal</h2>
+            <p>Make digital commerce more accessible</p>
+          </div>
+          <div className="section-content">
             <p>
-              At Reliable, we are committed to supporting the local economy by partnering
-              with Ghanaian farmers and producers wherever possible. We believe in giving back to the community
-              that has supported our growth, and we continuously strive to improve our services to meet the
-              evolving needs of our customers.
+              Our goal is to make it easier for customers to find trustworthy businesses online and easier for businesses to establish a practical digital presence. Reliable is being built as a connected place where people can shop, businesses can manage their stores, and both sides can take part in online commerce with clarity.
             </p>
             <p>
-              Whether you are a busy professional, a family shopping for the week, or someone who simply
-              appreciates the convenience of online grocery shopping, Reliable is here
-              to serve you.
+              We are focused on building useful tools, clear customer experiences, and a marketplace that can grow with the businesses and communities it serves.
             </p>
-          </section>
-        </div>
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section className="about-final-cta">
+          <h2>Ready to Get Started?</h2>
+          <p>Join thousands of customers and businesses on Reliable</p>
+          <div className="final-cta-buttons">
+            <Link to="/products" className="btn-shop">Shop Now</Link>
+            <Link to="/stores" className="btn-browse">Browse Stores</Link>
+            <Link to="/seller/register" className="btn-sell">Start Selling</Link>
+          </div>
+        </section>
+
       </div>
     </div>
   )

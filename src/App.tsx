@@ -18,7 +18,8 @@ import {
   Settings,
   HelpCircle,
   Phone,
-  Info
+  Info,
+  Store as StoreIcon
 } from 'lucide-react'
 import './App.css'
 import { lazy, Suspense, useLayoutEffect } from 'react'
@@ -52,6 +53,7 @@ const OrderDetails = lazy(() => import('./pages/OrderDetails'))
 const CustomerSettings = lazy(() => import('./pages/CustomerSettings'))
 const ProductDetails = lazy(() => import('./pages/ProductDetails'))
 const BusinessStorefront = lazy(() => import('./pages/BusinessStorefront'))
+const StoresDirectory = lazy(() => import('./pages/StoresDirectory'))
 const SellerRegister = lazy(() => import('./pages/SellerRegister'))
 
 // Prefetch functions for near-instant transitions
@@ -93,21 +95,29 @@ function AppShell() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Close menu on route change and show progress bar
+  // Reset the page position whenever navigation changes, including filter/query changes.
+  // The frame delay lets the new route render before the browser is moved to its top.
   useLayoutEffect(() => {
     setIsMenuOpen(false)
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    })
+
     NProgress.start()
-    
+
     // Small delay to ensure the progress bar is visible during fast transitions
     const timer = setTimeout(() => {
       NProgress.done()
     }, 100)
-    
+
     return () => {
+      window.cancelAnimationFrame(frame)
       clearTimeout(timer)
       NProgress.done()
     }
-  }, [location.pathname])
+  }, [location.pathname, location.search, location.hash])
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
@@ -138,6 +148,7 @@ function AppShell() {
           </div>
 
           <div className="header-right">
+            <Link to="/stores" className="nav-text-link">Stores</Link>
             <Link to="/products" className="nav-text-link" onMouseEnter={prefetchProducts}>Shop</Link>
             <Link to="/seller/register" className="nav-text-link nav-sell-link" onMouseEnter={prefetchSellerRegister}>Sell</Link>
             <Link to={user ? "/customer" : "/login"} className="nav-icon-link" title="Account">
@@ -178,6 +189,7 @@ function AppShell() {
                 </Link>
               )}
               <Link to="/customer/orders" className="drawer-item"><Package size={20} /> Orders</Link>
+              <Link to="/stores" className="drawer-item"><StoreIcon size={20} /> Stores</Link>
               <Link to="/customer/wishlist" className="drawer-item"><Heart size={20} /> Wishlist</Link>
               <Link to="/customer" className="drawer-item"><User size={20} /> Account</Link>
             </>
@@ -192,7 +204,10 @@ function AppShell() {
               <LogoutButton />
             </div>
           ) : (
-            <Link to="/login" className="drawer-item login-item" onMouseEnter={prefetchLogin}><User size={20} /> Login / Register</Link>
+            <>
+              <Link to="/stores" className="drawer-item"><StoreIcon size={20} /> Stores</Link>
+              <Link to="/login" className="drawer-item login-item" onMouseEnter={prefetchLogin}><User size={20} /> Login / Register</Link>
+            </>
           )}
         </nav>
       </aside>
@@ -203,6 +218,7 @@ function AppShell() {
         <Suspense fallback={<div className="loading-screen">Loading...</div>}>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/stores" element={<StoresDirectory />} />
             <Route path="/store/:slug" element={<BusinessStorefront />} />
             <Route path="/products" element={<Products />} />
             <Route path="/product/:productId" element={<ProductDetails />} />

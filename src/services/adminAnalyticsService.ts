@@ -58,6 +58,21 @@ export interface CustomerSpending {
 }
 
 export const getSalesAnalytics = async (businessIds?: string[]): Promise<SalesStats> => {
+  // An explicitly empty seller scope means the seller owns no stores yet.
+  if (businessIds && businessIds.length === 0) {
+    return {
+      todaySales: 0,
+      yesterdaySales: 0,
+      thisWeekSales: 0,
+      thisMonthSales: 0,
+      thisYearSales: 0,
+      totalRevenue: 0,
+      totalOrders: 0,
+      averageOrderValue: 0,
+      totalProductsSold: 0,
+    }
+  }
+
   let query = getSupabase()
     .from('orders')
     .select('*')

@@ -12,6 +12,7 @@ interface AuthContextType {
   updateUserMetadata: (metadata: Record<string, any>) => Promise<{ error: Error | null }>
   changePassword: (newPassword: string) => Promise<{ error: Error | null }>
   resetPasswordEmail: (email: string) => Promise<{ error: Error | null }>
+  refreshProfile: () => Promise<void>
   isAdmin: boolean
   role: string | null
 }
@@ -26,6 +27,7 @@ const AuthContext = createContext<AuthContextType>({
   updateUserMetadata: async () => ({ error: new Error('Supabase not configured') }),
   changePassword: async () => ({ error: new Error('Supabase not configured') }),
   resetPasswordEmail: async () => ({ error: new Error('Supabase not configured') }),
+  refreshProfile: async () => {},
   isAdmin: false,
   role: null,
 })
@@ -120,6 +122,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const refreshProfile = async () => {
+    await fetchProfile(user)
+  }
+
   const signIn = async (email: string, password: string) => {
     if (!isSupabaseConfigured || !supabase) {
       return { error: new Error('Supabase not configured') }
@@ -205,6 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updateUserMetadata, 
       changePassword,
       resetPasswordEmail,
+      refreshProfile,
       isAdmin,
       role
     }}>
