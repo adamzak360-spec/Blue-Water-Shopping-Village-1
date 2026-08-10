@@ -159,21 +159,46 @@
   background-color: var(--color-primary-light);
 }
 
-.cart-badge {
+.cart-badge,
+.wishlist-badge {
   position: absolute;
   top: 4px;
   right: 4px;
-  background-color: var(--color-accent);
+  background-color: #e11d48;
   color: white;
   font-size: 0.7rem;
   font-weight: 700;
   min-width: 18px;
   height: 18px;
+  padding: 0 3px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-full);
   border: 2px solid white;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.wishlist-nav-link .wishlist-badge {
+  top: 2px;
+  right: 2px;
+}
+
+.drawer-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  margin-left: auto;
+  border-radius: var(--radius-full);
+  background-color: #e11d48;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 /* Side Drawer */
