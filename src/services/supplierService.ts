@@ -26,13 +26,38 @@ export interface SupplierFormData {
 }
 
 export const supplierService = {
-  async getSuppliers() {
+  async getSuppliers(productIds?: string[]) {
     if (!supabase) throw new Error('Supabase client not initialized');
+
+    // A seller with no products has no supplier records to display. When product
+    // IDs are provided, only suppliers linked to those seller-owned products are returned.
+    if (productIds && productIds.length === 0) return [] as Supplier[];
+
+    if (productIds) {
+      const { data: links, error: linksError } = await supabase
+        .from('product_suppliers')
+        .select('supplier_id')
+        .in('product_id', productIds);
+
+      if (linksError) throw linksError;
+      const supplierIds = [...new Set((links || []).map((link) => link.supplier_id))];
+      if (supplierIds.length === 0) return [] as Supplier[];
+
+      const { data, error } = await supabase
+        .from('suppliers')
+        .select('*')
+        .in('id', supplierIds)
+        .order('company_name', { ascending: true });
+
+      if (error) throw error;
+      return (data || []) as Supplier[];
+    }
+
     const { data, error } = await supabase
       .from('suppliers')
       .select('*')
       .order('company_name', { ascending: true });
-    
+
     if (error) throw error;
     return (data || []) as Supplier[];
   },
@@ -121,8 +146,8 @@ export const supplierService = {
    * Export suppliers data as CSV format
    * @returns CSV string
    */
-  async exportSuppliersCSV(): Promise<string> {
-    const suppliers = await this.getSuppliers();
+  async exportSuppliersCSV(productIds?: string[]): Promise<string> {
+    const suppliers = await this.getSuppliers(productIds);
     const headers = ['Company Name', 'Contact Person', 'Phone Number', 'Email Address', 'Address', 'Tax ID', 'Status', 'Date Added'];
     const rows = suppliers.map(s => [
       s.company_name,

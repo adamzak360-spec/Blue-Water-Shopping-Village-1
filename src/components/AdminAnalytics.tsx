@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react'
 import { getSalesAnalytics, SalesStats } from '../services/adminAnalyticsService'
 import { formatCurrency } from '../utils/currency'
 
-export default function AdminAnalytics() {
+interface AdminAnalyticsProps {
+  businessIds?: string[]
+}
+
+export default function AdminAnalytics({ businessIds }: AdminAnalyticsProps) {
   const [stats, setStats] = useState<SalesStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -10,7 +14,7 @@ export default function AdminAnalytics() {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const data = await getSalesAnalytics()
+        const data = await getSalesAnalytics(businessIds)
         setStats(data)
       } catch (err) {
         setError('Failed to load analytics data')
@@ -20,7 +24,7 @@ export default function AdminAnalytics() {
       }
     }
     loadStats()
-  }, [])
+  }, [businessIds])
 
   if (isLoading) return <div className="loading">Loading analytics...</div>
   if (error) return <div className="error-message">{error}</div>

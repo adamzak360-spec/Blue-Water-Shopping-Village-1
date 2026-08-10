@@ -88,6 +88,7 @@ const defaultFormState = {
 export default function Admin() {
   const { user, signOut, role } = useAuth()
   const [business, setBusiness] = useState<Business | null>(null)
+  const [ownedBusinessIds, setOwnedBusinessIds] = useState<string[]>([])
   const [view, setView] = useState<AdminView>('dashboard')
   const [products, setProducts] = useState<Product[]>([])
   const [orders, setOrders] = useState<Order[]>([])
@@ -156,23 +157,30 @@ export default function Admin() {
         console.error('Error fetching owned businesses:', err)
       }
     }
+    setOwnedBusinessIds(ownerBusinessIds)
 
     const businessId = role === 'admin' ? undefined : currentBusiness?.id
     
-    // Load products and stats independently
+    // Load products and stats independently. Never allow an unresolved seller
+    // business to fall through to the global marketplace query.
     setProductsLoading(true)
     setProductsError('')
     try {
-      const [allProducts, statsData] = await Promise.all([
-        getAllProducts(businessId),
-        getDashboardStats(businessId)
-      ])
-      setProducts(allProducts)
-      setStats(statsData)
+      if (role === 'seller' && !businessId) {
+        setProducts([])
+        setStats({ total: 0, active: 0, outOfStock: 0 })
+      } else {
+        const [allProducts, statsData] = await Promise.all([
+          getAllProducts(businessId),
+          getDashboardStats(businessId)
+        ])
+        setProducts(allProducts)
+        setStats(statsData)
+      }
       setProductsError('')
     } catch (err) {
       console.error('Error loading products/stats:', err)
-      setProductsError('Failed to load products')
+          setProductsError('Failed to load products')
       setProducts([])
       setStats({ total: 0, active: 0, outOfStock: 0 })
     } finally {
@@ -198,7 +206,7 @@ export default function Admin() {
     setReviewsLoading(true)
     setReviewsError('')
     try {
-      const reviewsData = await getAllReviews()
+          const reviewsData = await getAllReviews()
       setReviews(reviewsData)
       setReviewsError('')
     } catch (err) {
@@ -219,6 +227,8 @@ export default function Admin() {
   const businessId = role === 'admin' ? undefined : business?.id
 
   const filteredReviewsByStore = reviews.filter(review => {
+    // Seller activity cards stay at zero until at least one seller-owned order exists.
+    if (role === 'seller' && orders.length === 0) return false
     if (!businessId) return true
     const businessProductIds = new Set(products.map(p => p.id))
     return businessProductIds.has(review.product_id)
@@ -588,7 +598,7 @@ export default function Admin() {
           className={`tab ${view === 'reviews' ? 'active' : ''}`}
           onClick={() => setView('reviews')}
         >
-          Reviews ({reviews.length})
+          Reviews ({filteredReviewsByStore.length})
         </button>
         <button
           className={`tab ${view === 'inventory' ? 'active' : ''}`}
@@ -638,7 +648,7 @@ export default function Admin() {
 
       <Suspense fallback={<div className="admin-loading">Loading view...</div>}>
         {/* Analytics View */}
-        {view === 'analytics' && <AdminAnalytics />}
+        {view === 'analytics' && <AdminAnalytics businessIds={role === 'seller' ? ownedBusinessIds : undefined} />}
 
         {/* Inventory Management View */}
         {view === 'inventory' && <InventoryManagement />}
@@ -647,7 +657,13 @@ export default function Admin() {
         {view === 'reports' && <FinancialReports />}
 
         {/* Supplier Management View */}
-        {view === 'suppliers' && <SupplierManagement />}
+        {view === 'suppliers' && (
+          <SupplierManagement
+            productIds={role === 'seller'
+              ? (orders.length > 0 ? products.map((product) => product.id) : [])
+              : undefined}
+          />
+        )}
 
         {/* Registered Sellers Management View */}
         {view === 'registered-sellers' && role === 'admin' && <RegisteredSellerManagement />}
@@ -681,8 +697,8 @@ export default function Admin() {
 
           {filteredReviews.length === 0 ? (
             <div className="empty-state">
-              <h3>{reviews.length === 0 ? 'No reviews yet' : 'No reviews match your search'}</h3>
-              <p>{reviews.length === 0 ? 'Reviews will appear here once customers submit them.' : 'Try adjusting your search or filters.'}</p>
+              <h3>{filteredReviewsByStore.length === 0 ? 'No reviews yet' : 'No reviews match your search'}</h3>
+              <p>{filteredReviewsByStore.length === 0 ? 'Reviews will appear here once customers submit them.' : 'Try adjusting your search or filters.'}</p>
             </div>
           ) : (
             <div className="reviews-table">
