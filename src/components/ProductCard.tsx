@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
+import { Heart } from 'lucide-react'
 import type { Product } from '../types'
 import { useCart } from '../context/CartContext'
+import { useWishlist } from '../context/WishlistContext'
 import { formatCurrency } from '../utils/currency'
 import StockStatus from './StockStatus'
 
@@ -11,45 +13,53 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, showStock = true }: ProductCardProps) {
   const { addToCart } = useCart()
+  const { isWishlisted, toggleWishlist } = useWishlist()
+  const saved = isWishlisted(product.id)
 
   return (
     <div className="product-card">
       <Link to={`/product/${product.id}`} className="product-image-link">
         <div className="product-image-container">
           {product.image_url ? (
-            <img 
-              src={product.image_url} 
-              alt={product.name} 
-              className="product-image" 
+            <img
+              src={product.image_url}
+              alt={product.name}
+              className="product-image"
               loading="lazy"
               style={{ objectFit: 'contain' }}
               onError={(e) => {
                 const target = e.target as HTMLImageElement
                 target.style.display = 'none'
                 const placeholder = target.parentElement?.querySelector('.product-image-placeholder')
-                if (placeholder) {
-                  placeholder.classList.add('visible')
-                }
+                if (placeholder) placeholder.classList.add('visible')
               }}
             />
           ) : null}
           <div className={`product-image-placeholder ${!product.image_url ? 'visible' : ''}`}>
             <span>No image</span>
           </div>
+          <button
+            type="button"
+            className={`product-wishlist-btn ${saved ? 'active' : ''}`}
+            aria-label={saved ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`}
+            aria-pressed={saved}
+            onClick={(event) => {
+              event.preventDefault()
+              event.stopPropagation()
+              void toggleWishlist(product.id)
+            }}
+          >
+            <Heart size={18} fill={saved ? 'currentColor' : 'none'} />
+          </button>
         </div>
       </Link>
-      
+
       <div className="product-info">
         <span className="product-category">{product.category}</span>
-        
         <Link to={`/product/${product.id}`} className="product-name-link">
           <h4 className="product-name">{product.name}</h4>
         </Link>
-        
-        <p className="product-description">
-          {product.description}
-        </p>
-        
+        <p className="product-description">{product.description}</p>
         <div className="product-price-stock">
           <span className="product-price">{formatCurrency(product.price)}</span>
           {showStock && (
@@ -58,16 +68,13 @@ export default function ProductCard({ product, showStock = true }: ProductCardPr
             </div>
           )}
         </div>
-        
         <div className="product-actions">
-          <Link to={`/product/${product.id}`} className="view-details-btn">
-            View Details
-          </Link>
-          <button 
+          <Link to={`/product/${product.id}`} className="view-details-btn">View Details</Link>
+          <button
             className="add-to-cart-btn"
             onClick={(e) => {
-              e.preventDefault();
-              addToCart(product);
+              e.preventDefault()
+              addToCart(product)
             }}
             disabled={product.stock_quantity === 0 || product.status === 'inactive'}
           >

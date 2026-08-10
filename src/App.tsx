@@ -1,9 +1,10 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom'
+import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuth } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { LogoutButton } from './components/Logout'
 import { useCart } from './context/CartContext'
+import { useWishlist } from './context/WishlistContext'
 import { CartSidebar } from './components/CartSidebar'
 import { 
   Menu, 
@@ -54,6 +55,7 @@ const CustomerSettings = lazy(() => import('./pages/CustomerSettings'))
 const ProductDetails = lazy(() => import('./pages/ProductDetails'))
 const BusinessStorefront = lazy(() => import('./pages/BusinessStorefront'))
 const StoresDirectory = lazy(() => import('./pages/StoresDirectory'))
+const Wishlist = lazy(() => import('./pages/Wishlist'))
 const SellerRegister = lazy(() => import('./pages/SellerRegister'))
 
 // Prefetch functions for near-instant transitions
@@ -69,16 +71,13 @@ import TermsPopup from './components/TermsPopup'
 import WhatsAppButton from './components/WhatsAppButton'
 
 function App() {
-  return (
-    <Router>
-      <AppShell />
-    </Router>
-  )
+  return <AppShell />
 }
 
 function AppShell() {
   const { user, isAdmin, role } = useAuth()
   const { cartCount, setIsCartOpen } = useCart()
+  const { wishlistCount } = useWishlist()
   const location = useLocation()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
@@ -154,9 +153,10 @@ function AppShell() {
             <Link to={user ? "/customer" : "/login"} className="nav-icon-link" title="Account">
               <User size={22} />
             </Link>
-            <button className="nav-icon-link" title="Wishlist">
+            <Link to={user ? "/customer/wishlist" : "/login"} className="nav-icon-link wishlist-nav-link" title="Wishlist" aria-label="Wishlist">
               <Heart size={22} />
-            </button>
+              {wishlistCount > 0 && <span className="wishlist-badge">{wishlistCount}</span>}
+            </Link>
 	            <NotificationBell />
             <button className="cart-btn" onClick={() => setIsCartOpen(true)}>
               <ShoppingCart size={22} />
@@ -190,7 +190,7 @@ function AppShell() {
               )}
               <Link to="/customer/orders" className="drawer-item"><Package size={20} /> Orders</Link>
               <Link to="/stores" className="drawer-item"><StoreIcon size={20} /> Stores</Link>
-              <Link to="/customer/wishlist" className="drawer-item"><Heart size={20} /> Wishlist</Link>
+              <Link to="/customer/wishlist" className="drawer-item"><Heart size={20} /> Wishlist {wishlistCount > 0 && <span className="drawer-count">{wishlistCount}</span>}</Link>
               <Link to="/customer" className="drawer-item"><User size={20} /> Account</Link>
             </>
           )}
@@ -279,6 +279,14 @@ function AppShell() {
               element={
                 <ProtectedRoute>
                   <OrderDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/customer/wishlist"
+              element={
+                <ProtectedRoute>
+                  <Wishlist />
                 </ProtectedRoute>
               }
             />

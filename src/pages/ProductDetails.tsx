@@ -4,6 +4,7 @@ import { getProductById, getAllProducts, getProductVariants } from '../services/
 import { getApprovedReviewsByProductId, submitReview, getProductRatingStats } from '../services/reviewService'
 import type { Product, Review, ProductVariant } from '../types'
 import { useCart } from '../context/CartContext'
+import { useWishlist } from '../context/WishlistContext'
 import { formatCurrency } from '../utils/currency'
 import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock, Share2, Heart, ZoomIn, Phone } from 'lucide-react'
 import StockStatus from '../components/StockStatus'
@@ -12,6 +13,7 @@ import './ProductDetails.css'
 export default function ProductDetails() {
   const { productId } = useParams<{ productId: string }>()
   const { addToCart } = useCart()
+  const { isWishlisted, toggleWishlist } = useWishlist()
 
   const [product, setProduct] = useState<Product | null>(null)
   const [variants, setVariants] = useState<ProductVariant[]>([])
@@ -421,8 +423,14 @@ export default function ProductDetails() {
               <ShoppingCart size={20} />
               {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
             </button>
-            <button className="wishlist-btn">
-              <Heart size={20} />
+            <button
+              className={`wishlist-btn ${product && isWishlisted(product.id) ? 'active' : ''}`}
+              onClick={() => product && void toggleWishlist(product.id)}
+              aria-label={product && isWishlisted(product.id) ? 'Remove from wishlist' : 'Save to wishlist'}
+              aria-pressed={product ? isWishlisted(product.id) : false}
+            >
+              <Heart size={20} fill={product && isWishlisted(product.id) ? 'currentColor' : 'none'} />
+              <span>{product && isWishlisted(product.id) ? 'Saved' : 'Save'}</span>
             </button>
             <button className="share-btn">
               <Share2 size={20} />
