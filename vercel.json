@@ -1,6 +1,6 @@
 {
   "crons": [
-    { "path": "/api/payouts", "schedule": "*/5 * * * *" }
+    { "path": "/api/payouts", "schedule": "0 0 * * *" }
   ],
   "headers": [
     {
