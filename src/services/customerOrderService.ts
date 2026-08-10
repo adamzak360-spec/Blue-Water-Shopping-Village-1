@@ -42,6 +42,32 @@ export const getCustomerOrderById = async (orderId: string, userId: string): Pro
   return data as Order | null
 }
 
+export interface DeliveryConfirmationResult {
+  order_id: string
+  confirmation: 'CONFIRMED' | 'NOT_RECEIVED'
+  payout_id?: string
+  payout_status?: Order['payout_status']
+}
+
+export const confirmOrderDelivery = async (
+  orderId: string,
+  response: 'CONFIRMED' | 'NOT_RECEIVED',
+  reason?: string
+): Promise<DeliveryConfirmationResult> => {
+  const { data, error } = await getSupabase().rpc('confirm_order_delivery', {
+    p_order_id: orderId,
+    p_response: response,
+    p_reason: reason || null,
+  })
+
+  if (error) {
+    console.error('Error confirming order delivery:', error)
+    throw error
+  }
+
+  return data as DeliveryConfirmationResult
+}
+
 export const reorderPreviousOrder = async (
   orderId: string,
   userId: string,
@@ -103,9 +129,14 @@ export const getOrderStatusTimeline = (
     { stage: 'Ready for Pickup', status: 'ready-for-pickup' },
     { stage: 'Out for Delivery', status: 'out-for-delivery' },
     { stage: 'Delivered', status: 'delivered' },
+    { stage: 'Customer Confirmed Received', status: 'customer-confirmed' },
+    { stage: 'Payout Eligible', status: 'payout-eligible' },
+    { stage: 'Payout Queued', status: 'payout-queued' },
+    { stage: 'Payout Processing', status: 'payout-processing' },
+    { stage: 'Seller Paid', status: 'seller-paid' },
   ]
 
-  const statusOrder = ['pending', 'approved', 'processing', 'ready-for-pickup', 'out-for-delivery', 'delivered', 'cancelled']
+  const statusOrder = ['pending', 'approved', 'processing', 'ready-for-pickup', 'out-for-delivery', 'delivered', 'customer-confirmed', 'payout-eligible', 'payout-queued', 'payout-processing', 'seller-paid', 'cancelled']
   const currentStatusIndex = statusOrder.indexOf(status)
 
   return stages.map(({ stage, status: stageStatus }) => ({

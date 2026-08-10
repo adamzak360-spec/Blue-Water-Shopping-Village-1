@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
-import { getCustomerOrderById, getOrderStatusTimeline } from '../services/customerOrderService'
+import { confirmOrderDelivery, getCustomerOrderById, getOrderStatusTimeline } from '../services/customerOrderService'
 import { supabase } from '../supabaseClient'
 import { Order } from '../types'
 import { formatCurrency } from '../utils/currency'
@@ -17,6 +17,8 @@ export default function OrderDetails() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [reorderSuccess, setReorderSuccess] = useState(false)
+  const [isConfirmingDelivery, setIsConfirmingDelivery] = useState(false)
+  const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user || !orderId) {
@@ -70,6 +72,29 @@ export default function OrderDetails() {
       }
     }
   }, [user, orderId, navigate])
+
+  const handleDeliveryConfirmation = async (response: 'CONFIRMED' | 'NOT_RECEIVED') => {
+    if (!order?.id || isConfirmingDelivery) return
+    try {
+      setIsConfirmingDelivery(true)
+      setError(null)
+      const result = await confirmOrderDelivery(order.id, response)
+      setOrder(previous => previous ? {
+        ...previous,
+        customer_delivery_confirmation: result.confirmation,
+        customer_delivery_confirmation_at: new Date().toISOString(),
+        payout_status: result.payout_status,
+        payout_id: result.payout_id,
+      } : previous)
+      setConfirmationMessage(response === 'CONFIRMED'
+        ? 'Delivery confirmed. Your seller payout is now eligible and will be processed securely in the background. Eligibility does not mean the seller has been paid yet.'
+        : 'We recorded that you have not received this order. The seller payout is held while Reliable reviews the issue.')
+    } catch (err: any) {
+      setError(err.message || 'Unable to record your delivery confirmation')
+    } finally {
+      setIsConfirmingDelivery(false)
+    }
+  }
 
   const handleReorder = () => {
     if (!order || !order.items) return
@@ -136,6 +161,12 @@ export default function OrderDetails() {
         {reorderSuccess && (
           <div className="success-message">
             ✓ Items added to cart! Redirecting to checkout...
+          </div>
+        )}
+
+        {confirmationMessage && (
+          <div className="success-message" role="status">
+            {confirmationMessage}
           </div>
         )}
 
@@ -273,6 +304,37 @@ export default function OrderDetails() {
             </div>
           </div>
         </div>
+
+        {order.status === 'delivered' && (!order.customer_delivery_confirmation || order.customer_delivery_confirmation === 'PENDING') && (
+          <div className="details-card confirmation-card" role="region" aria-labelledby="delivery-confirmation-title">
+            <h2 id="delivery-confirmation-title">Have you received your order?</h2>
+            <p>The seller has marked this order as delivered. Please confirm whether you have received it.</p>
+            <div className="confirmation-actions">
+              <button className="reorder-btn" onClick={() => handleDeliveryConfirmation('CONFIRMED')} disabled={isConfirmingDelivery}>
+                {isConfirmingDelivery ? 'Recording...' : 'Yes, I received it'}
+              </button>
+              <button className="continue-shopping-btn" onClick={() => handleDeliveryConfirmation('NOT_RECEIVED')} disabled={isConfirmingDelivery}>
+                No, I have not received it
+              </button>
+            </div>
+          </div>
+        )}
+
+        {order.customer_delivery_confirmation === 'CONFIRMED' && (
+          <div className="details-card payout-status-card">
+            <h2>Delivery confirmed</h2>
+            <p>
+              Seller payout status: <strong>{order.payout_status === 'PAID' ? 'Payment successfully sent' : order.payout_status === 'PROCESSING' ? 'Payout being processed' : order.payout_status === 'FAILED' ? 'Payout failed — requires review' : 'Eligible for payout'}</strong>
+            </p>
+          </div>
+        )}
+
+        {order.customer_delivery_confirmation === 'NOT_RECEIVED' && (
+          <div className="details-card payout-status-card">
+            <h2>Delivery issue recorded</h2>
+            <p>The seller payout is held while Reliable reviews your report.</p>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="details-actions">

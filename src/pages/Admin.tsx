@@ -40,6 +40,7 @@ import './Admin.css'
   const SupplierManagement = lazy(() => import('../components/SupplierManagement'))
   const RegisteredSellerManagement = lazy(() => import('../components/RegisteredSellerManagement'))
   const POS = lazy(() => import('./POS'))
+  const SellerPayouts = lazy(() => import('../components/SellerPayouts'))
 
   // Prefetch functions for near-instant transitions
   const prefetchInventory = () => import('../components/InventoryManagement')
@@ -48,8 +49,9 @@ import './Admin.css'
   const prefetchSuppliers = () => import('../components/SupplierManagement')
   const prefetchRegisteredSellers = () => import('../components/RegisteredSellerManagement')
   const prefetchPOS = () => import('./POS')
+  const prefetchSellerPayouts = () => import('../components/SellerPayouts')
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts'
 
 interface ProductFormErrors {
   name?: string
@@ -638,6 +640,13 @@ export default function Admin() {
           </button>
         )}
         <button
+          className={`tab ${view === 'payouts' ? 'active' : ''}`}
+          onClick={() => setView('payouts')}
+          onMouseEnter={prefetchSellerPayouts}
+        >
+          Seller Payouts
+        </button>
+        <button
           className={`tab ${view === 'pos' ? 'active' : ''}`}
           onClick={() => setView('pos')}
           onMouseEnter={prefetchPOS}
@@ -667,6 +676,9 @@ export default function Admin() {
 
         {/* Registered Sellers Management View */}
         {view === 'registered-sellers' && role === 'admin' && <RegisteredSellerManagement />}
+
+        {/* Seller Payouts View */}
+        {view === 'payouts' && <SellerPayouts businessIds={role === 'seller' && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}
 
         {/* POS View */}
         {view === 'pos' && <POS businessIds={role === 'seller' && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}

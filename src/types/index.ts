@@ -132,6 +132,9 @@ export interface CustomerProfile {
   updated_at?: string
 }
 
+export type DeliveryConfirmation = 'PENDING' | 'CONFIRMED' | 'NOT_RECEIVED' | 'DISPUTED'
+export type PayoutStatus = 'HELD' | 'ELIGIBLE' | 'QUEUED' | 'PROCESSING' | 'PAID' | 'FAILED' | 'REVERSED'
+
 export interface Order {
   id?: string
   user_id?: string
@@ -158,6 +161,17 @@ export interface Order {
   source?: string
   business_id?: string
   created_at?: string
+  customer_delivery_confirmation?: DeliveryConfirmation
+  customer_delivery_confirmation_at?: string
+  customer_delivery_confirmation_reason?: string
+  admin_delivery_confirmation?: boolean
+  admin_delivery_confirmation_at?: string
+  admin_delivery_confirmation_by?: string
+  admin_delivery_confirmation_notes?: string
+  payout_status?: PayoutStatus
+  payout_id?: string
+  seller_payout_amount_minor?: number
+  payout_currency?: string
 }
 
 export interface Notification {

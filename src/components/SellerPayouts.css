@@ -1,0 +1,23 @@
+.seller-payouts { padding: 1.5rem; }
+.seller-payouts-header { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; margin-bottom: 1.25rem; }
+.seller-payouts-header h2 { margin: 0 0 .35rem; }
+.seller-payouts-header p { margin: 0; color: #64748b; }
+.payout-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: .75rem; margin-bottom: 1rem; }
+.payout-summary-card { background: #fff; border: 1px solid #e2e8f0; border-radius: .8rem; padding: .9rem; box-shadow: 0 5px 16px rgba(15,23,42,.05); }
+.payout-summary-card span, .payout-table small { display: block; color: #64748b; font-size: .75rem; }
+.payout-summary-card strong { display: block; font-size: 1.55rem; margin-top: .2rem; color: #0f172a; }
+.payout-filters { display: flex; gap: .75rem; margin-bottom: 1rem; }
+.payout-filters input, .payout-filters select { min-height: 2.55rem; border: 1px solid #cbd5e1; border-radius: .5rem; padding: 0 .75rem; background: #fff; }
+.payout-filters input { flex: 1; }
+.payout-table-wrap { overflow-x: auto; background: #fff; border-radius: .8rem; border: 1px solid #e2e8f0; }
+.payout-table { width: 100%; border-collapse: collapse; min-width: 920px; }
+.payout-table th, .payout-table td { padding: .8rem .75rem; border-bottom: 1px solid #eef2f7; text-align: left; vertical-align: top; }
+.payout-table th { color: #475569; font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; background: #f8fafc; }
+.payout-table td small { margin-top: .2rem; word-break: break-word; max-width: 180px; }
+.payout-badge { display: inline-block; border-radius: 999px; padding: .3rem .55rem; font-size: .75rem; font-weight: 700; white-space: nowrap; }
+.payout-held, .payout-failed, .payout-reversed { background: #fee2e2; color: #991b1b; }
+.payout-eligible, .payout-queued { background: #fef3c7; color: #92400e; }
+.payout-processing { background: #dbeafe; color: #1d4ed8; }
+.payout-paid { background: #dcfce7; color: #166534; }
+.payout-empty { padding: 2rem; text-align: center; color: #64748b; }
+@media (max-width: 700px) { .seller-payouts { padding: 1rem .5rem; } .seller-payouts-header, .payout-filters { flex-direction: column; } .payout-filters input, .payout-filters select { width: 100%; } }

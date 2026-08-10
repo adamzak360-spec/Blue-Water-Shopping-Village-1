@@ -1,4 +1,7 @@
 {
+  "crons": [
+    { "path": "/api/payouts", "schedule": "*/5 * * * *" }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",
