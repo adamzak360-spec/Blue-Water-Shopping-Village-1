@@ -22,7 +22,7 @@ const CATEGORIES = [
 const DASHBOARD_PATH = '/dashboard'
 
 export default function SellerRegister() {
-  const { user, signUp, role, isLoading: authLoading } = useAuth()
+  const { user, signUp, refreshProfile, role, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
 
   const [step, setStep] = useState<'register' | 'setup'>('register')
@@ -133,6 +133,10 @@ export default function SellerRegister() {
 
       if (bizError) throw bizError
 
+      // Sync the seller role before entering the protected dashboard. Without
+      // this refresh, the route guard can still see the previous customer/null role
+      // until a full page reload occurs.
+      await refreshProfile()
       navigate(DASHBOARD_PATH, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Store setup failed')
