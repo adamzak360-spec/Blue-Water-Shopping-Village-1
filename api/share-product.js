@@ -31,8 +31,8 @@ module.exports = async (req, res) => {
   const productId = req.query?.id;
   if (!productId) return res.status(400).send('Product id is required');
 
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  const supabaseUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim().replace(/\/$/, '');
+  const anonKey = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
   if (!supabaseUrl || !anonKey) return res.status(500).send('Share service is not configured');
 
   try {
