@@ -95,21 +95,29 @@ function AppShell() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Close menu on route change and show progress bar
+  // Reset the page position whenever navigation changes, including filter/query changes.
+  // The frame delay lets the new route render before the browser is moved to its top.
   useLayoutEffect(() => {
     setIsMenuOpen(false)
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    })
+
     NProgress.start()
-    
+
     // Small delay to ensure the progress bar is visible during fast transitions
     const timer = setTimeout(() => {
       NProgress.done()
     }, 100)
-    
+
     return () => {
+      window.cancelAnimationFrame(frame)
       clearTimeout(timer)
       NProgress.done()
     }
-  }, [location.pathname])
+  }, [location.pathname, location.search, location.hash])
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
