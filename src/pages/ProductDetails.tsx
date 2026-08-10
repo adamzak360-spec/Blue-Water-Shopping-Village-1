@@ -6,8 +6,9 @@ import type { Product, Review, ProductVariant } from '../types'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import { formatCurrency } from '../utils/currency'
-import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock, Share2, Heart, ZoomIn, Phone } from 'lucide-react'
+import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock, Heart, ZoomIn, Phone } from 'lucide-react'
 import StockStatus from '../components/StockStatus'
+import ProductShare from '../components/ProductShare'
 import './ProductDetails.css'
 
 export default function ProductDetails() {
@@ -432,9 +433,7 @@ export default function ProductDetails() {
               <Heart size={20} fill={product && isWishlisted(product.id) ? 'currentColor' : 'none'} />
               <span>{product && isWishlisted(product.id) ? 'Saved' : 'Save'}</span>
             </button>
-            <button className="share-btn">
-              <Share2 size={20} />
-            </button>
+            {product && <ProductShare product={product} />}
           </div>
 
           {/* Delivery Options */}
