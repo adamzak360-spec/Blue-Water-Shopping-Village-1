@@ -29,7 +29,6 @@ import {
   exportProductsCSV,
   exportCustomersCSV,
 } from '../services/adminAnalyticsService'
-import { testEmailSending } from '../api/emailNotificationHandler'
 import type { Product, DashboardStats, Order, Review, ProductVariant } from '../types'
 import { formatCurrency } from '../utils/currency'
 import { lazy, Suspense } from 'react'
@@ -119,7 +118,6 @@ export default function Admin() {
   const [editProduct, setEditProduct] = useState<Product | null>(null)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [showOrderModal, setShowOrderModal] = useState(false)
-  const [isTestingEmail, setIsTestingEmail] = useState(false)
   const [sellerBusinessIds, setSellerBusinessIds] = useState<string[]>([])
   const [productsLoading, setProductsLoading] = useState(false)
   const [ordersLoading, setOrdersLoading] = useState(false)
@@ -498,23 +496,6 @@ export default function Admin() {
     }
   }
 
-  const handleTestEmail = async () => {
-    if (!user?.email) return
-    setIsTestingEmail(true)
-    try {
-      const result = await testEmailSending(user.email)
-      if (result.success) {
-        showNotification(result.message, 'success')
-      } else {
-        setError(result.error || result.message)
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to send test email')
-    } finally {
-      setIsTestingEmail(false)
-    }
-  }
-
   const downloadCSV = (csv: string, filename: string) => {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = window.URL.createObjectURL(blob)
@@ -607,13 +588,6 @@ export default function Admin() {
               Visit Public Store
             </a>
           )}
-          <button 
-            onClick={handleTestEmail} 
-            className="btn-secondary btn-sm" 
-            disabled={isTestingEmail}
-          >
-            {isTestingEmail ? 'Testing...' : 'Test Email'}
-          </button>
           <button onClick={() => signOut()} className="btn-delete btn-sm">Sign Out</button>
         </div>
       </div>

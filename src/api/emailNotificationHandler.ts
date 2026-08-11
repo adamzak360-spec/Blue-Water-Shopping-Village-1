@@ -14,7 +14,6 @@ import {
   sendOrderStatusChangeNotifications,
   sendAdminNewCustomerNotification,
 } from '../services/emailNotifications'
-import { emailService } from '../services/emailService'
 import { Order } from '../types'
 
 /**
@@ -128,83 +127,3 @@ export async function handleNewCustomerRegistration(
   }
 }
 
-/**
- * Test email sending capability
- * 
- * Use this to verify that email configuration is working
- */
-export async function testEmailSending(testEmail: string): Promise<{
-  success: boolean
-  message: string
-  error?: string
-}> {
-  try {
-    const emailProvider = import.meta.env.VITE_EMAIL_PROVIDER || 'resend'
-    const { html, text } = {
-      html: `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="UTF-8">
-            <title>Test Email</title>
-            <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background-color: #1e3a8a; color: white; padding: 20px; border-radius: 5px; }
-              .content { padding: 20px; background-color: #f5f5f5; margin-top: 20px; border-radius: 5px; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <h1>Test Email</h1>
-              </div>
-              <div class="content">
-                <p>This is a test email from Reliable.</p>
-                <p>If you received this email, your email configuration is working correctly!</p>
-                <p><strong>Email Provider:</strong> ${emailProvider}</p>
-                <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
-              </div>
-            </div>
-          </body>
-        </html>
-      `,
-      text: `
-Test Email
-
-This is a test email from Reliable.
-If you received this email, your email configuration is working correctly!
-
-Email Provider: ${emailProvider}
-Timestamp: ${new Date().toISOString()}
-      `,
-    }
-
-    const result = await emailService.sendEmail({
-      to: testEmail,
-      subject: 'Test Email - Reliable Marketplace',
-      html,
-      text,
-    })
-
-    if (!result.success) {
-      return {
-        success: false,
-        message: 'Failed to send test email',
-        error: result.error,
-      }
-    }
-
-    return {
-      success: true,
-      message: `Test email sent successfully to ${testEmail}`,
-    }
-  } catch (error: any) {
-    console.error('[EMAIL HANDLER] Error sending test email:', error)
-    return {
-      success: false,
-      message: 'Error sending test email',
-      error: error.message,
-    }
-  }
-}
