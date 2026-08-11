@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 import { getAllProducts } from '../services/productService'
 import { createOrder } from '../services/orderService'
 import type { Product, Order } from '../types'

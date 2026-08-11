@@ -600,7 +600,7 @@ export default function Admin() {
           </div>
           {role === 'seller' && business && (
             <a href={`/store/${business.slug}`} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm">
-              View My Store
+              Visit Public Store
             </a>
           )}
           <button 
@@ -787,7 +787,7 @@ export default function Admin() {
                   e.preventDefault();
                   setIsUpdatingStore(true);
                   try {
-                    await updateBusinessProfile(business.id, storeSettings);
+                    if (business) await updateBusinessProfile(business.id, storeSettings);
                     showNotification('Store profile updated!');
                     loadData();
                   } catch (err: any) {
@@ -861,9 +861,9 @@ export default function Admin() {
                 <div className="branding-upload-group">
                   <label>Store Logo</label>
                   <div className="asset-preview-container">
-                    {business.logo_url ? <img src={business.logo_url} alt="Logo" className="logo-preview" /> : <div className="placeholder-preview">No Logo</div>}
+                    {business?.logo_url ? <img src={business.logo_url} alt="Logo" className="logo-preview" /> : <div className="placeholder-preview">No Logo</div>}
                     <input type="file" accept="image/*" onChange={async (e) => {
-                      if (e.target.files?.[0]) {
+                      if (e.target.files?.[0] && business) {
                         try {
                           setIsLoading(true);
                           const url = await uploadBusinessAsset(e.target.files[0], business.id, 'logo');
@@ -883,9 +883,9 @@ export default function Admin() {
                 <div className="branding-upload-group" style={{ marginTop: '2rem' }}>
                   <label>Store Banner</label>
                   <div className="asset-preview-container banner">
-                    {business.banner_url ? <img src={business.banner_url} alt="Banner" className="banner-preview" /> : <div className="placeholder-preview">No Banner</div>}
+                    {business?.banner_url ? <img src={business.banner_url} alt="Banner" className="banner-preview" /> : <div className="placeholder-preview">No Banner</div>}
                     <input type="file" accept="image/*" onChange={async (e) => {
-                      if (e.target.files?.[0]) {
+                      if (e.target.files?.[0] && business) {
                         try {
                           setIsLoading(true);
                           const url = await uploadBusinessAsset(e.target.files[0], business.id, 'banner');
