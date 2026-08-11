@@ -1051,9 +1051,12 @@ export default function Admin() {
                           <option value="cancelled">Cancelled</option>
                         </select>
                         <button
+                          type="button"
                           onClick={() => handleViewOrder(order)}
                           className="btn-view"
                           title="View order details"
+                          aria-haspopup="dialog"
+                          aria-label={`View details for order ${order.id?.substring(0, 8) || ''}`}
                         >
                           View Details
                         </button>
@@ -1069,10 +1072,20 @@ export default function Admin() {
 
       {/* Order Details Modal */}
       {showOrderModal && selectedOrder && (
-        <div className="modal-overlay" onClick={() => setShowOrderModal(false)}>
-          <div className="modal-content order-details-modal" onClick={e => e.stopPropagation()}>
+        <div
+          className="modal-overlay"
+          role="presentation"
+          onClick={() => setShowOrderModal(false)}
+        >
+          <div
+            className="modal-content order-details-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-order-details-title"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="modal-header">
-              <h3>Order Details</h3>
+              <h3 id="admin-order-details-title">Order Details</h3>
               <button className="close-modal" onClick={() => setShowOrderModal(false)}>&times;</button>
             </div>
             
