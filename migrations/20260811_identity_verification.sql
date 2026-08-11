@@ -65,3 +65,28 @@ DROP TRIGGER IF EXISTS on_identity_verification_change ON public.identity_verifi
 CREATE TRIGGER on_identity_verification_change
   AFTER INSERT OR UPDATE ON public.identity_verifications
   FOR EACH ROW EXECUTE FUNCTION public.handle_identity_status_change();
+
+-- 6. Storage Bucket for Identity Documents
+-- Note: This requires the storage extension to be enabled
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('identity-documents', 'identity-documents', false)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage Policies for identity-documents
+DROP POLICY IF EXISTS "Users can upload their own identity documents" ON storage.objects;
+CREATE POLICY "Users can upload their own identity documents" 
+  ON storage.objects FOR INSERT 
+  TO authenticated 
+  WITH CHECK (bucket_id = 'identity-documents' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+DROP POLICY IF EXISTS "Users can view their own identity documents" ON storage.objects;
+CREATE POLICY "Users can view their own identity documents" 
+  ON storage.objects FOR SELECT 
+  TO authenticated 
+  USING (bucket_id = 'identity-documents' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+DROP POLICY IF EXISTS "Admins can view all identity documents" ON storage.objects;
+CREATE POLICY "Admins can view all identity documents" 
+  ON storage.objects FOR SELECT 
+  TO authenticated 
+  USING (bucket_id = 'identity-documents' AND EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin'));

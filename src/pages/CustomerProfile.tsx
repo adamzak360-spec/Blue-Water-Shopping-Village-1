@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getCustomerProfile, createOrUpdateCustomerProfile } from '../services/customerProfileService'
 import { CustomerProfile as CustomerProfileType } from '../types'
+import { IdentityVerificationForm } from '../components/IdentityVerificationForm'
 import './CustomerProfile.css'
 
 export default function CustomerProfile() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [, setProfile] = useState<CustomerProfileType | null>(null)
+  const [profile, setProfile] = useState<CustomerProfileType | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -221,6 +222,20 @@ export default function CustomerProfile() {
             >
               Change Password
             </button>
+          </div>
+
+          <div className="form-section verification-section">
+            <h2>Verification</h2>
+            {user && (
+              <IdentityVerificationForm 
+                userId={user.id} 
+                currentStatus={profile?.identity_status}
+                onSuccess={() => {
+                  // Refresh profile to get updated status
+                  window.location.reload();
+                }}
+              />
+            )}
           </div>
         </div>
       </div>
