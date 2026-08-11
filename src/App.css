@@ -393,15 +393,16 @@
   inset: 0;
   display: grid;
   place-items: center;
-  background: #000000;
+  background: #032D61;
   z-index: 9999;
 }
 
 .loading-logo {
   display: block;
-  width: 88px;
-  height: 88px;
+  width: 120px;
+  height: 120px;
   object-fit: contain;
+  border-radius: 20%;
   animation: loading-logo-fade 1.8s ease-in-out infinite;
 }
 

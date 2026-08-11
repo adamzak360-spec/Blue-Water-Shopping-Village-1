@@ -131,6 +131,7 @@ function AppShell() {
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
             <Link to="/" className="brand-logo">
+              <img src="/logo-square.png" alt="Reliable" style={{ height: '32px', borderRadius: '4px' }} />
               <span className="logo-text">RELIABLE</span>
             </Link>
           </div>
@@ -171,6 +172,7 @@ function AppShell() {
       <aside className={`side-drawer ${isMenuOpen ? 'open' : ''}`}>
         <div className="drawer-header">
           <div className="drawer-logo">
+            <img src="/logo-square.png" alt="Reliable" style={{ height: '32px', marginRight: '10px', borderRadius: '4px' }} />
             <span>RELIABLE</span>
           </div>
           <button onClick={toggleMenu}><X size={24} /></button>
@@ -218,7 +220,7 @@ function AppShell() {
       <main className="app-main">
         <Suspense fallback={
           <div className="loading-screen" aria-label="Loading Reliable">
-            <img src="/logo-transparent.png" alt="Reliable" className="loading-logo" />
+            <img src="/logo-square.png" alt="Reliable" className="loading-logo" />
           </div>
         }>
           <Routes>
