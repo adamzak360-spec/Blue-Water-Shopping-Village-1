@@ -268,6 +268,13 @@ export default function Admin() {
     loadData()
   }, [user, role, business])
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('view') === 'pos') {
+      setView('pos')
+    }
+  }, [])
+
   const businessId = role === 'admin' ? undefined : business?.id
 
   const filteredReviewsByStore = reviews.filter(review => {
@@ -723,7 +730,7 @@ export default function Admin() {
         {view === 'payouts' && <SellerPayouts businessIds={role === 'seller' && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}
 
         {/* POS View */}
-        {view === 'pos' && <POS businessIds={role === 'seller' && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}
+        {view === 'pos' && <POS businessIds={role === 'seller' ? sellerBusinessIds : undefined} />}
 
         {/* Marketplace Settings View */}
         {view === 'marketplace' && role === 'admin' && (

@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '../context/AuthContext'
+import {
+  confirmPOSSubscription,
+  generatePaymentReference,
+  initializePayment,
+  verifyPayment,
+} from '../services/paystackService'
 import { supabase } from '../supabaseClient'
 import { getAllProducts } from '../services/productService'
 import { createOrder } from '../services/orderService'
 import type { Product, Order } from '../types'
 import { formatCurrency } from '../utils/currency'
-import { Plus, Minus, Trash2, Printer, X, Search } from 'lucide-react'
+import { CreditCard, Plus, Minus, Trash2, Printer, X, Search } from 'lucide-react'
 import './POS.css'
 
 interface CartItem {
@@ -32,6 +39,7 @@ interface POSState {
   businessCountry: string
   businessCurrency: string
   subscriptionPrice: { price: number; currency: string } | null
+  subscriptionExpiresAt: string | null
 }
 
 export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
@@ -54,7 +62,9 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
     businessCountry: 'GH',
     businessCurrency: 'GHS',
     subscriptionPrice: null,
+    subscriptionExpiresAt: null,
   })
+  const { user, session } = useAuth()
 
   // Fetch products and check subscription on mount
   useEffect(() => {
@@ -63,15 +73,32 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
         setState(prev => ({ ...prev, isLoading: true, error: '' }))
         
         // 1. Check Subscription if seller
-        if (businessIds && businessIds.length > 0) {
-          const { data: bizData } = await supabase!
+        if (businessIds !== undefined) {
+          if (businessIds.length === 0) {
+            setState(prev => ({
+              ...prev,
+              subscriptionChecked: true,
+              isSubscribed: false,
+              isLoading: false,
+              error: 'No seller business is available for POS access.',
+            }))
+            return
+          }
+
+          const { data: bizData, error: businessError } = await supabase!
             .from('businesses')
-            .select('pos_subscription_active, country_code, currency_code')
+            .select('pos_subscription_active, pos_subscription_expires_at, country_code, currency_code')
             .eq('id', businessIds[0])
             .single();
-          
+
+          if (businessError) throw businessError
           if (bizData) {
-            const isSubscribed = bizData.pos_subscription_active || false;
+            const subscriptionExpiresAt = bizData.pos_subscription_expires_at || null;
+            const isSubscribed = Boolean(
+              bizData.pos_subscription_active &&
+              subscriptionExpiresAt &&
+              new Date(subscriptionExpiresAt).getTime() > Date.now(),
+            );
             const country = bizData.country_code || 'GH';
             const currency = bizData.currency_code || 'GHS';
             
@@ -88,7 +115,8 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
               subscriptionChecked: true, 
               businessCountry: country,
               businessCurrency: currency,
-              subscriptionPrice: planData ? { price: planData.monthly_price, currency: planData.currency_code } : null
+              subscriptionPrice: planData ? { price: Number(planData.monthly_price), currency: planData.currency_code } : null,
+              subscriptionExpiresAt,
             }));
 
             if (!isSubscribed) {
@@ -118,6 +146,82 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
     }
     initPOS()
   }, [businessIds])
+
+  // A Paystack hosted checkout returns to the app with the pending reference
+  // preserved in localStorage. Verify and activate only after Paystack reports a
+  // successful transaction; never trust the redirect alone.
+  useEffect(() => {
+    const pendingPayment = localStorage.getItem('pos_subscription_pending')
+    if (!pendingPayment || !businessIds?.[0] || !session?.access_token || state.isSubscribed) return
+
+    let cancelled = false
+    const verifyPendingSubscription = async () => {
+      try {
+        const pending = JSON.parse(pendingPayment) as {
+          businessId: string
+          reference: string
+          amountMinor: number
+          currency: string
+          timestamp: number
+        }
+
+        if (
+          pending.businessId !== businessIds[0] ||
+          !pending.reference ||
+          Date.now() - pending.timestamp > 30 * 60 * 1000
+        ) {
+          localStorage.removeItem('pos_subscription_pending')
+          return
+        }
+
+        setState(prev => ({ ...prev, isLoading: true, error: '' }))
+        const verification = await verifyPayment(pending.reference)
+        const verifiedAmount = Number(verification.data?.amount || 0)
+        const verifiedCurrency = String((verification.data as any)?.currency || pending.currency).toUpperCase()
+        if (
+          !verification.status ||
+          verification.data?.status !== 'success' ||
+          verification.data?.reference !== pending.reference ||
+          verifiedAmount !== pending.amountMinor ||
+          verifiedCurrency !== pending.currency
+        ) {
+          throw new Error('Payment was not successful or did not match the subscription amount.')
+        }
+
+        const confirmation = await confirmPOSSubscription(
+          {
+            business_id: pending.businessId,
+            reference: pending.reference,
+            expected_amount_minor: pending.amountMinor,
+            currency: pending.currency,
+          },
+          session.access_token,
+        )
+
+        if (cancelled) return
+        localStorage.removeItem('pos_subscription_pending')
+        setState(prev => ({
+          ...prev,
+          isSubscribed: confirmation.data.pos_subscription_active && new Date(confirmation.data.pos_subscription_expires_at).getTime() > Date.now(),
+          subscriptionChecked: true,
+          subscriptionExpiresAt: confirmation.data.pos_subscription_expires_at,
+          isLoading: false,
+          error: '',
+        }))
+      } catch (error: any) {
+        if (cancelled) return
+        localStorage.removeItem('pos_subscription_pending')
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: error.message || 'Payment could not be verified. Please try again.',
+        }))
+      }
+    }
+
+    verifyPendingSubscription()
+    return () => { cancelled = true }
+  }, [businessIds, session?.access_token, state.isSubscribed])
 
   // Filter products based on search and category
   const filteredProducts = state.products.filter(product => {
@@ -268,35 +372,77 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
   }
 
   const handleSubscribe = async () => {
-    if (!businessIds || businessIds.length === 0) return;
-    try {
-      setState(prev => ({ ...prev, isLoading: true }));
-      // Simulate successful subscription
-      const { error } = await supabase!
-        .from('businesses')
-        .update({ pos_subscription_active: true })
-        .eq('id', businessIds[0]);
-      
-      if (error) throw error;
-      
-      setState(prev => ({ ...prev, isSubscribed: true, isLoading: false }));
-      // Reload products
-      const products = await getAllProducts();
-      const scopedProducts = products.filter(p => businessIds.includes(p.business_id || ''));
-      setState(prev => ({ ...prev, products: scopedProducts }));
-    } catch (err: any) {
-      setState(prev => ({ ...prev, error: err.message, isLoading: false }));
+    const businessId = businessIds?.[0]
+    const email = user?.email
+    const plan = state.subscriptionPrice
+
+    if (!businessId) {
+      setState(prev => ({ ...prev, error: 'No seller business was found for this account.' }))
+      return
     }
-  };
+    if (!email) {
+      setState(prev => ({ ...prev, error: 'Please sign in with an email address before subscribing.' }))
+      return
+    }
+    if (!plan || !plan.currency || !Number.isFinite(plan.price) || plan.price <= 0) {
+      setState(prev => ({ ...prev, error: 'A valid POS subscription plan is not configured for this country.' }))
+      return
+    }
+
+    try {
+      setState(prev => ({ ...prev, isLoading: true, error: '' }))
+      const reference = generatePaymentReference()
+      const amountMinor = Math.round(plan.price * 100)
+      const currency = plan.currency.toUpperCase()
+      const callbackUrl = `${window.location.origin}/dashboard?view=pos`
+
+      const paymentInit = await initializePayment({
+        email,
+        amount: amountMinor,
+        currency,
+        reference,
+        callback_url: callbackUrl,
+        metadata: {
+          type: 'pos_subscription',
+          business_id: businessId,
+          country_code: state.businessCountry,
+          currency,
+          billing_interval: 'monthly',
+        },
+      })
+
+      localStorage.setItem('pos_subscription_pending', JSON.stringify({
+        businessId,
+        reference,
+        amountMinor,
+        currency,
+        timestamp: Date.now(),
+      }))
+
+      if (!paymentInit.data?.authorization_url) {
+        throw new Error('Paystack did not return a payment link.')
+      }
+
+      window.location.assign(paymentInit.data.authorization_url)
+    } catch (err: any) {
+      localStorage.removeItem('pos_subscription_pending')
+      setState(prev => ({
+        ...prev,
+        error: err.message || 'Unable to start the subscription payment.',
+        isLoading: false,
+      }))
+    }
+  }
 
   if (state.subscriptionChecked && !state.isSubscribed) {
     return (
       <div className="pos-container">
         <div className="pos-subscription-wall">
           <div className="subscription-card">
-            <div className="subscription-icon">🛒</div>
+            <div className="subscription-icon" aria-hidden="true"><CreditCard size={42} strokeWidth={1.8} /></div>
             <h2>Unlock POS System</h2>
             <p>The Reliable POS system allows you to manage in-store sales, issue receipts, and sync inventory automatically.</p>
+            {state.error && <div className="pos-error" role="alert">{state.error}</div>}
             {state.subscriptionPrice ? (
               <div className="price-tag">
                 <span className="amount">{formatCurrency(state.subscriptionPrice.price, state.subscriptionPrice.currency)}</span>
@@ -308,7 +454,7 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
             <button className="pos-subscribe-btn" onClick={handleSubscribe} disabled={state.isLoading}>
               {state.isLoading ? 'Processing...' : 'Subscribe Now'}
             </button>
-            <p className="subscription-note">Manage your business more efficiently with our professional POS tools.</p>
+            <p className="subscription-note">Secure monthly billing. Access opens only after Paystack confirms your payment.</p>
           </div>
         </div>
       </div>

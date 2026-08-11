@@ -10,6 +10,7 @@ export interface PaystackInitializePaymentPayload {
   amount: number // Amount in kobo (smallest currency unit)
   currency?: string
   reference?: string
+  callback_url?: string
   metadata?: Record<string, any>
 }
 
@@ -23,6 +24,24 @@ export interface PaystackInitializePaymentResponse {
   }
 }
 
+export interface ConfirmPOSSubscriptionPayload {
+  business_id: string
+  reference: string
+  expected_amount_minor: number
+  currency: string
+}
+
+export interface ConfirmPOSSubscriptionResponse {
+  status: boolean
+  message: string
+  data: {
+    business_id: string
+    reference: string
+    pos_subscription_active: boolean
+    pos_subscription_expires_at: string
+  }
+}
+
 export interface PaystackVerifyPaymentResponse {
   status: boolean
   message: string
@@ -30,6 +49,7 @@ export interface PaystackVerifyPaymentResponse {
     id: number
     reference: string
     amount: number
+    currency?: string
     paid_at: string
     status: string
     customer: {
@@ -64,6 +84,7 @@ export const initializePayment = async (
         amount: payload.amount,
         currency: payload.currency,
         reference: payload.reference,
+        callback_url: payload.callback_url,
         metadata: payload.metadata,
       }),
     })
@@ -90,6 +111,30 @@ export const initializePayment = async (
  * @param reference Payment reference from Paystack
  * @returns Payment verification details
  */
+export const confirmPOSSubscription = async (
+  payload: ConfirmPOSSubscriptionPayload,
+  accessToken: string,
+): Promise<ConfirmPOSSubscriptionResponse> => {
+  const response = await fetch('/api/paystack', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      action: 'confirm_pos_subscription',
+      ...payload,
+    }),
+  })
+
+  const data = await response.json()
+  if (!response.ok || !data.status) {
+    throw new Error(data.error || data.message || 'Failed to confirm POS subscription')
+  }
+
+  return data as ConfirmPOSSubscriptionResponse
+}
+
 export const verifyPayment = async (reference: string): Promise<PaystackVerifyPaymentResponse> => {
   try {
     const response = await fetch('/api/paystack', {
