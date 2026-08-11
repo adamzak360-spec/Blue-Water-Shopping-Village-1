@@ -204,6 +204,10 @@ export interface Order {
   paid_at?: string
   transaction_id?: string
   delivery_method?: string
+  delivery_area?: string
+  delivery_currency?: string
+  currency?: string
+  country_code?: string
   source?: string
   business_id?: string
   created_at?: string

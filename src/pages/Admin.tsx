@@ -35,6 +35,7 @@ import { formatCurrency } from '../utils/currency'
 import { lazy, Suspense } from 'react'
 import { BusinessVerificationForm } from '../components/BusinessVerificationForm'
 import { PayoutProfileForm } from '../components/PayoutProfileForm'
+import DeliverySettings from '../components/DeliverySettings'
 import './Admin.css'
 
   // Lazy load admin sub-components for better performance
@@ -55,7 +56,7 @@ import './Admin.css'
   const prefetchPOS = () => import('./POS')
   const prefetchSellerPayouts = () => import('../components/SellerPayouts')
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts' | 'settings' | 'marketplace'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts' | 'settings' | 'delivery' | 'marketplace'
 
 interface ProductFormErrors {
   name?: string
@@ -714,6 +715,12 @@ export default function Admin() {
         >
           ⚙️ Store Settings
         </button>
+        <button
+          className={`tab ${view === 'delivery' ? 'active' : ''}`}
+          onClick={() => setView('delivery')}
+        >
+          🚚 Delivery Settings
+        </button>
       </div>
 
       <Suspense fallback={<div className="admin-loading">Loading view...</div>}>
@@ -773,6 +780,16 @@ export default function Admin() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Delivery Settings View */}
+        {view === 'delivery' && (business || role === 'admin') && (
+          <DeliverySettings
+            businessId={business?.id}
+            isAdmin={role === 'admin'}
+            countryCode={business?.country_code}
+            currencyCode={business?.currency_code}
+          />
         )}
 
         {/* Store Settings View */}

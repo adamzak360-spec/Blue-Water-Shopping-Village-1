@@ -11,6 +11,7 @@ import {
   generatePaymentReference,
 } from '../services/paystackService'
 import { formatCurrency } from '../utils/currency'
+import { getDeliveryMethodsForBusiness, type DeliveryMethod } from '../services/deliveryService'
 import './Checkout.css'
 
 const GUEST_CHECKOUT_ENABLED = true
@@ -33,42 +34,60 @@ export default function Checkout() {
     city: user?.user_metadata?.city || '',
     region: user?.user_metadata?.region || '',
     notes: '',
-    deliveryMethod: 'tamale'
+    deliveryMethod: ''
   })
+  const [deliveryOptions, setDeliveryOptions] = useState<DeliveryMethod[]>([])
+  const [deliveryLoading, setDeliveryLoading] = useState(false)
+  const [deliveryError, setDeliveryError] = useState('')
 
-  const deliveryMethods = {
-    tamale: { name: 'Tamale Delivery', field: 'delivery_fee_tamale', defaultFee: 15.00, days: '1-2 days' },
-    stc: { name: 'STC Transport', field: 'delivery_fee_greater_accra', defaultFee: 35.00, days: '3-5 days' },
-    vip: { name: 'VIP Transport', field: 'delivery_fee_lesser_accra', defaultFee: 45.00, days: '2-3 days' },
-    oa: { name: 'OA Transport', field: 'delivery_fee_dhl', defaultFee: 40.00, days: '3-4 days' },
-    vvip: { name: 'VVIP Transport', field: 'delivery_fee_ups', defaultFee: 50.00, days: '2-3 days' },
-    fedex: { name: 'FedEx Delivery', field: 'delivery_fee_fedex', defaultFee: 90.00, days: '1-2 days' }
-  }
-
-  const selectedDeliveryMethod = deliveryMethods[formData.deliveryMethod as keyof typeof deliveryMethods]
-  
-  // Calculate product-specific delivery fee
-  const calculateMethodFee = (method: any) => {
-    if (!method) return 0;
-
-    return cart.reduce((totalFee, item) => {
-      // Get the fee for this specific product from its database field
-      // Fallback to the method's default fee if the product doesn't have a specific fee set
-      const productFee = (item as any)[method.field];
-      const fee = (productFee !== undefined && productFee !== null && productFee !== '') 
-        ? Number(productFee) 
-        : method.defaultFee;
-      
-      return totalFee + (fee * item.quantity);
-    }, 0);
-  };
-
-  const deliveryFee = calculateMethodFee(selectedDeliveryMethod)
-  const total = cartSubtotal + deliveryFee
+  const totalItemQuantity = cart.reduce((sum, item) => sum + item.quantity, 0)
   const cartBusinessIds = Array.from(new Set(
     cart.map(item => item.business_id || DEFAULT_BUSINESS_ID)
   ))
   const checkoutBusinessId = cartBusinessIds.length === 1 ? cartBusinessIds[0] : undefined
+  const selectedDeliveryMethod = deliveryOptions.find(method => method.id === formData.deliveryMethod)
+  const deliveryFee = selectedDeliveryMethod
+    ? selectedDeliveryMethod.price * (selectedDeliveryMethod.pricing_type === 'per_item' ? totalItemQuantity : 1)
+    : 0
+  const total = cartSubtotal + deliveryFee
+
+  useEffect(() => {
+    let isMounted = true
+    const loadDeliveryOptions = async () => {
+      if (cart.length === 0) {
+        setDeliveryOptions([])
+        setFormData(previous => ({ ...previous, deliveryMethod: '' }))
+        return
+      }
+
+      setDeliveryLoading(true)
+      setDeliveryError('')
+      try {
+        const options = await getDeliveryMethodsForBusiness(
+          cart[0]?.business_id || undefined,
+          undefined,
+          cart[0]?.currency || 'GHS',
+        )
+        if (!isMounted) return
+        setDeliveryOptions(options)
+        setFormData(previous => ({
+          ...previous,
+          deliveryMethod: options.some(option => option.id === previous.deliveryMethod)
+            ? previous.deliveryMethod
+            : options[0]?.id || '',
+        }))
+      } catch (error) {
+        if (!isMounted) return
+        setDeliveryOptions([])
+        setDeliveryError(error instanceof Error ? error.message : 'Delivery options could not be loaded.')
+      } finally {
+        if (isMounted) setDeliveryLoading(false)
+      }
+    }
+
+    loadDeliveryOptions()
+    return () => { isMounted = false }
+  }, [cart[0]?.business_id, cart[0]?.currency, cart.length])
 
   // Load Paystack script
   useEffect(() => {
@@ -135,7 +154,7 @@ export default function Checkout() {
       console.log('[Checkout] Initializing Paystack payment with reference:', reference)
 
       // Get currency from the first item (or default to GHS)
-      const currency = cart[0]?.currency || 'GHS'
+        const currency = cart[0]?.currency || 'GHS'
 
       const paymentInit = await initializePayment({
         email: formData.email,
@@ -151,6 +170,9 @@ export default function Checkout() {
           items_count: cart.length,
           subtotal: cartSubtotal,
           delivery_fee: deliveryFee,
+          delivery_method: selectedDeliveryMethod?.name || undefined,
+          delivery_area: selectedDeliveryMethod?.coverage_area || undefined,
+          delivery_currency: selectedDeliveryMethod?.currency_code || currency,
           paystack_public_key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
         }
       })
@@ -214,6 +236,9 @@ export default function Checkout() {
           items: cart,
           subtotal: cartSubtotal,
           delivery_fee: deliveryFee,
+          delivery_method: selectedDeliveryMethod?.name || undefined,
+          delivery_area: selectedDeliveryMethod?.coverage_area || undefined,
+          currency: cart[0]?.currency || 'GHS',
           total: total,
           status: 'pending' as const,
           payment_status: 'paid' as const,
@@ -403,26 +428,39 @@ export default function Checkout() {
                 </div>
                 <div className="form-group">
                   <label htmlFor="deliveryMethod">Delivery Method *</label>
-                  <select
-                    id="deliveryMethod"
-                    name="deliveryMethod"
-                    required
-                    value={formData.deliveryMethod}
-                    onChange={(e) => setFormData({ ...formData, deliveryMethod: e.target.value })}
-                    className="delivery-method-select"
-                  >
-                    {Object.entries(deliveryMethods).map(([key, method]) => (
-                      <option key={key} value={key}>
-                        {method.name} - {formatCurrency(calculateMethodFee(method), cart[0]?.currency || 'GHS')} ({method.days})
-                      </option>
-                    ))}
-                  </select>
+                  {deliveryLoading ? (
+                    <p className="delivery-loading-message">Loading delivery options...</p>
+                  ) : deliveryOptions.length === 0 ? (
+                    <p className="delivery-empty-message">No delivery method is currently available for this store and currency. Please contact the seller.</p>
+                  ) : (
+                    <select
+                      id="deliveryMethod"
+                      name="deliveryMethod"
+                      required
+                      value={formData.deliveryMethod}
+                      onChange={(e) => setFormData({ ...formData, deliveryMethod: e.target.value })}
+                      className="delivery-method-select"
+                    >
+                      {deliveryOptions.map(method => {
+                        const methodFee = method.price * (method.pricing_type === 'per_item' ? totalItemQuantity : 1)
+                        return (
+                          <option key={method.id} value={method.id}>
+                            {method.name} — {method.coverage_area} — {formatCurrency(methodFee, method.currency_code)}{method.estimated_days ? ` (${method.estimated_days})` : ''}
+                          </option>
+                        )
+                      })}
+                    </select>
+                  )}
+                  {deliveryError && <small className="delivery-error-message">{deliveryError}</small>}
                 </div>
-                <div className="delivery-info-box">
-                  <p><strong>Selected Delivery:</strong> {selectedDeliveryMethod?.name}</p>
-                  <p><strong>Estimated Delivery:</strong> {selectedDeliveryMethod?.days}</p>
-                  <p><strong>Delivery Fee:</strong> {formatCurrency(deliveryFee, cart[0]?.currency || 'GHS')}</p>
-                </div>
+                {selectedDeliveryMethod && (
+                  <div className="delivery-info-box">
+                    <p><strong>Selected Delivery:</strong> {selectedDeliveryMethod.name}</p>
+                    <p><strong>Coverage Area:</strong> {selectedDeliveryMethod.coverage_area}</p>
+                    <p><strong>Estimated Delivery:</strong> {selectedDeliveryMethod.estimated_days || 'To be confirmed'}</p>
+                    <p><strong>Delivery Fee:</strong> {formatCurrency(deliveryFee, selectedDeliveryMethod.currency_code)}</p>
+                  </div>
+                )}
                 <div className="form-group">
                   <label htmlFor="notes">Additional Notes</label>
                   <textarea
@@ -434,7 +472,7 @@ export default function Checkout() {
                     rows={3}
                   />
                 </div>
-                <button type="submit" className="submit-order-btn" disabled={isSubmitting}>
+                <button type="submit" className="submit-order-btn" disabled={isSubmitting || deliveryLoading || deliveryOptions.length === 0}>
                   {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
                 </button>
               </form>
