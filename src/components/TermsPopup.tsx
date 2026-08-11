@@ -66,7 +66,7 @@ export default function TermsPopup() {
           </div>
 
           <div className="terms-popup-policies" aria-label="Reliable policies">
-            <Link to="/terms" className="policy-item">
+            <Link to="/terms" className="policy-item" onClick={handleClose}>
               <span className="policy-icon" aria-hidden="true">
                 <ClipboardList size={25} strokeWidth={2.1} />
               </span>
@@ -77,7 +77,7 @@ export default function TermsPopup() {
               <ArrowRight className="policy-arrow" size={18} strokeWidth={2.2} aria-hidden="true" />
             </Link>
 
-            <Link to="/privacy-policy" className="policy-item">
+            <Link to="/privacy-policy" className="policy-item" onClick={handleClose}>
               <span className="policy-icon" aria-hidden="true">
                 <LockKeyhole size={25} strokeWidth={2.1} />
               </span>
@@ -88,7 +88,7 @@ export default function TermsPopup() {
               <ArrowRight className="policy-arrow" size={18} strokeWidth={2.2} aria-hidden="true" />
             </Link>
 
-            <Link to="/delivery" className="policy-item">
+            <Link to="/delivery" className="policy-item" onClick={handleClose}>
               <span className="policy-icon" aria-hidden="true">
                 <Truck size={25} strokeWidth={2.1} />
               </span>
@@ -99,7 +99,7 @@ export default function TermsPopup() {
               <ArrowRight className="policy-arrow" size={18} strokeWidth={2.2} aria-hidden="true" />
             </Link>
 
-            <Link to="/returns" className="policy-item">
+            <Link to="/returns" className="policy-item" onClick={handleClose}>
               <span className="policy-icon" aria-hidden="true">
                 <RotateCcw size={25} strokeWidth={2.1} />
               </span>
@@ -117,7 +117,7 @@ export default function TermsPopup() {
           </div>
 
           <div className="terms-popup-actions">
-            <Link to="/terms" className="terms-popup-btn read-btn">
+            <Link to="/terms" className="terms-popup-btn read-btn" onClick={handleClose}>
               Read Policies
               <ArrowRight size={18} strokeWidth={2.2} aria-hidden="true" />
             </Link>
