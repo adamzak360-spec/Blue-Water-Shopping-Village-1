@@ -131,10 +131,21 @@ export const updateOrderStatus = async (orderId: string, status: Order['status']
     throw error
   }
 
-  // Trigger status-specific email notifications in the background
+  // Trigger status-specific email notifications and in-app notifications in the background
   const updatedOrder = data[0];
   if (previousStatus !== status) {
-    // Send status-specific emails and in-app notifications
+    let customerEmail = updatedOrder.customer_email;
+    if (!customerEmail && updatedOrder.user_id) {
+      const { data: profile } = await getSupabase()
+        .from('profiles')
+        .select('email')
+        .eq('id', updatedOrder.user_id)
+        .single();
+      if (profile && profile.email) {
+        customerEmail = profile.email;
+      }
+    }
+
     const statusTitles: Record<string, string> = {
       approved: 'Order Approved',
       processing: 'Order Processing',
@@ -163,37 +174,46 @@ export const updateOrderStatus = async (orderId: string, status: Order['status']
       }).catch(err => console.error('[OrderService] Error creating notification:', err));
     }
 
-    // Send status-specific emails
-    switch (status) {
-      case 'approved':
-        sendOrderApprovedEmail(updatedOrder, updatedOrder.customer_email).catch(err => {
-          console.error('[OrderService] Error sending approved email:', err);
-        });
-        break;
-      case 'ready-for-pickup':
-        sendReadyForPickupEmail(updatedOrder, updatedOrder.customer_email).catch(err => {
-          console.error('[OrderService] Error sending ready for pickup email:', err);
-        });
-        break;
-      case 'out-for-delivery':
-        sendOutForDeliveryEmail(updatedOrder, updatedOrder.customer_email).catch(err => {
-          console.error('[OrderService] Error sending out for delivery email:', err);
-        });
-        break;
-      case 'delivered':
-        sendDeliveredEmail(updatedOrder, updatedOrder.customer_email).catch(err => {
-          console.error('[OrderService] Error sending delivered email:', err);
-        });
-        break;
-      case 'cancelled':
-        sendAdminOrderCancellationNotification(updatedOrder).catch(err => {
-          console.error('[OrderService] Error sending cancellation notification:', err);
-        });
-        break;
-      default:
-        sendOrderStatusChangeNotifications(updatedOrder, updatedOrder.customer_email, previousStatus).catch(err => {
-          console.error('[OrderService] Error sending status change notifications:', err);
-        });
+    if (customerEmail) {
+      switch (status) {
+        case 'approved':
+          sendOrderApprovedEmail(updatedOrder, customerEmail).catch(err => {
+            console.error('[OrderService] Error sending approved email:', err);
+          });
+          break;
+        case 'processing':
+          sendOrderStatusChangeNotifications(updatedOrder, customerEmail, previousStatus).catch(err => {
+            console.error('[OrderService] Error sending processing email:', err);
+          });
+          break;
+        case 'ready-for-pickup':
+          sendReadyForPickupEmail(updatedOrder, customerEmail).catch(err => {
+            console.error('[OrderService] Error sending ready for pickup email:', err);
+          });
+          break;
+        case 'out-for-delivery':
+          sendOutForDeliveryEmail(updatedOrder, customerEmail).catch(err => {
+            console.error('[OrderService] Error sending out for delivery email:', err);
+          });
+          break;
+        case 'delivered':
+          sendDeliveredEmail(updatedOrder, customerEmail).catch(err => {
+            console.error('[OrderService] Error sending delivered email:', err);
+          });
+          break;
+        case 'cancelled':
+          sendOrderStatusChangeNotifications(updatedOrder, customerEmail, previousStatus).catch(err => {
+            console.error('[OrderService] Error sending cancellation email:', err);
+          });
+          sendAdminOrderCancellationNotification(updatedOrder).catch(err => {
+            console.error('[OrderService] Error sending cancellation admin notification:', err);
+          });
+          break;
+        default:
+          sendOrderStatusChangeNotifications(updatedOrder, customerEmail, previousStatus).catch(err => {
+            console.error('[OrderService] Error sending status change notifications:', err);
+          });
+      }
     }
   }
 
