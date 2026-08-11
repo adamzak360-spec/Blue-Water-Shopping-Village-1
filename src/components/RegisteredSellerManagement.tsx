@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { supabase } from '../supabaseClient'
 import { deleteBusiness, getAllBusinesses, type Business } from '../services/businessService'
 import { getAllProducts } from '../services/productService'
 import { useAuth } from '../context/AuthContext'

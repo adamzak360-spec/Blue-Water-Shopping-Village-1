@@ -12,7 +12,7 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [profile, setProfile] = useState<any>(null)
+  // const [profile, setProfile] = useState<any>(null)
   
   const [formData, setFormData] = useState({
     recipient_type: 'bank_account',
@@ -28,7 +28,7 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const { data, error } = await supabase!
+        const { data, error: _error } = await supabase!
           .from('seller_payout_profiles')
           .select('*')
           .eq('seller_id', sellerId)
@@ -36,7 +36,7 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
           .single()
 
         if (data) {
-          setProfile(data)
+          // setProfile(data)
           setFormData({
             recipient_type: data.recipient_type || 'bank_account',
             account_name: data.account_name || '',
