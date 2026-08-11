@@ -142,6 +142,23 @@ export interface CartItem extends Product {
   selected_size?: string
 }
 
+export type VerificationStatus = 'not_submitted' | 'pending' | 'approved' | 'rejected'
+
+export interface IdentityVerification {
+  id: string
+  user_id: string
+  id_type: 'passport' | 'national_id' | 'driver_license'
+  id_number?: string
+  id_image_front_url: string
+  id_image_back_url?: string
+  status: VerificationStatus
+  rejection_reason?: string
+  verified_at?: string
+  verified_by?: string
+  created_at?: string
+  updated_at?: string
+}
+
 export interface CustomerProfile {
   id: string
   full_name?: string
@@ -154,7 +171,9 @@ export interface CustomerProfile {
   city?: string
   region?: string
   profile_picture_url?: string
-  identity_verification_status?: string
+  identity_status?: VerificationStatus
+  identity_verification_status?: string // Legacy field
+  role?: 'admin' | 'seller' | 'customer'
   created_at?: string
   updated_at?: string
 }
