@@ -3,8 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { supabase, isSupabaseConfigured } from '../supabaseClient'
 import type { Product } from '../types'
 import type { Business } from '../services/businessService'
-import { useCart } from '../context/CartContext'
-import { formatCurrency } from '../utils/currency'
+import ProductCard from '../components/ProductCard'
 import { CheckCircle } from 'lucide-react'
 import './Home.css'
 
@@ -14,7 +13,6 @@ export default function BusinessStorefront() {
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const { addToCart } = useCart()
 
   useEffect(() => {
     async function loadStorefront() {
@@ -138,36 +136,9 @@ export default function BusinessStorefront() {
         {products.length === 0 ? (
           <p style={{ textAlign: 'center', color: '#6b7280', padding: '40px 0' }}>No active products available in this store right now.</p>
         ) : (
-          <div className="products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '24px' }}>
+          <div className="products-grid">
             {products.map(product => (
-              <div key={product.id} className="product-card" style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', background: 'white', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ height: '220px', background: '#f9fafb', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
-                  {product.image_url ? (
-                    <img 
-                      src={product.image_url} 
-                      alt={product.name} 
-                      style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} 
-                    />
-                  ) : (
-                    <div style={{ color: '#9ca3af' }}>No image</div>
-                  )}
-                </div>
-                <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                  <span style={{ fontSize: '0.85rem', color: '#3b82f6', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>{product.category}</span>
-                  <h3 style={{ fontSize: '1.1rem', marginBottom: '8px', fontWeight: 600 }}>{product.name}</h3>
-                  <p style={{ fontSize: '0.9rem', color: '#4b5563', marginBottom: '16px', flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.description}</p>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
-                    <span style={{ fontSize: '1.2rem', fontWeight: 700, color: '#111827' }}>{formatCurrency(product.price, product.currency || business.currency_code || 'GHS')}</span>
-                    <button 
-                      onClick={() => addToCart(product)}
-                      className="btn btn-primary"
-                      style={{ padding: '8px 16px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
-                    >
-                      Add to Cart
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}

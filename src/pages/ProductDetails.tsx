@@ -9,6 +9,7 @@ import { formatCurrency } from '../utils/currency'
 import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock, Heart, ZoomIn, Phone } from 'lucide-react'
 import StockStatus from '../components/StockStatus'
 import ProductShare from '../components/ProductShare'
+import ProductCard from '../components/ProductCard'
 import './ProductDetails.css'
 
 export default function ProductDetails() {
@@ -515,17 +516,9 @@ export default function ProductDetails() {
       {relatedProducts.length > 0 && (
         <div className="related-products-section">
           <h2>Related Products</h2>
-          <div className="related-products-grid">
+          <div className="products-grid">
             {relatedProducts.map((relProduct) => (
-              <Link key={relProduct.id} to={`/product/${relProduct.id}`} className="related-product-card">
-                <div className="related-product-image">
-                  <img src={relProduct.image_url} alt={relProduct.name} />
-                </div>
-                <div className="related-product-info">
-                  <h4>{relProduct.name}</h4>
-                  <p className="related-product-price">{formatCurrency(relProduct.price)}</p>
-                </div>
-              </Link>
+              <ProductCard key={relProduct.id} product={relProduct} />
             ))}
           </div>
         </div>
