@@ -33,13 +33,13 @@ export const BusinessVerificationForm: React.FC<Props> = ({ business, onSuccess 
     const fileExt = file.name.split('.').pop()
     const fileName = `${business.owner_id}/${business.id}/${type}-${Date.now()}.${fileExt}`
     
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase!.storage
       .from('business-documents')
       .upload(fileName, file)
 
     if (uploadError) throw uploadError
 
-    const { data } = supabase.storage
+    const { data } = supabase!.storage
       .from('business-documents')
       .getPublicUrl(fileName)
 

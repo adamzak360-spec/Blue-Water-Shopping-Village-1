@@ -74,7 +74,7 @@ export default function CustomerDashboard() {
 
     return () => {
       if (supabase && subscription) {
-        supabase.removeChannel(subscription)
+        supabase!.removeChannel(subscription)
       }
     }
   }, [user, navigate])

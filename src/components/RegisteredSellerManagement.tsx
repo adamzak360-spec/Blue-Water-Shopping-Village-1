@@ -152,12 +152,12 @@ export default function RegisteredSellerManagement() {
                             onClick={() => {
                               const reason = prompt('Approve or Reject? Type "approve" or enter rejection reason:');
                               if (reason === 'approve') {
-                                supabase.from('businesses').update({ 
+                                supabase!.from('businesses').update({ 
                                   verification_status: 'approved', 
                                   verified_at: new Date().toISOString() 
                                 }).eq('id', business.id).then(() => loadBusinesses());
                               } else if (reason) {
-                                supabase.from('businesses').update({ 
+                                supabase!.from('businesses').update({ 
                                   verification_status: 'rejected', 
                                   rejection_reason: reason 
                                 }).eq('id', business.id).then(() => loadBusinesses());
@@ -175,7 +175,7 @@ export default function RegisteredSellerManagement() {
                             onClick={() => {
                               const bps = prompt('Enter new commission in BPS (e.g. 500 for 5%):', (business as any).commission_bps);
                               if (bps) {
-                                supabase.from('businesses').update({ 
+                                supabase!.from('businesses').update({ 
                                   commission_bps: parseInt(bps) 
                                 }).eq('id', business.id).then(() => loadBusinesses());
                               }

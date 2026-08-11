@@ -63,8 +63,8 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     })
 
     const result = currentlySaved
-      ? await supabase.from('wishlist_items').delete().eq('user_id', user.id).eq('product_id', productId)
-      : await supabase.from('wishlist_items').insert({ user_id: user.id, product_id: productId })
+      ? await supabase!.from('wishlist_items').delete().eq('user_id', user.id).eq('product_id', productId)
+      : await supabase!.from('wishlist_items').insert({ user_id: user.id, product_id: productId })
 
     if (result.error) {
       setProductIds((current) => {

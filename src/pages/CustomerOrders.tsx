@@ -68,7 +68,7 @@ export default function CustomerOrders() {
 
     return () => {
       if (supabase && subscription) {
-        supabase.removeChannel(subscription)
+        supabase!.removeChannel(subscription)
       }
     }
   }, [user, navigate])

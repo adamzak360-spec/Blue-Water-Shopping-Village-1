@@ -125,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: new Error('Supabase not configured') }
     }
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase!.auth.signInWithPassword({
       email,
       password,
     })
@@ -138,7 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: new Error('Supabase not configured') }
     }
 
-    const { error } = await supabase.auth.signUp({
+    const { error } = await supabase!.auth.signUp({
       email,
       password,
       options: {
@@ -154,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: new Error('Supabase not configured') }
     }
 
-    const { error } = await supabase.auth.signOut()
+    const { error } = await supabase!.auth.signOut()
     return { error }
   }
 
@@ -163,7 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: new Error('Supabase not configured') }
     }
 
-    const { error } = await supabase.auth.updateUser({
+    const { error } = await supabase!.auth.updateUser({
       data: metadata,
     })
 
@@ -175,7 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: new Error('Supabase not configured') }
     }
 
-    const { error } = await supabase.auth.updateUser({
+    const { error } = await supabase!.auth.updateUser({
       password: newPassword,
     })
 
@@ -187,7 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: new Error('Supabase not configured') }
     }
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase!.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     })
 

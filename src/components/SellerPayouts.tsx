@@ -39,7 +39,7 @@ export default function SellerPayouts({ businessIds }: { businessIds?: string[] 
 
   const load = async () => {
     if (!supabase) return
-    let query = supabase.from('seller_payouts').select('*').order('created_at', { ascending: false })
+    let query = supabase!.from('seller_payouts').select('*').order('created_at', { ascending: false })
     if (businessIds && businessIds.length > 0) query = query.in('store_id', businessIds)
     const { data, error: queryError } = await query
     if (queryError) setError(queryError.message)
