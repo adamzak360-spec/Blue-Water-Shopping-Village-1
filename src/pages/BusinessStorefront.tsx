@@ -4,6 +4,8 @@ import { supabase, isSupabaseConfigured } from '../supabaseClient'
 import type { Product } from '../types'
 import type { Business } from '../services/businessService'
 import { useCart } from '../context/CartContext'
+import { formatCurrency } from '../utils/currency'
+import { CheckCircle } from 'lucide-react'
 import './Home.css'
 
 export default function BusinessStorefront() {
@@ -88,22 +90,42 @@ export default function BusinessStorefront() {
   return (
     <div className="home-page">
       {/* Store Banner / Header */}
-      <div style={{ background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)', color: 'white', padding: '60px 20px', textAlign: 'center' }}>
+      <div style={{ 
+        backgroundImage: business.banner_url ? `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${business.banner_url})` : 'linear-gradient(135deg, #1e3a8a, #3b82f6)', 
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        color: 'white', 
+        padding: '80px 20px', 
+        textAlign: 'center' 
+      }}>
         <div className="container">
           {business.logo_url && (
             <img 
               src={business.logo_url} 
               alt={business.name} 
-              style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', marginBottom: '20px', border: '3px solid white' }} 
+              style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', marginBottom: '20px', border: '4px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }} 
             />
           )}
-          <h1 style={{ fontSize: '2.5rem', marginBottom: '10px' }}>{business.name}</h1>
-          <p style={{ fontSize: '1.2rem', maxWidth: '600px', margin: '0 auto 20px', opacity: 0.9 }}>
+          <h1 style={{ fontSize: '3rem', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+            {business.name}
+            {business.verification_status === 'approved' && (
+              <CheckCircle size={32} color="#4ade80" fill="currentColor" style={{ color: 'white' }} title="Verified Store" />
+            )}
+          </h1>
+          <p style={{ fontSize: '1.25rem', maxWidth: '700px', margin: '0 auto 24px', opacity: 0.95, fontWeight: 500 }}>
             {business.description || 'Welcome to our official online store! Browse our premium products below.'}
           </p>
-          {business.contact_email && (
-            <p style={{ fontSize: '0.95rem', opacity: 0.8 }}>Contact: {business.contact_email} {business.contact_phone ? `| ${business.contact_phone}` : ''}</p>
-          )}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
+            {business.contact_email && (
+              <p style={{ fontSize: '1rem', opacity: 0.9 }}>📧 {business.contact_email}</p>
+            )}
+            {business.contact_phone && (
+              <p style={{ fontSize: '1rem', opacity: 0.9 }}>📞 {business.contact_phone}</p>
+            )}
+            {business.location && (
+              <p style={{ fontSize: '1rem', opacity: 0.9 }}>📍 {business.location}</p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -135,7 +157,7 @@ export default function BusinessStorefront() {
                   <h3 style={{ fontSize: '1.1rem', marginBottom: '8px', fontWeight: 600 }}>{product.name}</h3>
                   <p style={{ fontSize: '0.9rem', color: '#4b5563', marginBottom: '16px', flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.description}</p>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
-                    <span style={{ fontSize: '1.2rem', fontWeight: 700, color: '#111827' }}>GH₵{product.price.toFixed(2)}</span>
+                    <span style={{ fontSize: '1.2rem', fontWeight: 700, color: '#111827' }}>{formatCurrency(product.price, product.currency || business.currency_code || 'GHS')}</span>
                     <button 
                       onClick={() => addToCart(product)}
                       className="btn btn-primary"

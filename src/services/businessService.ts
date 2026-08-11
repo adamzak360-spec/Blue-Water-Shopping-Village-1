@@ -1,5 +1,7 @@
 import { supabase, isSupabaseConfigured } from '../supabaseClient'
 
+import { VerificationStatus } from '../types'
+
 export interface Business {
   id: string
   name: string
@@ -16,6 +18,14 @@ export interface Business {
   category?: string | null
   country_code?: string | null
   currency_code?: string | null
+  verification_status?: VerificationStatus
+  registration_number?: string
+  tax_id?: string
+  registration_document_url?: string
+  proof_of_address_url?: string
+  rejection_reason?: string
+  verified_at?: string
+  verified_by?: string
   created_at: string
   updated_at: string
 }
@@ -171,4 +181,78 @@ export async function createBusinessForUser(
   }
 
   return { business: data as Business, error: null }
+}
+
+export async function submitBusinessVerification(
+  businessId: string,
+  data: {
+    registration_number?: string
+    tax_id?: string
+    registration_document_url: string
+    proof_of_address_url?: string
+  }
+): Promise<Business> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  const { data: updated, error } = await supabase
+    .from('businesses')
+    .update({
+      ...data,
+      verification_status: 'pending',
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', businessId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return updated as Business
+}
+
+export async function uploadBusinessAsset(file: File, businessId: string, type: 'logo' | 'banner'): Promise<string> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('User not authenticated')
+
+  const fileExt = file.name.split('.').pop()
+  const fileName = `${user.id}/${businessId}/${type}-${Date.now()}.${fileExt}`
+
+  const { data, error } = await supabase.storage
+    .from('business-assets')
+    .upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: true,
+    })
+
+  if (error) throw error
+
+  const { data: urlData } = supabase.storage
+    .from('business-assets')
+    .getPublicUrl(data.path)
+
+  return urlData.publicUrl
+}
+
+export async function updateBusinessProfile(
+  businessId: string,
+  updates: Partial<Omit<Business, 'id' | 'created_at' | 'updated_at'>>
+): Promise<Business> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  const { data, error } = await supabase
+    .from('businesses')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', businessId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as Business
 }

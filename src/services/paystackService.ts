@@ -8,6 +8,7 @@
 export interface PaystackInitializePaymentPayload {
   email: string
   amount: number // Amount in kobo (smallest currency unit)
+  currency?: string
   reference?: string
   metadata?: Record<string, any>
 }
@@ -61,6 +62,7 @@ export const initializePayment = async (
         action: 'initialize',
         email: payload.email,
         amount: payload.amount,
+        currency: payload.currency,
         reference: payload.reference,
         metadata: payload.metadata,
       }),

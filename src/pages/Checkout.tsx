@@ -134,9 +134,13 @@ export default function Checkout() {
 
       console.log('[Checkout] Initializing Paystack payment with reference:', reference)
 
+      // Get currency from the first item (or default to GHS)
+      const currency = cart[0]?.currency || 'GHS'
+
       const paymentInit = await initializePayment({
         email: formData.email,
         amount: Math.round(total * 100), // Convert to kobo
+        currency: currency,
         reference: reference,
         metadata: {
           customer_name: formData.fullName,

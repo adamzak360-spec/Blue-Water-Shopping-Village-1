@@ -120,6 +120,7 @@ export default function RegisteredSellerManagement() {
                 <th>Seller / owner</th>
                 <th>Category</th>
                 <th>Products</th>
+                <th>Verification</th>
                 <th>Storefront</th>
                 <th>Action</th>
               </tr>
@@ -139,6 +140,52 @@ export default function RegisteredSellerManagement() {
                     </td>
                     <td>{business.category || 'Uncategorized'}</td>
                     <td>{productCountByBusiness[business.id] || 0}</td>
+                    <td>
+                      <div className="verification-status-cell">
+                        <span className={`status-badge status-${business.verification_status || 'not_submitted'}`}>
+                          {business.verification_status || 'Not Submitted'}
+                        </span>
+                        {business.verification_status === 'pending' && (
+                          <button 
+                            className="btn-sm btn-secondary" 
+                            style={{ marginTop: '4px' }}
+                            onClick={() => {
+                              const reason = prompt('Approve or Reject? Type "approve" or enter rejection reason:');
+                              if (reason === 'approve') {
+                                supabase.from('businesses').update({ 
+                                  verification_status: 'approved', 
+                                  verified_at: new Date().toISOString() 
+                                }).eq('id', business.id).then(() => loadBusinesses());
+                              } else if (reason) {
+                                supabase.from('businesses').update({ 
+                                  verification_status: 'rejected', 
+                                  rejection_reason: reason 
+                                }).eq('id', business.id).then(() => loadBusinesses());
+                              }
+                            }}
+                          >
+                            Review
+                          </button>
+                        )}
+                        <div style={{ marginTop: '8px', fontSize: '0.8rem' }}>
+                          Comm: {(business as any).commission_bps / 100}% 
+                          <button 
+                            className="btn-sm" 
+                            style={{ marginLeft: '4px', padding: '2px 4px' }}
+                            onClick={() => {
+                              const bps = prompt('Enter new commission in BPS (e.g. 500 for 5%):', (business as any).commission_bps);
+                              if (bps) {
+                                supabase.from('businesses').update({ 
+                                  commission_bps: parseInt(bps) 
+                                }).eq('id', business.id).then(() => loadBusinesses());
+                              }
+                            }}
+                          >
+                            ✎
+                          </button>
+                        </div>
+                      </div>
+                    </td>
                     <td>
                       <a href={`/store/${business.slug}`} target="_blank" rel="noreferrer">View store</a>
                     </td>

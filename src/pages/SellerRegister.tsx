@@ -37,6 +37,7 @@ export default function SellerRegister() {
   const [countryCode, setCountryCode] = useState('GH')
   const [category, setCategory] = useState('')
   const [description, setDescription] = useState('')
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -120,7 +121,17 @@ export default function SellerRegister() {
         console.warn('Profile upsert exception (will be retried by admin):', profileErr)
       }
 
-      // 2. Create the business with all onboarding fields
+      // 2. Get currency for country
+      const currencyMap: Record<string, string> = {
+        'GH': 'GHS',
+        'NG': 'NGN',
+        'KE': 'KES',
+        'ZA': 'ZAR',
+        'US': 'USD',
+        'GB': 'GBP'
+      }
+
+      // 3. Create the business with all onboarding fields
       const { error: bizError } = await createBusinessForUser(user.id, {
         name: storeName,
         slug: finalSlug,
@@ -131,7 +142,7 @@ export default function SellerRegister() {
         location,
         category: category || 'Other',
         country_code: countryCode,
-        currency_code: countryCode === 'GH' ? 'GHS' : (countryCode === 'NG' ? 'NGN' : 'USD'), // Basic mapping for now
+        currency_code: currencyMap[countryCode] || 'USD',
       })
 
       if (bizError) throw bizError
@@ -348,7 +359,19 @@ export default function SellerRegister() {
                   placeholder="Describe what you sell..."
                 />
               </div>
-              <button type="submit" className="register-button" disabled={isLoading}>
+              <div className="form-group terms-checkbox">
+                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontWeight: 'normal' }}>
+                  <input
+                    type="checkbox"
+                    checked={agreedToTerms}
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                    style={{ marginRight: 10, width: 'auto' }}
+                    required
+                  />
+                  <span>I agree to the <Link to="/terms" target="_blank">Seller Terms & Conditions</Link></span>
+                </label>
+              </div>
+              <button type="submit" className="register-button" disabled={isLoading || !agreedToTerms}>
                 {isLoading ? 'Setting up...' : 'Open My Store'}
               </button>
             </form>

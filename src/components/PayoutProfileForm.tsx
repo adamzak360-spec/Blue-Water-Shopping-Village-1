@@ -1,0 +1,224 @@
+import React, { useState, useEffect } from 'react'
+import { supabase } from '../supabaseClient'
+import './IdentityVerificationForm.css' // Reuse verification styles
+
+interface Props {
+  sellerId: string
+  storeId: string
+  onSuccess?: () => void
+}
+
+export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSuccess }) => {
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [profile, setProfile] = useState<any>(null)
+  
+  const [formData, setFormData] = useState({
+    recipient_type: 'bank_account',
+    account_name: '',
+    account_number: '',
+    bank_code: '',
+    swift_code: '',
+    iban: '',
+    currency: 'USD',
+    country_code: 'US',
+  })
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const { data, error } = await supabase!
+          .from('seller_payout_profiles')
+          .select('*')
+          .eq('seller_id', sellerId)
+          .eq('store_id', storeId)
+          .single()
+
+        if (data) {
+          setProfile(data)
+          setFormData({
+            recipient_type: data.recipient_type || 'bank_account',
+            account_name: data.account_name || '',
+            account_number: data.account_number_last4 || '', // Note: we store last4 but for editing we might need more or just show placeholder
+            bank_code: data.bank_code || '',
+            swift_code: data.swift_code || '',
+            iban: data.iban || '',
+            currency: data.currency || 'USD',
+            country_code: data.country_code || 'US',
+          })
+        }
+      } catch (err) {
+        console.error('Error loading payout profile:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadProfile()
+  }, [sellerId, storeId])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSaving(true)
+    setError(null)
+
+    try {
+      const payload = {
+        seller_id: sellerId,
+        store_id: storeId,
+        recipient_type: formData.recipient_type,
+        account_name: formData.account_name,
+        account_number_last4: formData.account_number.slice(-4),
+        bank_code: formData.bank_code,
+        swift_code: formData.swift_code,
+        iban: formData.iban,
+        currency: formData.currency,
+        country_code: formData.country_code,
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      }
+
+      const { error: saveError } = await supabase!
+        .from('seller_payout_profiles')
+        .upsert(payload)
+
+      if (saveError) throw saveError
+      
+      if (onSuccess) onSuccess()
+    } catch (err: any) {
+      console.error('Error saving payout profile:', err)
+      setError(err.message || 'Failed to save payout profile')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  if (isLoading) return <div>Loading payout settings...</div>
+
+  return (
+    <div className="verification-container">
+      <div className="verification-header">
+        <h3>Payout Method</h3>
+        <p>Configure how you receive your earnings from Reliable.</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="verification-form">
+        <div className="form-row">
+          <div className="form-group">
+            <label>Country</label>
+            <select 
+              value={formData.country_code} 
+              onChange={e => setFormData({...formData, country_code: e.target.value})}
+              disabled={isSaving}
+            >
+              <option value="GH">Ghana</option>
+              <option value="NG">Nigeria</option>
+              <option value="KE">Kenya</option>
+              <option value="ZA">South Africa</option>
+              <option value="US">United States</option>
+              <option value="GB">United Kingdom</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Currency</label>
+            <select 
+              value={formData.currency} 
+              onChange={e => setFormData({...formData, currency: e.target.value})}
+              disabled={isSaving}
+            >
+              <option value="GHS">GHS</option>
+              <option value="NGN">NGN</option>
+              <option value="KES">KES</option>
+              <option value="ZAR">ZAR</option>
+              <option value="USD">USD</option>
+              <option value="GBP">GBP</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label>Payout Type</label>
+          <select 
+            value={formData.recipient_type} 
+            onChange={e => setFormData({...formData, recipient_type: e.target.value})}
+            disabled={isSaving}
+          >
+            <option value="bank_account">Bank Account</option>
+            <option value="mobile_money">Mobile Money</option>
+            <option value="paypal">PayPal</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Account Name</label>
+          <input 
+            type="text" 
+            value={formData.account_name}
+            onChange={e => setFormData({...formData, account_name: e.target.value})}
+            placeholder="Name on account"
+            required
+            disabled={isSaving}
+          />
+        </div>
+
+        {formData.recipient_type === 'bank_account' && (
+          <>
+            <div className="form-group">
+              <label>Account Number</label>
+              <input 
+                type="text" 
+                value={formData.account_number}
+                onChange={e => setFormData({...formData, account_number: e.target.value})}
+                placeholder="Bank account number"
+                required
+                disabled={isSaving}
+              />
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>SWIFT/BIC Code</label>
+                <input 
+                  type="text" 
+                  value={formData.swift_code}
+                  onChange={e => setFormData({...formData, swift_code: e.target.value})}
+                  placeholder="For international transfers"
+                  disabled={isSaving}
+                />
+              </div>
+              <div className="form-group">
+                <label>IBAN (Optional)</label>
+                <input 
+                  type="text" 
+                  value={formData.iban}
+                  onChange={e => setFormData({...formData, iban: e.target.value})}
+                  placeholder="For EU/International"
+                  disabled={isSaving}
+                />
+              </div>
+            </div>
+          </>
+        )}
+
+        {formData.recipient_type === 'mobile_money' && (
+          <div className="form-group">
+            <label>Mobile Number</label>
+            <input 
+              type="tel" 
+              value={formData.account_number}
+              onChange={e => setFormData({...formData, account_number: e.target.value})}
+              placeholder="e.g. 0538557781"
+              required
+              disabled={isSaving}
+            />
+          </div>
+        )}
+
+        {error && <div className="error-text">{error}</div>}
+
+        <button type="submit" className="submit-verification-btn" disabled={isSaving}>
+          {isSaving ? 'Saving Settings...' : 'Save Payout Method'}
+        </button>
+      </form>
+    </div>
+  )
+}

@@ -57,12 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Error fetching profile:', error)
-        // Fallback for admin if profile doesn't exist yet
-        if (u.email === 'adamzak360@gmail.com') {
-          setRole('admin')
-          setIsAdmin(true)
-          return
-        }
         // Fallback: if the user owns a business, treat them as a seller
         // even when the profiles row is missing or the table does not exist yet.
         try {

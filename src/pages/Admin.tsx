@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { getBusinessByOwner, getAllBusinessesByOwner, type Business } from '../services/businessService'
+import { getBusinessByOwner, getAllBusinessesByOwner, updateBusinessProfile, uploadBusinessAsset, type Business } from '../services/businessService'
 import {
   getAllProducts,
   createProduct,
@@ -31,6 +32,8 @@ import { testEmailSending } from '../api/emailNotificationHandler'
 import type { Product, DashboardStats, Order, Review, ProductVariant } from '../types'
 import { formatCurrency } from '../utils/currency'
 import { lazy, Suspense } from 'react'
+import { BusinessVerificationForm } from '../components/BusinessVerificationForm'
+import { PayoutProfileForm } from '../components/PayoutProfileForm'
 import './Admin.css'
 
   // Lazy load admin sub-components for better performance
@@ -51,7 +54,7 @@ import './Admin.css'
   const prefetchPOS = () => import('./POS')
   const prefetchSellerPayouts = () => import('../components/SellerPayouts')
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts' | 'settings' | 'marketplace'
 
 interface ProductFormErrors {
   name?: string
@@ -89,6 +92,7 @@ const defaultFormState = {
 
 export default function Admin() {
   const { user, signOut, role } = useAuth()
+  const navigate = useNavigate()
   const [business, setBusiness] = useState<Business | null>(null)
   const [view, setView] = useState<AdminView>('dashboard')
   const [products, setProducts] = useState<Product[]>([])
@@ -119,6 +123,15 @@ export default function Admin() {
   const [productsError, setProductsError] = useState('')
   const [ordersError, setOrdersError] = useState('')
   const [reviewsError, setReviewsError] = useState('')
+  const [profile, setProfile] = useState<any>(null)
+  const [isUpdatingStore, setIsUpdatingStore] = useState(false)
+  const [storeSettings, setStoreSettings] = useState({
+    name: '',
+    description: '',
+    contact_email: '',
+    contact_phone: '',
+    location: '',
+  })
 
   // Suppress unused variable warnings for build
   console.log('Loading states:', { productsLoading, ordersLoading, reviewsLoading })
@@ -142,6 +155,13 @@ export default function Admin() {
         if (b) {
           setBusiness(b)
           currentBusiness = b
+          setStoreSettings({
+            name: b.name || '',
+            description: b.description || '',
+            contact_email: b.contact_email || '',
+            contact_phone: b.contact_phone || '',
+            location: b.location || '',
+          })
         }
       } catch (err) {
         console.error('Error fetching business:', err)
@@ -163,6 +183,18 @@ export default function Admin() {
 
     const businessId = role === 'admin' ? undefined : currentBusiness?.id
     
+    // Load profile for onboarding status
+    try {
+      const { data: profileData } = await supabase!
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+      setProfile(profileData)
+    } catch (err) {
+      console.error('Error loading profile:', err)
+    }
+
     // Load products and stats independently. Never allow an unresolved seller
     // business to fall through to the global marketplace query.
     setProductsLoading(true)
@@ -631,13 +663,21 @@ export default function Admin() {
           Suppliers
         </button>
         {role === 'admin' && (
-          <button
-            className={`tab ${view === 'registered-sellers' ? 'active' : ''}`}
-            onClick={() => setView('registered-sellers')}
-            onMouseEnter={prefetchRegisteredSellers}
-          >
-            Registered Sellers
-          </button>
+          <>
+            <button
+              className={`tab ${view === 'registered-sellers' ? 'active' : ''}`}
+              onClick={() => setView('registered-sellers')}
+              onMouseEnter={prefetchRegisteredSellers}
+            >
+              Registered Sellers
+            </button>
+            <button
+              className={`tab ${view === 'marketplace' ? 'active' : ''}`}
+              onClick={() => setView('marketplace')}
+            >
+              🌍 Marketplace Settings
+            </button>
+          </>
         )}
         <button
           className={`tab ${view === 'payouts' ? 'active' : ''}`}
@@ -652,6 +692,12 @@ export default function Admin() {
           onMouseEnter={prefetchPOS}
         >
           🛒 POS
+        </button>
+        <button
+          className={`tab ${view === 'settings' ? 'active' : ''}`}
+          onClick={() => setView('settings')}
+        >
+          ⚙️ Store Settings
         </button>
       </div>
 
@@ -682,6 +728,171 @@ export default function Admin() {
 
         {/* POS View */}
         {view === 'pos' && <POS businessIds={role === 'seller' && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}
+
+        {/* Marketplace Settings View */}
+        {view === 'marketplace' && role === 'admin' && (
+          <div className="marketplace-settings-content animate-fade-in">
+            <div className="section-title-wrapper">
+              <h2 className="section-title">Global Marketplace Settings</h2>
+              <p>Manage supported countries, currencies, and platform-wide configurations.</p>
+            </div>
+
+            <div className="settings-grid">
+              <div className="settings-card">
+                <h3>Supported Countries</h3>
+                <div className="countries-list">
+                  <p>Configure which countries can access the marketplace.</p>
+                  <button className="btn-secondary btn-sm" onClick={() => alert('Country management coming soon!')}>+ Add Country</button>
+                </div>
+              </div>
+              <div className="settings-card">
+                <h3>Platform Commissions</h3>
+                <form className="admin-form" onSubmit={(e) => e.preventDefault()}>
+                  <div className="form-group">
+                    <label>Default Commission (BPS)</label>
+                    <input type="number" defaultValue="500" />
+                    <small>500 BPS = 5%</small>
+                  </div>
+                  <button className="btn-primary">Update Commission</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Store Settings View */}
+        {view === 'settings' && business && (
+          <div className="store-settings-content animate-fade-in">
+            <div className="section-title-wrapper">
+              <h2 className="section-title">Store Settings</h2>
+              <p>Customize your storefront and contact information.</p>
+            </div>
+
+            <div className="settings-grid">
+              <div className="settings-card">
+                <h3>Store Profile</h3>
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  setIsUpdatingStore(true);
+                  try {
+                    await updateBusinessProfile(business.id, storeSettings);
+                    showNotification('Store profile updated!');
+                    loadData();
+                  } catch (err: any) {
+                    setError(err.message);
+                  } finally {
+                    setIsUpdatingStore(false);
+                  }
+                }} className="admin-form">
+                  <div className="form-group">
+                    <label>Store Name</label>
+                    <input 
+                      type="text" 
+                      value={storeSettings.name}
+                      onChange={e => setStoreSettings({...storeSettings, name: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Description</label>
+                    <textarea 
+                      value={storeSettings.description}
+                      onChange={e => setStoreSettings({...storeSettings, description: e.target.value})}
+                      rows={4}
+                    />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Contact Email</label>
+                      <input 
+                        type="email" 
+                        value={storeSettings.contact_email}
+                        onChange={e => setStoreSettings({...storeSettings, contact_email: e.target.value})}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Contact Phone</label>
+                      <input 
+                        type="tel" 
+                        value={storeSettings.contact_phone}
+                        onChange={e => setStoreSettings({...storeSettings, contact_phone: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Location</label>
+                    <input 
+                      type="text" 
+                      value={storeSettings.location}
+                      onChange={e => setStoreSettings({...storeSettings, location: e.target.value})}
+                    />
+                  </div>
+                  <button type="submit" className="btn-primary" disabled={isUpdatingStore}>
+                    {isUpdatingStore ? 'Updating...' : 'Save Changes'}
+                  </button>
+                </form>
+              </div>
+
+              <div className="settings-card">
+                <h3>Payout Settings</h3>
+                {user && business && (
+                  <PayoutProfileForm 
+                    sellerId={user.id} 
+                    storeId={business.id} 
+                    onSuccess={() => showNotification('Payout profile updated!')}
+                  />
+                )}
+              </div>
+
+              <div className="settings-card">
+                <h3>Branding Assets</h3>
+                <div className="branding-upload-group">
+                  <label>Store Logo</label>
+                  <div className="asset-preview-container">
+                    {business.logo_url ? <img src={business.logo_url} alt="Logo" className="logo-preview" /> : <div className="placeholder-preview">No Logo</div>}
+                    <input type="file" accept="image/*" onChange={async (e) => {
+                      if (e.target.files?.[0]) {
+                        try {
+                          setIsLoading(true);
+                          const url = await uploadBusinessAsset(e.target.files[0], business.id, 'logo');
+                          await updateBusinessProfile(business.id, { logo_url: url });
+                          showNotification('Logo updated!');
+                          loadData();
+                        } catch (err: any) {
+                          setError(err.message);
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }
+                    }} />
+                  </div>
+                </div>
+
+                <div className="branding-upload-group" style={{ marginTop: '2rem' }}>
+                  <label>Store Banner</label>
+                  <div className="asset-preview-container banner">
+                    {business.banner_url ? <img src={business.banner_url} alt="Banner" className="banner-preview" /> : <div className="placeholder-preview">No Banner</div>}
+                    <input type="file" accept="image/*" onChange={async (e) => {
+                      if (e.target.files?.[0]) {
+                        try {
+                          setIsLoading(true);
+                          const url = await uploadBusinessAsset(e.target.files[0], business.id, 'banner');
+                          await updateBusinessProfile(business.id, { banner_url: url });
+                          showNotification('Banner updated!');
+                          loadData();
+                        } catch (err: any) {
+                          setError(err.message);
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }
+                    }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </Suspense>
 
       {/* Reviews Management View */}
@@ -790,6 +1001,60 @@ export default function Admin() {
       {/* Dashboard Overview */}
       {view === 'dashboard' && (
         <div className="dashboard-content">
+          {role === 'seller' && (
+            <div className="onboarding-checklist animate-fade-in">
+              <h3>🚀 Welcome to Reliable! Let's get you ready to sell.</h3>
+              <div className="checklist-items">
+                <div className={`checklist-item ${profile?.identity_status === 'approved' ? 'completed' : ''}`}>
+                  <div className="check-icon">{profile?.identity_status === 'approved' ? '✅' : '⭕'}</div>
+                  <div className="check-text">
+                    <strong>Verify your Identity</strong>
+                    <p>Required for security and payouts.</p>
+                    {profile?.identity_status !== 'approved' && (
+                      <button onClick={() => navigate('/customer/profile')} className="btn-sm btn-secondary">Go to Verification</button>
+                    )}
+                  </div>
+                </div>
+                <div className={`checklist-item ${products.length > 0 ? 'completed' : ''}`}>
+                  <div className="check-icon">{products.length > 0 ? '✅' : '⭕'}</div>
+                  <div className="check-text">
+                    <strong>Add your first Product</strong>
+                    <p>Start listing your items for the world to see.</p>
+                    {products.length === 0 && (
+                      <button onClick={() => setView('add')} className="btn-sm btn-secondary">Add Product</button>
+                    )}
+                  </div>
+                </div>
+                <div className={`checklist-item ${business?.logo_url ? 'completed' : ''}`}>
+                  <div className="check-icon">{business?.logo_url ? '✅' : '⭕'}</div>
+                  <div className="check-text">
+                    <strong>Brand your Store</strong>
+                    <p>Add a logo and banner to stand out.</p>
+                    {!business?.logo_url && (
+                      <p><small>Go to Store Settings to upload assets.</small></p>
+                    )}
+                  </div>
+                </div>
+                <div className={`checklist-item ${business?.verification_status === 'approved' ? 'completed' : ''}`}>
+                  <div className="check-icon">{business?.verification_status === 'approved' ? '✅' : '⭕'}</div>
+                  <div className="check-text">
+                    <strong>Verify your Business</strong>
+                    <p>Unlock higher limits and a verified badge.</p>
+                    {business?.verification_status !== 'approved' && (
+                      <button onClick={() => setView('dashboard')} className="btn-sm btn-secondary">Submit Documents</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {business && business.verification_status !== 'approved' && (
+                <div className="verification-form-overlay animate-fade-in" style={{ marginTop: '2rem' }}>
+                  <BusinessVerificationForm business={business} onSuccess={loadData} />
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="stats-grid">
             <div className="stat-card stat-total">
               <div className="stat-icon">&#128230;</div>

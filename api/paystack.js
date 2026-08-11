@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { action, email, amount, reference, metadata } = req.body;
+  const { action, email, amount, currency, reference, metadata } = req.body;
   const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY || '';
 
   if (!PAYSTACK_SECRET_KEY) {
@@ -40,6 +40,7 @@ module.exports = async (req, res) => {
         {
           email,
           amount: Math.round(amount), // Paystack expects amount in kobo (integer)
+          currency,
           reference,
           metadata,
         },
