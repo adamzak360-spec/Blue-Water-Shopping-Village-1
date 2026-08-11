@@ -25,7 +25,7 @@ export default function ProductDetails() {
   const [error, setError] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [mainMediaIndex, setMainMediaIndex] = useState(0)
-  const [selectedSize, setSelectedSize] = useState<string>('')
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([])
   const [sizeError, setSizeError] = useState('')
 
   // Review Form State
@@ -90,18 +90,26 @@ export default function ProductDetails() {
   }, [productId])
 
   const handleAddToCart = () => {
-    if (product?.has_sizes && !selectedSize) {
-      setSizeError('Please select a size')
+    if (product?.has_sizes && selectedSizes.length === 0) {
+      setSizeError('Please select at least one size')
       return
     }
     setSizeError('')
 
-    // Add to cart with quantity
-    for (let i = 0; i < quantity; i++) {
+    // Add to cart for each selected size
+    if (product?.has_sizes) {
+      selectedSizes.forEach(size => {
+        addToCart({
+          ...product!,
+          quantity: quantity, // Use the selected quantity for each size
+          selected_size: size
+        } as any)
+      })
+    } else {
       addToCart({
         ...product!,
-        quantity: 1,
-        selected_size: selectedSize || undefined
+        quantity: quantity,
+        selected_size: undefined
       } as any)
     }
   }
@@ -209,6 +217,15 @@ export default function ProductDetails() {
   if (product.product_code) {
     specItems.push({ label: 'Product Code', value: product.product_code })
   }
+  // Add custom specifications from JSONB field
+  if (Array.isArray(product.specifications)) {
+    product.specifications.forEach((spec: any) => {
+      if (spec.label && spec.value) {
+        specItems.push({ label: spec.label, value: spec.value })
+      }
+    })
+  }
+
   // Always show these
   specItems.push({ label: 'Category', value: product.category })
   specItems.push({ label: 'Stock Available', value: `${product.stock_quantity} units` })
@@ -225,8 +242,8 @@ export default function ProductDetails() {
     : 0
 
   // Get current stock based on selection
-  const currentStock = product.has_sizes && selectedSize
-    ? variants.find(v => v.variant_value === selectedSize)?.stock_quantity || 0
+  const currentStock = product.has_sizes && selectedSizes.length > 0
+    ? Math.min(...selectedSizes.map(size => variants.find(v => v.variant_value === size)?.stock_quantity || 0))
     : product.stock_quantity
 
   // Build delivery info from product-specific fees
@@ -380,13 +397,19 @@ export default function ProductDetails() {
           {/* Size Selection */}
           {product.has_sizes && variants.length > 0 && (
             <div className="size-selection-section">
-              <h3 className="section-title">Select Size</h3>
+              <h3 className="section-title">Select Sizes (Multiple allowed)</h3>
               <div className="size-options">
                 {variants.map((variant) => (
                   <button
                     key={variant.id}
-                    className={`size-btn ${selectedSize === variant.variant_value ? 'selected' : ''} ${variant.stock_quantity === 0 ? 'unavailable' : ''}`}
-                    onClick={() => setSelectedSize(variant.variant_value)}
+                    className={`size-btn ${selectedSizes.includes(variant.variant_value) ? 'selected' : ''} ${variant.stock_quantity === 0 ? 'unavailable' : ''}`}
+                    onClick={() => {
+                      setSelectedSizes(prev => 
+                        prev.includes(variant.variant_value)
+                          ? prev.filter(s => s !== variant.variant_value)
+                          : [...prev, variant.variant_value]
+                      )
+                    }}
                     disabled={variant.stock_quantity === 0}
                   >
                     {variant.variant_value}

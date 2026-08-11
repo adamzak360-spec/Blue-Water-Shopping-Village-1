@@ -65,7 +65,7 @@ export interface Product {
   weight?: string
   dimensions?: string
   warranty?: string
-  specifications?: string
+  specifications?: any
   features?: string
   // Size system
   has_sizes?: boolean
@@ -114,7 +114,7 @@ export interface ProductFormData {
   weight?: string
   dimensions?: string
   warranty?: string
-  specifications?: string
+  specifications?: any
   features?: string
   // Size system
   has_sizes?: boolean

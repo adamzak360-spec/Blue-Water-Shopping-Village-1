@@ -26,6 +26,10 @@ interface POSState {
   customerEmail: string
   paymentMethod: 'cash' | 'card' | 'mobile'
   amountPaid: number
+  isSubscribed: boolean
+  subscriptionChecked: boolean
+  businessCountry: string
+  subscriptionPrice: { price: number; currency: string } | null
 }
 
 export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
@@ -43,15 +47,57 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
     customerEmail: '',
     paymentMethod: 'cash',
     amountPaid: 0,
+    isSubscribed: false,
+    subscriptionChecked: false,
+    businessCountry: 'GH',
+    subscriptionPrice: null,
   })
 
-  // Fetch products on mount
+  // Fetch products and check subscription on mount
   useEffect(() => {
-    const fetchProducts = async () => {
+    const initPOS = async () => {
       try {
         setState(prev => ({ ...prev, isLoading: true, error: '' }))
+        
+        // 1. Check Subscription if seller
+        if (businessIds && businessIds.length > 0) {
+          const { data: bizData } = await supabase!
+            .from('businesses')
+            .select('pos_subscription_active, country_code')
+            .eq('id', businessIds[0])
+            .single();
+          
+          if (bizData) {
+            const isSubscribed = bizData.pos_subscription_active || false;
+            const country = bizData.country_code || 'GH';
+            
+            // Fetch subscription price for the country
+            const { data: planData } = await supabase!
+              .from('pos_subscription_plans')
+              .select('monthly_price, currency_code')
+              .eq('country_code', country)
+              .single();
+
+            setState(prev => ({ 
+              ...prev, 
+              isSubscribed, 
+              subscriptionChecked: true, 
+              businessCountry: country,
+              subscriptionPrice: planData ? { price: planData.monthly_price, currency: planData.currency_code } : null
+            }));
+
+            if (!isSubscribed) {
+              setState(prev => ({ ...prev, isLoading: false }));
+              return; // Stop loading products if not subscribed
+            }
+          }
+        } else {
+          // Admin or internal use
+          setState(prev => ({ ...prev, isSubscribed: true, subscriptionChecked: true }));
+        }
+
+        // 2. Fetch products
         const products = await getAllProducts()
-        // Sellers must only see products from their own stores in POS
         const scopedProducts =
           businessIds && businessIds.length > 0
             ? products.filter(p => businessIds.includes(p.business_id || ''))
@@ -60,13 +106,13 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
       } catch (err) {
         setState(prev => ({
           ...prev,
-          error: 'Failed to load products',
+          error: 'Failed to initialize POS',
           isLoading: false,
         }))
       }
     }
-    fetchProducts()
-  }, [])
+    initPOS()
+  }, [businessIds])
 
   // Filter products based on search and category
   const filteredProducts = state.products.filter(product => {
@@ -216,9 +262,57 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
     }))
   }
 
+  const handleSubscribe = async () => {
+    if (!businessIds || businessIds.length === 0) return;
+    try {
+      setState(prev => ({ ...prev, isLoading: true }));
+      // Simulate successful subscription
+      const { error } = await supabase!
+        .from('businesses')
+        .update({ pos_subscription_active: true })
+        .eq('id', businessIds[0]);
+      
+      if (error) throw error;
+      
+      setState(prev => ({ ...prev, isSubscribed: true, isLoading: false }));
+      // Reload products
+      const products = await getAllProducts();
+      const scopedProducts = products.filter(p => businessIds.includes(p.business_id || ''));
+      setState(prev => ({ ...prev, products: scopedProducts }));
+    } catch (err: any) {
+      setState(prev => ({ ...prev, error: err.message, isLoading: false }));
+    }
+  };
+
+  if (state.subscriptionChecked && !state.isSubscribed) {
+    return (
+      <div className="pos-container">
+        <div className="pos-subscription-wall">
+          <div className="subscription-card">
+            <div className="subscription-icon">🛒</div>
+            <h2>Unlock POS System</h2>
+            <p>The Reliable POS system allows you to manage in-store sales, issue receipts, and sync inventory automatically.</p>
+            {state.subscriptionPrice ? (
+              <div className="price-tag">
+                <span className="amount">{formatCurrency(state.subscriptionPrice.price, state.subscriptionPrice.currency)}</span>
+                <span className="period">/ month</span>
+              </div>
+            ) : (
+              <p>Subscription required to continue.</p>
+            )}
+            <button className="pos-subscribe-btn" onClick={handleSubscribe} disabled={state.isLoading}>
+              {state.isLoading ? 'Processing...' : 'Subscribe Now'}
+            </button>
+            <p className="subscription-note">Manage your business more efficiently with our professional POS tools.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pos-container">
-      <div className="pos-header">
+      <div className="pos-header no-print">
         <h1>Point of Sale (POS)</h1>
         <p>Manage in-store transactions</p>
       </div>
@@ -390,7 +484,7 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
             onClick={processPayment}
             disabled={state.cartItems.length === 0 || state.isLoading}
           >
-            {state.isLoading ? 'Processing...' : 'Complete Sale'}
+            {state.isLoading ? 'Processing...' : 'Complete Sale & Issue Receipt'}
           </button>
         </div>
       </div>
@@ -399,13 +493,16 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
       {state.showReceipt && state.lastOrder && (
         <div className="pos-receipt-modal">
           <div className="pos-receipt-content">
-            <button className="pos-close-receipt" onClick={closeReceipt}>
+            <button className="pos-close-receipt no-print" onClick={closeReceipt}>
               <X size={24} />
             </button>
 
-            <div className="pos-receipt-print">
-              <h2>RECEIPT</h2>
-              <p className="pos-receipt-date">{state.lastOrder.created_at ? new Date(state.lastOrder.created_at).toLocaleString() : new Date().toLocaleString()}</p>
+            <div className="pos-receipt-print" id="pos-receipt">
+              <div className="receipt-header">
+                <h2>RELIABLE</h2>
+                <p>Premium Marketplace</p>
+                <p className="pos-receipt-date">{state.lastOrder.created_at ? new Date(state.lastOrder.created_at).toLocaleString() : new Date().toLocaleString()}</p>
+              </div>
 
               <div className="pos-receipt-customer">
                 <p><strong>Customer:</strong> {state.lastOrder.customer_name}</p>
@@ -417,48 +514,52 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
                 <thead>
                   <tr>
                     <th>Item</th>
-                    <th>Qty</th>
-                    <th>Price</th>
-                    <th>Total</th>
+                    <th className="text-right">Qty</th>
+                    <th className="text-right">Price</th>
+                    <th className="text-right">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {state.lastOrder.items?.map((item: any, idx: number) => (
                     <tr key={idx}>
-                      <td>{item.name}</td>
-                      <td>{item.quantity}</td>
-                      <td>{formatCurrency(item.price)}</td>
-                      <td>{formatCurrency(item.price * item.quantity)}</td>
+                      <td>{item.name} {item.selected_size ? `(${item.selected_size})` : ''}</td>
+                      <td className="text-right">{item.quantity}</td>
+                      <td className="text-right">{formatCurrency(item.price)}</td>
+                      <td className="text-right">{formatCurrency(item.price * item.quantity)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
               <div className="pos-receipt-totals">
-                <div className="pos-receipt-total-row">
+                <div className="receipt-row">
                   <span>Subtotal:</span>
                   <span>{formatCurrency(state.lastOrder.subtotal)}</span>
                 </div>
-                <div className="pos-receipt-total-row">
-                  <span>Delivery:</span>
-                  <span>{formatCurrency(state.lastOrder.delivery_fee)}</span>
-                </div>
-                <div className="pos-receipt-total-row pos-receipt-grand-total">
-                  <span>Total:</span>
+                <div className="receipt-row receipt-grand-total">
+                  <span>Total Amount:</span>
                   <span>{formatCurrency(state.lastOrder.total)}</span>
                 </div>
+                <div className="receipt-row">
+                  <span>Amount Paid:</span>
+                  <span>{formatCurrency(state.amountPaid || state.lastOrder.total)}</span>
+                </div>
+                {(state.amountPaid > state.lastOrder.total) && (
+                  <div className="receipt-row">
+                    <span>Change:</span>
+                    <span>{formatCurrency(state.amountPaid - state.lastOrder.total)}</span>
+                  </div>
+                )}
               </div>
 
-              <div className="pos-receipt-payment">
-                <p><strong>Payment Method:</strong> {state.paymentMethod.toUpperCase()}</p>
-                <p><strong>Amount Paid:</strong> {formatCurrency(state.amountPaid)}</p>
-                <p><strong>Change:</strong> {formatCurrency(Math.max(0, state.amountPaid - state.lastOrder.total))}</p>
+              <div className="pos-receipt-footer">
+                <p>Payment Method: {state.lastOrder.payment_method?.toUpperCase()}</p>
+                <p>Thank you for your business!</p>
+                <p className="order-id">Order ID: {state.lastOrder.id?.slice(0, 8)}</p>
               </div>
-
-              <p className="pos-receipt-footer">Thank you for your purchase!</p>
             </div>
 
-            <button className="pos-print-btn" onClick={printReceipt}>
+            <button className="pos-print-btn no-print" onClick={printReceipt}>
               <Printer size={20} /> Print Receipt
             </button>
           </div>

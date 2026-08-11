@@ -89,6 +89,7 @@ const defaultFormState = {
   delivery_fee_dhl: '',
   delivery_fee_ups: '',
   delivery_fee_fedex: '',
+  specifications: [] as { label: string; value: string }[],
 }
 
 export default function Admin() {
@@ -150,9 +151,17 @@ export default function Admin() {
     setError('')
     
     let currentBusiness = business
-    if (!currentBusiness && role === 'seller') {
+    if (!currentBusiness) {
       try {
-        const b = await getBusinessByOwner(user.id)
+        let b: Business | null = null;
+        if (role === 'seller') {
+          b = await getBusinessByOwner(user.id)
+        } else if (role === 'admin') {
+          // Admins manage the default marketplace business
+          const { data } = await supabase!.from('businesses').select('*').eq('id', '00000000-0000-0000-0000-000000000001').single();
+          b = data as Business;
+        }
+
         if (b) {
           setBusiness(b)
           currentBusiness = b
@@ -326,6 +335,7 @@ export default function Admin() {
         delivery_fee_dhl: formData.delivery_fee_dhl ? parseFloat(formData.delivery_fee_dhl) : 0,
         delivery_fee_ups: formData.delivery_fee_ups ? parseFloat(formData.delivery_fee_ups) : 0,
         delivery_fee_fedex: formData.delivery_fee_fedex ? parseFloat(formData.delivery_fee_fedex) : 0,
+        specifications: formData.specifications,
         business_id: business?.id
       }
 
@@ -407,6 +417,7 @@ export default function Admin() {
       delivery_fee_dhl: (product.delivery_fee_dhl || 0).toString(),
       delivery_fee_ups: (product.delivery_fee_ups || 0).toString(),
       delivery_fee_fedex: (product.delivery_fee_fedex || 0).toString(),
+      specifications: Array.isArray(product.specifications) ? product.specifications : [],
     })
     setView('edit')
   }
@@ -762,7 +773,7 @@ export default function Admin() {
         )}
 
         {/* Store Settings View */}
-        {view === 'settings' && business && (
+        {view === 'settings' && (business || role === 'admin') && (
           <div className="store-settings-content animate-fade-in">
             <div className="section-title-wrapper">
               <h2 className="section-title">Store Settings</h2>
@@ -1678,6 +1689,60 @@ export default function Admin() {
                   </div>
                 </div>
               )}
+
+              <div className="form-group full-width specifications-editor-section">
+                <h4>Product Specifications</h4>
+                <p className="help-text">Add custom attributes like Brand, Material, Voltage, etc.</p>
+                <div className="specifications-list">
+                  {formData.specifications.map((spec, idx) => (
+                    <div key={idx} className="spec-row">
+                      <input
+                        type="text"
+                        placeholder="Label (e.g. Brand)"
+                        value={spec.label}
+                        onChange={(e) => {
+                          const updated = [...formData.specifications]
+                          updated[idx].label = e.target.value
+                          setFormData({ ...formData, specifications: updated })
+                        }}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Value (e.g. Reliable)"
+                        value={spec.value}
+                        onChange={(e) => {
+                          const updated = [...formData.specifications]
+                          updated[idx].value = e.target.value
+                          setFormData({ ...formData, specifications: updated })
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="btn-delete-small"
+                        onClick={() => {
+                          const updated = [...formData.specifications]
+                          updated.splice(idx, 1)
+                          setFormData({ ...formData, specifications: updated })
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="btn-add-spec"
+                  onClick={() => {
+                    setFormData({
+                      ...formData,
+                      specifications: [...formData.specifications, { label: '', value: '' }]
+                    })
+                  }}
+                >
+                  + Add Specification
+                </button>
+              </div>
 
               <div className="form-group full-width">
                 <label>Description</label>

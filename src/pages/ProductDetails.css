@@ -270,8 +270,9 @@
 
 .size-btn {
   min-width: 52px;
-  height: 44px;
-  padding: 0 16px;
+  height: auto;
+  min-height: 44px;
+  padding: 8px 16px;
   border: 2px solid var(--color-border);
   border-radius: var(--radius-sm);
   background-color: white;
@@ -282,6 +283,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  word-break: break-word;
 }
 
 .size-btn:hover:not(.unavailable) {
