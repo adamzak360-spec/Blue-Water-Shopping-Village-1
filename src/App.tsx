@@ -217,13 +217,8 @@ function AppShell() {
       <TermsPopup />
       <main className="app-main">
         <Suspense fallback={
-          <div className="loading-screen">
-            <div className="loading-logo-container">
-              <img src="/logo-transparent.png" alt="Reliable Logo" className="loading-logo" />
-              <div className="loading-bar-container">
-                <div className="loading-bar"></div>
-              </div>
-            </div>
+          <div className="loading-screen" aria-label="Loading Reliable">
+            <img src="/logo-transparent.png" alt="Reliable" className="loading-logo" />
           </div>
         }>
           <Routes>
