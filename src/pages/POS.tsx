@@ -30,6 +30,7 @@ interface POSState {
   isSubscribed: boolean
   subscriptionChecked: boolean
   businessCountry: string
+  businessCurrency: string
   subscriptionPrice: { price: number; currency: string } | null
 }
 
@@ -51,6 +52,7 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
     isSubscribed: false,
     subscriptionChecked: false,
     businessCountry: 'GH',
+    businessCurrency: 'GHS',
     subscriptionPrice: null,
   })
 
@@ -64,13 +66,14 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
         if (businessIds && businessIds.length > 0) {
           const { data: bizData } = await supabase!
             .from('businesses')
-            .select('pos_subscription_active, country_code')
+            .select('pos_subscription_active, country_code, currency_code')
             .eq('id', businessIds[0])
             .single();
           
           if (bizData) {
             const isSubscribed = bizData.pos_subscription_active || false;
             const country = bizData.country_code || 'GH';
+            const currency = bizData.currency_code || 'GHS';
             
             // Fetch subscription price for the country
             const { data: planData } = await supabase!
@@ -84,6 +87,7 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
               isSubscribed, 
               subscriptionChecked: true, 
               businessCountry: country,
+              businessCurrency: currency,
               subscriptionPrice: planData ? { price: planData.monthly_price, currency: planData.currency_code } : null
             }));
 
@@ -357,7 +361,7 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
                 <div key={product.id} className="pos-product-card">
                   <img src={product.image_url} alt={product.name} />
                   <h3>{product.name}</h3>
-                  <p className="pos-price">{formatCurrency(product.price)}</p>
+                  <p className="pos-price">{formatCurrency(product.price, product.currency || state.businessCurrency)}</p>
                   <p className="pos-stock">Stock: {product.stock_quantity}</p>
                   <button
                     className="pos-add-btn"
@@ -407,7 +411,7 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
                 <div key={item.product.id} className="pos-cart-item">
                   <div className="pos-item-info">
                     <h4>{item.product.name}</h4>
-                    <p>{formatCurrency(item.product.price)} each</p>
+                    <p>{formatCurrency(item.product.price, item.product.currency || state.businessCurrency)} each</p>
                   </div>
                   <div className="pos-item-controls">
                     <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)}>
@@ -424,7 +428,7 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
                     </button>
                   </div>
                   <div className="pos-item-total">
-                    {formatCurrency(item.product.price * item.quantity)}
+                    {formatCurrency(item.product.price * item.quantity, item.product.currency || state.businessCurrency)}
                   </div>
                   <button
                     className="pos-remove-btn"
@@ -440,7 +444,7 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
           <div className="pos-totals">
             <div className="pos-total-row">
               <span>Subtotal:</span>
-              <span>{formatCurrency(subtotal)}</span>
+              <span>{formatCurrency(subtotal, state.businessCurrency)}</span>
             </div>
             <div className="pos-total-row">
               <span>Delivery:</span>
@@ -448,7 +452,7 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
             </div>
             <div className="pos-total-row pos-grand-total">
               <span>Total:</span>
-              <span>{formatCurrency(total)}</span>
+              <span>{formatCurrency(total, state.businessCurrency)}</span>
             </div>
           </div>
 

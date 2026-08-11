@@ -70,6 +70,7 @@ const defaultFormState = {
   description: '',
   price: '',
   category: '',
+  currency: 'GHS',
   stock_quantity: '',
   status: 'active' as 'active' | 'inactive' | 'out-of-stock',
   image: null as File | null,
@@ -326,6 +327,7 @@ export default function Admin() {
         image_url: imageUrl,
         gallery_urls: gallery_urls,
         video_urls: video_urls,
+        currency: formData.currency,
         has_sizes: formData.has_sizes,
         // Delivery Fees (must match database column names)
         // Tamale, STC (greater_accra), VIP (lesser_accra), OA (dhl), VVIP (ups), FedEx
@@ -400,6 +402,7 @@ export default function Admin() {
       description: product.description,
       price: product.price.toString(),
       category: product.category,
+      currency: product.currency || 'GHS',
       stock_quantity: product.stock_quantity.toString(),
       status: product.status,
       image: null,
@@ -1557,16 +1560,32 @@ export default function Admin() {
                 {formErrors.category && <span className="error-text">{formErrors.category}</span>}
               </div>
 
-              <div className="form-group">
-                <label>Price</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className={formErrors.price ? 'error' : ''}
-                />
-                {formErrors.price && <span className="error-text">{formErrors.price}</span>}
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Price</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    className={formErrors.price ? 'error' : ''}
+                  />
+                  {formErrors.price && <span className="error-text">{formErrors.price}</span>}
+                </div>
+                <div className="form-group">
+                  <label>Currency</label>
+                  <select
+                    value={formData.currency}
+                    onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                  >
+                    <option value="GHS">GHS (₵)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="NGN">NGN (₦)</option>
+                    <option value="KES">KES (KSh)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                  </select>
+                </div>
               </div>
 
               <div className="form-group">
