@@ -1,5 +1,10 @@
 import { supabase } from '../supabaseClient'
-import { IdentityVerification, VerificationStatus } from '../types'
+import { IdentityVerification } from '../types'
+
+const getSupabase = () => {
+  if (!supabase) throw new Error('Supabase is not configured')
+  return supabase
+}
 
 export const verificationService = {
   /**
@@ -11,10 +16,10 @@ export const verificationService = {
     id_image_front_url: string
     id_image_back_url?: string
   }) {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getSupabase().auth.getUser()
     if (!user) throw new Error('User not authenticated')
 
-    const { data: verification, error } = await supabase
+    const { data: verification, error } = await getSupabase()
       .from('identity_verifications')
       .upsert({
         user_id: user.id,
@@ -33,10 +38,10 @@ export const verificationService = {
    * Get current user's identity verification status
    */
   async getMyIdentityVerification() {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getSupabase().auth.getUser()
     if (!user) return null
 
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('identity_verifications')
       .select('*')
       .eq('user_id', user.id)
@@ -50,7 +55,7 @@ export const verificationService = {
    * Admin: List all pending verifications
    */
   async getPendingVerifications() {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('identity_verifications')
       .select('*, profiles:user_id(full_name, email)')
       .eq('status', 'pending')
@@ -64,10 +69,10 @@ export const verificationService = {
    * Admin: Approve or Reject verification
    */
   async processVerification(id: string, status: 'approved' | 'rejected', rejectionReason?: string) {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getSupabase().auth.getUser()
     if (!user) throw new Error('User not authenticated')
 
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('identity_verifications')
       .update({
         status,
