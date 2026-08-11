@@ -109,7 +109,7 @@ export default function BusinessStorefront() {
           <h1 style={{ fontSize: '3rem', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
             {business.name}
             {business.verification_status === 'approved' && (
-              <CheckCircle size={32} color="#4ade80" fill="currentColor" style={{ color: 'white' }} title="Verified Store" />
+              <CheckCircle size={32} color="#4ade80" fill="currentColor" style={{ color: 'white' }} />
             )}
           </h1>
           <p style={{ fontSize: '1.25rem', maxWidth: '700px', margin: '0 auto 24px', opacity: 0.95, fontWeight: 500 }}>

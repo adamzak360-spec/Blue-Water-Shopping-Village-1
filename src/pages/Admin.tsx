@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '../supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import { getBusinessByOwner, getAllBusinessesByOwner, updateBusinessProfile, uploadBusinessAsset, type Business } from '../services/businessService'
 import {
