@@ -61,7 +61,7 @@ export default function ProductCard({ product, showStock = true }: ProductCardPr
         </Link>
         <p className="product-description">{product.description}</p>
         <div className="product-price-stock">
-          <span className="product-price">{formatCurrency(product.price)}</span>
+          <span className="product-price">{formatCurrency(product.price, product.currency || 'GHS')}</span>
           {showStock && (
             <div className="stock-badge-wrapper">
               <StockStatus stock={product.stock_quantity} size="medium" />

@@ -14,12 +14,13 @@ export default function Register() {
     confirmPassword: '',
     phone: '',
     address: '',
+    country: 'GH',
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
@@ -48,6 +49,7 @@ export default function Register() {
     const { error: signUpError } = await signUp(formData.email, formData.password, {
       full_name: formData.fullName,
       phone: formData.phone,
+      country_code: formData.country,
     })
 
     if (signUpError) {
@@ -110,6 +112,25 @@ export default function Register() {
               disabled={isLoading}
               required
             />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="country">Country</label>
+            <select
+              id="country"
+              name="country"
+              value={formData.country}
+              onChange={handleChange}
+              disabled={isLoading}
+              required
+            >
+              <option value="GH">Ghana</option>
+              <option value="NG">Nigeria</option>
+              <option value="KE">Kenya</option>
+              <option value="ZA">South Africa</option>
+              <option value="US">United States</option>
+              <option value="GB">United Kingdom</option>
+            </select>
           </div>
 
           <div className="form-group">

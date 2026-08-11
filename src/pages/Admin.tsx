@@ -1030,7 +1030,7 @@ export default function Admin() {
                         </div>
                       </td>
                       <td>{order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
-                      <td>{formatCurrency(order.total)}</td>
+                      <td>{formatCurrency(order.total, order.payout_currency || 'GHS')}</td>
                       <td>
                         <span className={`status-badge status-${order.status}`}>
                           {order.status.replace('-', ' ')}
@@ -1147,15 +1147,15 @@ export default function Admin() {
                   </div>
                   <div className="detail-item summary-row">
                     <span className="detail-label">Subtotal:</span>
-                    <span className="detail-value">{formatCurrency(selectedOrder.subtotal)}</span>
+                    <span className="detail-value">{formatCurrency(selectedOrder.subtotal, selectedOrder.payout_currency || 'GHS')}</span>
                   </div>
                   <div className="detail-item summary-row">
                     <span className="detail-label">Delivery Fee:</span>
-                    <span className="detail-value">{formatCurrency(selectedOrder.delivery_fee)}</span>
+                    <span className="detail-value">{formatCurrency(selectedOrder.delivery_fee, selectedOrder.payout_currency || 'GHS')}</span>
                   </div>
                   <div className="detail-item summary-row grand-total">
                     <span className="detail-label">Grand Total:</span>
-                    <span className="detail-value">{formatCurrency(selectedOrder.total)}</span>
+                    <span className="detail-value">{formatCurrency(selectedOrder.total, selectedOrder.payout_currency || 'GHS')}</span>
                   </div>
                   <div className="detail-item">
                     <span className="detail-label">Payment Status:</span>
@@ -1232,8 +1232,8 @@ export default function Admin() {
                           <div className="product-id-small">{item.id}</div>
                         </td>
                         <td>{item.quantity}</td>
-                        <td>{formatCurrency(item.price)}</td>
-                        <td>{formatCurrency(item.quantity * item.price)}</td>
+                        <td>{formatCurrency(item.price, selectedOrder.payout_currency || 'GHS')}</td>
+                        <td>{formatCurrency(item.quantity * item.price, selectedOrder.payout_currency || 'GHS')}</td>
                       </tr>
                     ))}
                   </tbody>

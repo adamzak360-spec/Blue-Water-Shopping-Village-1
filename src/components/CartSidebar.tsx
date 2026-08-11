@@ -44,13 +44,13 @@ export const CartSidebar: React.FC = () => {
                   {item.selected_size && (
                     <p className="item-variant">Size: <strong>{item.selected_size}</strong></p>
                   )}
-                  <p className="item-price">{formatCurrency(item.price)}</p>
+                  <p className="item-price">{formatCurrency(item.price, item.currency || 'GHS')}</p>
                   <div className="quantity-controls">
                     <button onClick={() => updateQuantity(item.id, item.quantity - 1, item.selected_size)}>-</button>
                     <span>{item.quantity}</span>
                     <button onClick={() => updateQuantity(item.id, item.quantity + 1, item.selected_size)}>+</button>
                   </div>
-                  <p className="line-total">Total: {formatCurrency(item.price * item.quantity)}</p>
+                  <p className="line-total">Total: {formatCurrency(item.price * item.quantity, item.currency || 'GHS')}</p>
                 </div>
                 <button className="remove-item" onClick={() => removeFromCart(item.id, item.selected_size)} title="Remove item">
                   &times;
@@ -64,7 +64,7 @@ export const CartSidebar: React.FC = () => {
           <div className="cart-footer">
             <div className="subtotal">
               <span>Subtotal</span>
-              <span>{formatCurrency(cartSubtotal)}</span>
+              <span>{formatCurrency(cartSubtotal, cart[0]?.currency || 'GHS')}</span>
             </div>
             <button className="checkout-btn" onClick={handleCheckout}>Proceed to Checkout</button>
             <button className="clear-btn" onClick={clearCart}>Empty Cart</button>

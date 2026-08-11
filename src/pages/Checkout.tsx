@@ -409,7 +409,7 @@ export default function Checkout() {
                   >
                     {Object.entries(deliveryMethods).map(([key, method]) => (
                       <option key={key} value={key}>
-                        {method.name} - GH₵{calculateMethodFee(method).toFixed(2)} ({method.days})
+                        {method.name} - {formatCurrency(calculateMethodFee(method), cart[0]?.currency || 'GHS')} ({method.days})
                       </option>
                     ))}
                   </select>
@@ -417,7 +417,7 @@ export default function Checkout() {
                 <div className="delivery-info-box">
                   <p><strong>Selected Delivery:</strong> {selectedDeliveryMethod?.name}</p>
                   <p><strong>Estimated Delivery:</strong> {selectedDeliveryMethod?.days}</p>
-                  <p><strong>Delivery Fee:</strong> {formatCurrency(deliveryFee)}</p>
+                  <p><strong>Delivery Fee:</strong> {formatCurrency(deliveryFee, cart[0]?.currency || 'GHS')}</p>
                 </div>
                 <div className="form-group">
                   <label htmlFor="notes">Additional Notes</label>
@@ -476,22 +476,22 @@ export default function Checkout() {
                     )}
                     <span className="summary-item-qty">x {item.quantity}</span>
                   </div>
-                  <span className="summary-item-price">{formatCurrency(item.price * item.quantity)}</span>
+                  <span className="summary-item-price">{formatCurrency(item.price * item.quantity, item.currency || 'GHS')}</span>
                 </div>
               ))}
             </div>
             <div className="summary-totals">
               <div className="summary-row">
                 <span>Subtotal</span>
-                <span>{formatCurrency(cartSubtotal)}</span>
+                <span>{formatCurrency(cartSubtotal, cart[0]?.currency || 'GHS')}</span>
               </div>
               <div className="summary-row">
                 <span>Delivery Fee</span>
-                <span>{formatCurrency(deliveryFee)}</span>
+                <span>{formatCurrency(deliveryFee, cart[0]?.currency || 'GHS')}</span>
               </div>
               <div className="summary-row total">
                 <span>Total</span>
-                <span>{formatCurrency(total)}</span>
+                <span>{formatCurrency(total, cart[0]?.currency || 'GHS')}</span>
               </div>
             </div>
           </div>

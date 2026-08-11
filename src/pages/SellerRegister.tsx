@@ -34,6 +34,7 @@ export default function SellerRegister() {
   const [storeSlug, setStoreSlug] = useState('')
   const [phone, setPhone] = useState('')
   const [location, setLocation] = useState('')
+  const [countryCode, setCountryCode] = useState('GH')
   const [category, setCategory] = useState('')
   const [description, setDescription] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -129,6 +130,8 @@ export default function SellerRegister() {
         phone,
         location,
         category: category || 'Other',
+        country_code: countryCode,
+        currency_code: countryCode === 'GH' ? 'GHS' : (countryCode === 'NG' ? 'NGN' : 'USD'), // Basic mapping for now
       })
 
       if (bizError) throw bizError
@@ -265,6 +268,25 @@ export default function SellerRegister() {
                 </div>
               </div>
               <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="country">
+                    <MapPin size={15} style={{ marginRight: 6 }} />
+                    Country <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
+                  <select
+                    id="country"
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    required
+                  >
+                    <option value="GH">Ghana</option>
+                    <option value="NG">Nigeria</option>
+                    <option value="KE">Kenya</option>
+                    <option value="ZA">South Africa</option>
+                    <option value="US">United States</option>
+                    <option value="GB">United Kingdom</option>
+                  </select>
+                </div>
                 <div className="form-group">
                   <label htmlFor="category">
                     <Tag size={15} style={{ marginRight: 6 }} />

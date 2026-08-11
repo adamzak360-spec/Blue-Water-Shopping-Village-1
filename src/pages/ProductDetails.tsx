@@ -234,22 +234,22 @@ export default function ProductDetails() {
   // Column mapping: STC=greater_accra, VIP=lesser_accra, OA=dhl, VVIP=ups
   const deliveryOptions: { method: string; fee: string }[] = []
   if (product.delivery_fee_tamale !== undefined && product.delivery_fee_tamale !== null && product.delivery_fee_tamale > 0) {
-    deliveryOptions.push({ method: 'Tamale Delivery', fee: formatCurrency(product.delivery_fee_tamale) })
+    deliveryOptions.push({ method: 'Tamale Delivery', fee: formatCurrency(product.delivery_fee_tamale, product.currency || 'GHS') })
   }
   if (product.delivery_fee_greater_accra !== undefined && product.delivery_fee_greater_accra !== null && product.delivery_fee_greater_accra > 0) {
-    deliveryOptions.push({ method: 'STC Transport', fee: formatCurrency(product.delivery_fee_greater_accra) })
+    deliveryOptions.push({ method: 'STC Transport', fee: formatCurrency(product.delivery_fee_greater_accra, product.currency || 'GHS') })
   }
   if (product.delivery_fee_lesser_accra !== undefined && product.delivery_fee_lesser_accra !== null && product.delivery_fee_lesser_accra > 0) {
-    deliveryOptions.push({ method: 'VIP Transport', fee: formatCurrency(product.delivery_fee_lesser_accra) })
+    deliveryOptions.push({ method: 'VIP Transport', fee: formatCurrency(product.delivery_fee_lesser_accra, product.currency || 'GHS') })
   }
   if (product.delivery_fee_dhl !== undefined && product.delivery_fee_dhl !== null && product.delivery_fee_dhl > 0) {
-    deliveryOptions.push({ method: 'OA Transport', fee: formatCurrency(product.delivery_fee_dhl) })
+    deliveryOptions.push({ method: 'OA Transport', fee: formatCurrency(product.delivery_fee_dhl, product.currency || 'GHS') })
   }
   if (product.delivery_fee_ups !== undefined && product.delivery_fee_ups !== null && product.delivery_fee_ups > 0) {
-    deliveryOptions.push({ method: 'VVIP Transport', fee: formatCurrency(product.delivery_fee_ups) })
+    deliveryOptions.push({ method: 'VVIP Transport', fee: formatCurrency(product.delivery_fee_ups, product.currency || 'GHS') })
   }
   if (product.delivery_fee_fedex !== undefined && product.delivery_fee_fedex !== null && product.delivery_fee_fedex > 0) {
-    deliveryOptions.push({ method: 'FedEx Delivery', fee: formatCurrency(product.delivery_fee_fedex) })
+    deliveryOptions.push({ method: 'FedEx Delivery', fee: formatCurrency(product.delivery_fee_fedex, product.currency || 'GHS') })
   }
 
   return (
@@ -352,10 +352,10 @@ export default function ProductDetails() {
           {/* Price Section */}
           <div className="price-section">
             <div className="price-display">
-              <span className="current-price">{formatCurrency(product.price)}</span>
+              <span className="current-price">{formatCurrency(product.price, product.currency || 'GHS')}</span>
               {hasDiscount && (
                 <>
-                  <span className="original-price">{formatCurrency(product.original_price!)}</span>
+                  <span className="original-price">{formatCurrency(product.original_price!, product.currency || 'GHS')}</span>
                   <span className="discount-badge">{discountPercent}% OFF</span>
                 </>
               )}

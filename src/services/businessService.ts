@@ -14,6 +14,8 @@ export interface Business {
   phone?: string | null
   location?: string | null
   category?: string | null
+  country_code?: string | null
+  currency_code?: string | null
   created_at: string
   updated_at: string
 }
@@ -135,6 +137,8 @@ export async function createBusinessForUser(
     phone?: string
     location?: string
     category?: string
+    country_code?: string
+    currency_code?: string
   }
 ): Promise<{ business: Business | null; error: Error | null }> {
   if (!isSupabaseConfigured || !supabase) {
@@ -155,6 +159,8 @@ export async function createBusinessForUser(
         phone: businessData.phone,
         location: businessData.location,
         category: businessData.category,
+        country_code: businessData.country_code,
+        currency_code: businessData.currency_code,
       },
     ])
     .select()

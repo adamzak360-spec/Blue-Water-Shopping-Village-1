@@ -14,11 +14,32 @@ export interface ProductVariant {
   updated_at?: string
 }
 
+export interface Currency {
+  code: string
+  name: string
+  symbol: string
+  is_active: boolean
+}
+
+export interface Country {
+  code: string
+  name: string
+  currency_code: string
+  status: 'COMING_SOON' | 'PAYMENTS_ONLY' | 'FULLY_SUPPORTED' | 'DISABLED'
+  payment_provider?: string
+  payments_enabled: boolean
+  payouts_enabled: boolean
+  identity_verification_enabled: boolean
+  business_verification_enabled: boolean
+  store_enabled: boolean
+}
+
 export interface Product {
   id: string
   name: string
   description: string
   price: number
+  currency?: string
   category: string
   image_url: string
   gallery_urls?: string[]
@@ -124,10 +145,16 @@ export interface CartItem extends Product {
 export interface CustomerProfile {
   id: string
   full_name?: string
+  middle_name?: string
   phone_number?: string
+  country_code?: string
+  currency_code?: string
   delivery_address?: string
+  digital_address?: string
   city?: string
   region?: string
+  profile_picture_url?: string
+  identity_verification_status?: string
   created_at?: string
   updated_at?: string
 }
