@@ -5,9 +5,9 @@ SOURCE = "/home/ubuntu/reliable-project/public/logo-transparent.png"
 PUBLIC = "/home/ubuntu/reliable-project/public"
 
 def generate_sizes(image, output_dir):
-    # Standard Favicons (Transparent)
+    # 1. Standard Favicons (Transparent for Browser Tabs)
     for size in (16, 32, 64):
-        padding = int(size * 0.1)
+        padding = int(size * 0.05) # Minimal padding for web
         inner_size = size - padding * 2
         inner = image.resize((inner_size, inner_size), Image.Resampling.LANCZOS)
         icon = Image.new("RGBA", (size, size), (0, 0, 0, 0))
@@ -19,14 +19,14 @@ def generate_sizes(image, output_dir):
             icon.save(os.path.join(output_dir, "favicon-32x32.png"))
             icon.save(os.path.join(output_dir, "favicon.ico"), format="ICO")
 
-    # Mobile Launcher Icons (Solid Black Background - TikTok Style)
-    # This prevents the OS from adding a white background that hides the white logo.
+    # 2. Mobile Launcher Icons (Solid Black Background - TikTok Style)
+    # We reduce padding to 10% so the logo is LARGE and visible.
     for size in (192, 512):
-        padding = int(size * 0.25) # Professional padding
+        padding = int(size * 0.10) 
         inner_size = size - padding * 2
         inner = image.resize((inner_size, inner_size), Image.Resampling.LANCZOS)
         
-        # Create solid black background
+        # Create solid black background icon
         icon = Image.new("RGBA", (size, size), (0, 0, 0, 255))
         icon.alpha_composite(inner, (padding, padding))
         
@@ -45,4 +45,4 @@ if __name__ == "__main__":
     else:
         logo = Image.open(SOURCE).convert("RGBA")
         generate_sizes(logo, PUBLIC)
-        print("Launcher icons (Black) and Favicons (Transparent) generated.")
+        print("TikTok-style Black Launcher Icons generated.")
