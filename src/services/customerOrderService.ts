@@ -120,7 +120,9 @@ export const reorderPreviousOrder = async (
 }
 
 export const getOrderStatusTimeline = (
-  status: Order['status']
+  status: Order['status'],
+  customerDeliveryConfirmation?: Order['customer_delivery_confirmation'],
+  payoutStatus?: Order['payout_status']
 ): { stage: string; completed: boolean }[] => {
   const stages = [
     { stage: 'Pending', status: 'pending' },
@@ -136,11 +138,42 @@ export const getOrderStatusTimeline = (
     { stage: 'Seller Paid', status: 'seller-paid' },
   ]
 
-  const statusOrder = ['pending', 'approved', 'processing', 'ready-for-pickup', 'out-for-delivery', 'delivered', 'customer-confirmed', 'payout-eligible', 'payout-queued', 'payout-processing', 'seller-paid', 'cancelled']
-  const currentStatusIndex = statusOrder.indexOf(status)
+  const statusOrder = [
+    'pending',
+    'approved',
+    'processing',
+    'ready-for-pickup',
+    'out-for-delivery',
+    'delivered',
+    'customer-confirmed',
+    'payout-eligible',
+    'payout-queued',
+    'payout-processing',
+    'seller-paid',
+    'cancelled',
+  ]
+
+  // Delivery and payout are intentionally stored separately from orders.status.
+  // Translate those fields into the same ordered timeline used by the customer UI.
+  type TimelineStatus = (typeof statusOrder)[number]
+  let currentProgressStatus: TimelineStatus = status
+  if (status === 'delivered' && customerDeliveryConfirmation === 'CONFIRMED') {
+    currentProgressStatus =
+      payoutStatus === 'ELIGIBLE'
+        ? 'payout-eligible'
+        : payoutStatus === 'QUEUED'
+          ? 'payout-queued'
+          : payoutStatus === 'PROCESSING' || payoutStatus === 'FAILED' || payoutStatus === 'REVERSED'
+            ? 'payout-processing'
+            : payoutStatus === 'PAID'
+              ? 'seller-paid'
+              : 'customer-confirmed'
+  }
+
+  const currentStatusIndex = statusOrder.indexOf(currentProgressStatus)
 
   return stages.map(({ stage, status: stageStatus }) => ({
     stage,
-    completed: statusOrder.indexOf(stageStatus) <= currentStatusIndex && status !== 'cancelled',
+    completed: status !== 'cancelled' && statusOrder.indexOf(stageStatus) <= currentStatusIndex,
   }))
 }

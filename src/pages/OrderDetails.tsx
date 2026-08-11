@@ -140,7 +140,11 @@ export default function OrderDetails() {
     )
   }
 
-  const timeline = getOrderStatusTimeline(order.status)
+  const timeline = getOrderStatusTimeline(
+    order.status,
+    order.customer_delivery_confirmation,
+    order.payout_status,
+  )
 
   return (
     <div className="order-details">
