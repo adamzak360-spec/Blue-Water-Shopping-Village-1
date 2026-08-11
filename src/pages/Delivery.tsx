@@ -14,14 +14,16 @@ export default function Delivery() {
           <section className="content-section">
             <h2>Delivery Areas</h2>
             <p>
-              Reliable supports delivery across Ghana, subject to the product, seller, destination,
-              courier availability, and the delivery options shown at checkout. Our primary operations
-              are based in Tamale, Northern Region. We also work with logistics partners where
-              available for other locations.
+              Reliable supports delivery in Ghana and other supported markets, subject to the product,
+              seller, destination, courier availability, and the delivery options shown at checkout. Our
+              primary operations are based in Tamale, Northern Region, and sellers or logistics partners
+              may serve other local or international locations where configured and available.
             </p>
             <p>
-              Coverage, delivery times, and fees may differ between seller stores and products.
-              Always review the delivery information shown for your order before confirming checkout.
+              Sellers and administrators may define delivery methods, service areas, pickup options,
+              estimated timeframes, and fees for the locations they serve. Coverage, delivery times, and
+              fees may differ between seller stores and products. Always review the delivery information
+              shown for your order before confirming checkout.
             </p>
           </section>
 
@@ -39,6 +41,11 @@ export default function Delivery() {
                 <p className="info-note">Timing varies by distance, route, seller, courier, and logistics conditions.</p>
               </div>
               <div className="info-card">
+                <h4>International orders</h4>
+                <p>Based on destination and available carrier</p>
+                <p className="info-note">Customs, border processes, carrier capacity, and local delivery conditions may affect timing.</p>
+              </div>
+              <div className="info-card">
                 <h4>Delivery window</h4>
                 <p>Generally 8:00 AM–8:00 PM</p>
                 <p className="info-note">Monday through Saturday, unless a different arrangement is confirmed.</p>
@@ -54,10 +61,12 @@ export default function Delivery() {
           <section className="content-section">
             <h2>Delivery Fees</h2>
             <p>
-              Delivery fees are calculated from the destination, order, seller, product, and logistics
-              requirements. The applicable fee should be displayed at checkout before you confirm the
-              order. The standard reference fee within Tamale is GH₵15.00 where the checkout page
-              presents that rate; other locations or orders may have different fees.
+              Delivery fees are configured from the destination, delivery area, selected method, order,
+              seller, product, currency, and logistics requirements. The applicable fee should be displayed
+              at checkout before you confirm the order. A seller or administrator may set a custom fee,
+              free-delivery threshold, pickup charge, or location-specific rate. The standard reference
+              fee within Tamale is GH₵15.00 only where the checkout page presents that rate; other
+              locations, currencies, methods, or orders may have different fees.
             </p>
             <div className="info-card" style={{ maxWidth: '600px' }}>
               <h4>Reference Tamale fee</h4>
@@ -78,12 +87,18 @@ export default function Delivery() {
                 confirms availability for fulfilment.
               </li>
               <li>
-                <strong>Dispatch</strong> — Reliable or a logistics partner coordinates dispatch and
-                delivery where the available service permits.
+                <strong>Dispatch</strong> — The seller, Reliable, or a logistics partner prepares and
+                coordinates dispatch through the selected method where the available service permits.
               </li>
               <li>
-                <strong>Delivery</strong> — The order is delivered to the address provided. Keep your
-                phone available in case the seller or delivery team needs directions or confirmation.
+                <strong>Progress updates</strong> — Your account may show stages such as Processing,
+                Ready for Pickup, Out for Delivery, and Delivered. Status changes may also appear in the
+                notification bell and be sent by email.
+              </li>
+              <li>
+                <strong>Delivery and confirmation</strong> — The order is delivered or made available
+                for pickup according to the selected method. Keep your phone available, inspect the
+                order promptly, and confirm receipt in your account when requested.
               </li>
             </ol>
           </section>
@@ -96,6 +111,7 @@ export default function Delivery() {
               <li>Check the package and products promptly and report a problem under the Return &amp; Refund Policy.</li>
               <li>Do not provide false delivery details or use an address where receipt is not authorised.</li>
               <li>Respond to reasonable contact from the seller, courier, or Reliable support team.</li>
+              <li>For international orders, follow any applicable customs, import, identification, or local carrier requirements.</li>
             </ul>
           </section>
 
@@ -103,10 +119,12 @@ export default function Delivery() {
             <h2>Failed or Delayed Delivery</h2>
             <p>
               If a delivery fails because an address is incomplete, access is unavailable, the phone
-              cannot be reached, or the order is not accepted, additional attempts, a revised fee,
-              return-to-seller handling, or cancellation may apply. Contact us promptly if an order is
-              late, missing, partially delivered, or marked delivered incorrectly so we can investigate
-              with the seller and delivery provider.
+              cannot be reached, customs or carrier requirements are incomplete, or the order is not
+              accepted, additional attempts, a revised fee, return-to-seller handling, or cancellation
+              may apply. Contact us promptly if an order is late, missing, partially delivered, or marked
+              delivered incorrectly so we can investigate with the seller and delivery provider. A
+              delivery dispute may affect the timing of customer confirmation and seller settlement while
+              it is reviewed.
             </p>
           </section>
 

@@ -14,11 +14,11 @@ export default function Returns() {
           <section className="content-section">
             <h2>1. Purpose and Scope</h2>
             <p>
-              This policy explains how Reliable handles returns, replacements, refunds, and delivery
-              complaints for products purchased through the Reliable marketplace or an independent
-              seller store. The relevant seller may be responsible for the product and fulfilment,
-              while Reliable coordinates the platform support process. Nothing in this policy limits
-              a right that cannot lawfully be excluded.
+              This policy explains how Reliable handles returns, replacements, refunds, payment
+              reversals, and delivery complaints for products purchased through the Reliable marketplace
+              or an independent seller store. The relevant seller may be responsible for the product and
+              fulfilment, while Reliable coordinates the platform support process with payment and
+              delivery partners. Nothing in this policy limits a right that cannot lawfully be excluded.
             </p>
           </section>
 
@@ -92,6 +92,14 @@ export default function Returns() {
               delivery handling. Original delivery fees may not be refundable for a change of mind or
               an issue not caused by us or the seller.
             </p>
+            <p>
+              Where an order or payment provider clearly discloses a non-refundable payment, delivery,
+              or refund-processing charge, that amount may be withheld from the amount returned where
+              applicable law permits. The seller-side marketplace commission is normally retained or
+              accounted for within the seller settlement process and is not an automatic additional
+              charge to the customer. The approved refund amount and any applicable deduction will be
+              communicated as part of the resolution.
+            </p>
           </section>
 
           <section className="content-section">
@@ -126,17 +134,19 @@ export default function Returns() {
               able to help before dispatch, but cancellation may not be possible after processing or
               dispatch. An order that was not delivered, was partially delivered, or arrived with a
               serious delivery issue should be reported promptly so we can investigate with the seller
-              and delivery provider.
+              and delivery provider. If an order is marked delivered but you did not receive it, do not
+              confirm receipt; report it promptly so the order review and seller settlement can be handled
+              appropriately.
             </p>
           </section>
 
           <section className="content-section">
             <h2>9. Fraud and Abuse</h2>
             <p>
-              We may refuse a request, pause a refund, request further evidence, or restrict an
-              account where there is reasonable evidence of misuse, repeated false claims, payment
-              abuse, tampering, or fraud. This does not prevent a legitimate customer from reporting
-              a genuine issue or exercising a right protected by law.
+              We may refuse a request, pause a refund or seller payout, request further evidence, or
+              restrict an account where there is reasonable evidence of misuse, repeated false claims,
+              payment abuse, tampering, or fraud. This does not prevent a legitimate customer from
+              reporting a genuine issue or exercising a right protected by law.
             </p>
           </section>
 

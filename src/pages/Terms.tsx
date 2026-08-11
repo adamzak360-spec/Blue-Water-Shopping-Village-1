@@ -64,10 +64,11 @@ export default function Terms() {
           <section className="content-section">
             <h2>4. Seller Responsibilities</h2>
             <p>
-              Sellers must provide truthful business and contact information, publish accurate
-              product details and prices, maintain appropriate stock information, comply with
-              applicable laws and permits, honour accepted orders, communicate responsibly with
-              customers, and cooperate with delivery, return, refund, and complaint handling.
+              Sellers must provide truthful business and contact information, complete any required
+              verification, publish accurate product details and prices, maintain appropriate stock
+              information, comply with applicable laws and permits, honour accepted orders, communicate
+              responsibly with customers, and cooperate with delivery, return, refund, and complaint
+              handling.
             </p>
             <p>
               Sellers must not list counterfeit, stolen, unsafe, illegal, misleading, infringing,
@@ -77,9 +78,16 @@ export default function Terms() {
               order to bypass marketplace safeguards.
             </p>
             <p>
-              Reliable may suspend a seller account or store, remove listings, hold an order for
-              review, or restrict access where we reasonably believe there is fraud, abuse, a safety
-              risk, a legal violation, a serious customer complaint, or a breach of these Terms.
+              Sellers are responsible for the accuracy of custom product specifications, sizes, variants,
+              stock quantities, delivery methods, delivery areas, and delivery fees they publish. Sellers
+              who use the POS feature must maintain an active subscription where required, use the POS
+              responsibly, and ensure that receipt and inventory information is accurate.
+            </p>
+            <p>
+              Reliable may suspend a seller account or store, remove listings, hold an order for review,
+              delay or hold seller settlement, or restrict access where we reasonably believe there is
+              fraud, abuse, a safety risk, a legal violation, a serious customer complaint, or a breach
+              of these Terms.
             </p>
           </section>
 
@@ -93,44 +101,61 @@ export default function Terms() {
               issue, an unsafe or unlawful transaction, or another legitimate operational reason.
             </p>
             <p>
-              Before confirming an order, review the products, quantities, seller, delivery details,
-              fees, and total amount. You are responsible for providing a deliverable address and a
-              reachable phone number. Orders from different seller stores may need to be placed as
-              separate orders where the checkout experience requires it.
+              Before confirming an order, review the products, quantities, seller, specifications,
+              selected sizes or variants, delivery details, fees, and total amount. Stock and variant
+              availability may change until an order is accepted. You are responsible for providing a
+              deliverable address and a reachable phone number. Orders from different seller stores may
+              need to be placed as separate orders where the checkout experience requires it.
             </p>
           </section>
 
           <section className="content-section">
             <h2>6. Prices and Payments</h2>
             <p>
-              Prices and delivery fees are shown in Ghana cedis unless stated otherwise. Prices,
-              availability, promotions, and fees may change before an order is accepted. Applicable
-              delivery charges and the order total will be shown before you confirm checkout.
+              Prices and delivery fees may be displayed in Ghana cedis (GHS), United States dollars
+              (USD), Nigerian naira (NGN), Kenyan shillings (KES), British pounds (GBP), euros (EUR),
+              or another currency made available for the order. The currency, exchange-rate treatment,
+              payment-provider charges, applicable taxes, delivery charges, promotions, and order total
+              will be shown before you confirm checkout. Prices, availability, promotions, and fees may
+              change before an order is accepted.
             </p>
             <p>
-              Available payment options may include online card or mobile-money payments and cash
-              on delivery, depending on the order, location, seller, and current platform settings.
-              You confirm that you are authorised to use the payment method supplied. Online payment
-              processing may be handled by a third-party payment provider, and payment may be subject
-              to that provider’s terms and verification process. A payment attempt does not by itself
-              guarantee order acceptance until the order is successfully verified and recorded.
+              Available payment options may include online card or mobile-money payments and cash on
+              delivery, depending on the order, location, seller, currency, and current platform
+              settings. You confirm that you are authorised to use the payment method supplied. Online
+              payment processing may be handled by a third-party payment provider, and payment may be
+              subject to that provider’s terms, exchange rates, limits, and verification process. A
+              payment attempt does not by itself guarantee order acceptance until the order is
+              successfully verified and recorded.
+            </p>
+            <p>
+              Reliable may retain a marketplace commission from the seller-side transaction settlement
+              and remit the remaining eligible amount to the seller under the applicable settlement
+              process. A disclosed payment, refund, delivery, or processing charge may apply where
+              shown or permitted by applicable law. These settlement arrangements do not remove a
+              customer right that cannot lawfully be excluded.
             </p>
           </section>
 
           <section className="content-section">
             <h2>7. Delivery and Failed Delivery</h2>
             <p>
-              Delivery information, available areas, estimated timeframes, and fees are described in
-              our Delivery Information page and may vary by location, seller, product, traffic,
-              weather, holidays, stock, and logistics availability. Estimates are not guaranteed
-              deadlines unless expressly stated otherwise.
+              Delivery methods, available areas, estimated timeframes, and fees are configured by
+              Reliable, sellers, or logistics partners and are shown for the applicable order before
+              checkout. Options may include seller delivery, local rider delivery, courier service,
+              pickup, or another method made available for the destination. Delivery details may vary
+              by location, seller, product, traffic, weather, holidays, stock, and logistics availability.
+              Estimates are not guaranteed deadlines unless expressly stated otherwise.
             </p>
             <p>
               You must provide complete and accurate delivery information and be available to receive
-              the order or respond to the delivery team. Additional delivery attempts, address
-              corrections, storage, return-to-sender, or cancellation consequences may apply where a
-              delivery fails because information was incorrect, access was unavailable, or the order
-              was not accepted.
+              the order or respond to the delivery team. Reliable may show order progress updates and
+              send in-account or email notifications when an order stage changes. After an order is
+              marked delivered, you may be asked to confirm receipt in your account. A delivery dispute
+              or “not received” report may pause or affect seller settlement while the matter is
+              reviewed. Additional delivery attempts, address corrections, storage, return-to-sender,
+              or cancellation consequences may apply where a delivery fails because information was
+              incorrect, access was unavailable, or the order was not accepted.
             </p>
           </section>
 
@@ -144,8 +169,10 @@ export default function Terms() {
             <p>
               A refund, replacement, credit, or other resolution depends on the facts of the case,
               the product, the seller, the payment method, and applicable law. Approved refunds may
-              take time to reach the original payment method. Nothing in these Terms removes rights
-              that cannot lawfully be excluded or limited.
+              take time to reach the original payment method. Any applicable third-party payment,
+              delivery, or disclosed processing amount will be handled as described in the Return &
+              Refund Policy and the order information, subject to mandatory legal rights. Nothing in
+              these Terms removes rights that cannot lawfully be excluded or limited.
             </p>
           </section>
 
@@ -205,8 +232,10 @@ export default function Terms() {
             <h2>12. Privacy</h2>
             <p>
               Our Privacy Policy explains how we collect, use, share, retain, and protect personal
-              information in connection with the Services. By using the Services, you acknowledge
-              that you have been given an opportunity to read that policy.
+              information in connection with the Services, including account details, order data,
+              delivery information, notifications, seller information, and payout administration. By
+              using the Services, you acknowledge that you have been given an opportunity to read that
+              policy.
             </p>
           </section>
 

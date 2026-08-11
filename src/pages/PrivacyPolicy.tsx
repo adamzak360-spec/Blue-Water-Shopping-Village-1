@@ -14,9 +14,10 @@ export default function PrivacyPolicy() {
           <section className="content-section">
             <h2>1. Who We Are and What This Policy Covers</h2>
             <p>
-              Reliable (“Reliable”, “we”, “us”, or “our”) operates an online marketplace where
-              customers can discover products and independent seller stores. We also provide account,
-              checkout, delivery coordination, customer-support, and seller-store tools.
+              Reliable (“Reliable”, “we”, “us”, or “our”) operates a global multi-vendor marketplace
+              where customers can discover products and independent seller stores. We also provide
+              account, checkout, payment, delivery coordination, customer-support, seller-store,
+              inventory, POS, notification, and settlement tools.
             </p>
             <p>
               This Privacy Policy explains how we handle personal information when you visit the
@@ -32,12 +33,13 @@ export default function PrivacyPolicy() {
             <ul className="content-list">
               <li>Name, email address, telephone number, and login-related account information.</li>
               <li>Delivery address, city, region, location details, and delivery instructions.</li>
-              <li>Messages, complaints, support requests, and information you choose to provide.</li>
+              <li>Messages, complaints, support requests, notification preferences, and information you choose to provide.</li>
             </ul>
             <h4>Order and transaction information</h4>
             <ul className="content-list">
-              <li>Products, quantities, prices, seller/store, order status, delivery details, and order notes.</li>
-              <li>Payment status, transaction references, and limited payment-related information needed to verify an order.</li>
+              <li>Products, quantities, prices, seller/store, specifications or variants selected, order status, delivery details, and order notes.</li>
+              <li>Payment status, currency, transaction references, refund information, and limited payment-related information needed to verify an order.</li>
+              <li>Order notification events and delivery-confirmation information used to show progress in your account and send status communications.</li>
               <li>We do not intend to store complete card numbers or payment passwords on Reliable’s systems; payment details may be handled directly by the relevant payment provider.</li>
             </ul>
             <h4>Seller and business information</h4>
@@ -45,6 +47,12 @@ export default function PrivacyPolicy() {
               <li>Business name, store name, public store URL, category, description, business location, and store contact details.</li>
               <li>Product listings, prices, images, stock information, and seller-dashboard activity.</li>
               <li>Information needed to administer seller accounts, investigate complaints, and protect the marketplace.</li>
+            </ul>
+            <h4>Verification, POS, and settlement information</h4>
+            <ul className="content-list">
+              <li>Seller verification information and documents submitted to establish or protect a business account, where required.</li>
+              <li>POS subscription, receipt, sales, inventory, and device-related information generated when a seller uses the POS feature.</li>
+              <li>Seller payout profile, recipient, settlement, commission, refund-processing, and transfer information needed to administer seller payouts.</li>
             </ul>
             <h4>Technical and usage information</h4>
             <p>
@@ -65,7 +73,8 @@ export default function PrivacyPolicy() {
               <li>Display public seller-store information and product listings selected by sellers.</li>
               <li>Process, verify, fulfil, deliver, support, cancel, return, and refund orders.</li>
               <li>Send order confirmations, status updates, delivery communications, security notices, and support responses.</li>
-              <li>Operate seller dashboards, manage inventory and store ownership, and investigate marketplace disputes.</li>
+              <li>Operate seller dashboards, manage inventory, product specifications, delivery settings, POS subscriptions, store ownership, and marketplace disputes.</li>
+              <li>Administer seller commissions, refunds, payout eligibility, payout processing, and settlement records.</li>
               <li>Detect fraud, abuse, security incidents, prohibited content, and violations of our Terms.</li>
               <li>Maintain, troubleshoot, improve, and develop the Services.</li>
               <li>Meet legal, regulatory, tax, accounting, dispute-resolution, and record-keeping obligations.</li>
@@ -99,8 +108,9 @@ export default function PrivacyPolicy() {
             <ul className="content-list">
               <li><strong>Relevant sellers:</strong> To process and fulfil products purchased from their stores.</li>
               <li><strong>Delivery and logistics providers:</strong> To deliver orders and resolve delivery issues.</li>
-              <li><strong>Payment providers:</strong> To process or verify online payments and refunds.</li>
-              <li><strong>Hosting, database, email, security, and technology providers:</strong> To operate and protect the website and communications.</li>
+              <li><strong>Payment providers:</strong> To process or verify online payments, currencies, transfers, and refunds.</li>
+              <li><strong>Payout and banking partners:</strong> To administer seller payout profiles, settlement, transfer processing, and related verification.</li>
+              <li><strong>Hosting, database, email, security, and technology providers:</strong> To operate and protect the website, POS tools, realtime updates, and communications.</li>
               <li><strong>Professional advisers and insurers:</strong> Where reasonably necessary for legal, accounting, security, or business protection purposes.</li>
               <li><strong>Authorities or other parties:</strong> Where required by law, legal process, a lawful request, or to protect safety, rights, or the integrity of the Services.</li>
             </ul>
@@ -134,8 +144,9 @@ export default function PrivacyPolicy() {
             <h2>7. Retention and Deletion</h2>
             <p>
               We retain information only for as long as reasonably needed for the purposes described
-              here, including account operation, order fulfilment, refunds, dispute handling, fraud
-              prevention, security, legal compliance, and financial records. Retention periods vary
+              here, including account operation, order fulfilment, delivery, notifications, refunds,
+              payout settlement, dispute handling, fraud prevention, security, legal compliance, and
+              financial records. Retention periods vary
               by the type and sensitivity of information and by legal or operational requirements.
             </p>
             <p>
@@ -174,7 +185,9 @@ export default function PrivacyPolicy() {
             <p>
               If we identify a security incident involving personal information, we will assess it
               and take steps required by applicable law, which may include containment, investigation,
-              notification, and cooperation with competent authorities or affected persons.
+              notification, and cooperation with competent authorities or affected persons. Sellers are
+              expected to protect customer information made available to them for fulfilment, delivery,
+              support, and other authorised marketplace purposes.
             </p>
           </section>
 
