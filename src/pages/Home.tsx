@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
+import { supabase, isSupabaseConfigured } from '../supabaseClient'
+import { validateEmail } from '../utils/validation'
 import { getAllProducts } from '../services/productService'
 import type { Product } from '../types'
 import { Link } from 'react-router-dom'
@@ -307,7 +309,33 @@ export default function Home() {
             <div className="newsletter-content">
               <h3>Join the Reliable Community</h3>
               <p>Subscribe to receive updates, access to exclusive deals, and more.</p>
-              <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
+              <form className="newsletter-form" onSubmit={async (e) => {
+                e.preventDefault()
+                const emailInput = (e.currentTarget.elements[0] as HTMLInputElement).value.trim()
+                const emailErr = validateEmail(emailInput)
+                if (emailErr) {
+                  alert(emailErr)
+                  return
+                }
+                try {
+                  if (!isSupabaseConfigured || !supabase) {
+                    throw new Error('Supabase not configured')
+                  }
+                  const { error } = await supabase.from('newsletter_subscriptions').insert([{ email: emailInput }])
+                  if (error) {
+                    if (error.code === '23505') {
+                      alert('You are already subscribed to the Reliable community!')
+                    } else {
+                      throw error
+                    }
+                  } else {
+                    alert('Successfully subscribed! Welcome to the Reliable community.');
+                    (e.currentTarget.elements[0] as HTMLInputElement).value = '';
+                  }
+                } catch (err: any) {
+                  alert(err.message || 'Failed to subscribe. Please try again later.')
+                }
+              }}>
                 <input type="email" placeholder="Enter your email" required />
                 <button type="submit">Subscribe</button>
               </form>
