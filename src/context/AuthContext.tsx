@@ -187,8 +187,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: new Error('Supabase not configured') }
     }
 
+    // Always send recovery links to the public application URL. This prevents
+    // links generated during local development (localhost:3000) from being
+    // emailed to customers and makes the production flow independent of the
+    // browser origin that submitted the request.
+    const publicAppUrl = (import.meta.env.VITE_PUBLIC_APP_URL || 'https://reliable-now.vercel.app').replace(/\/$/, '')
+    const redirectTo = `${publicAppUrl}/reset-password`
+
     const { error } = await supabase!.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo,
     })
 
     return { error }
