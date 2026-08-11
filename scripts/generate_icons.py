@@ -1,7 +1,7 @@
 import os
 from PIL import Image
 
-SOURCE = "/home/ubuntu/reliable-project/public/logo-transparent.png"
+SOURCE = "/home/ubuntu/reliable-project/public/logo-r-transparent.png"
 PUBLIC = "/home/ubuntu/reliable-project/public"
 
 def generate_sizes(image, output_dir):
