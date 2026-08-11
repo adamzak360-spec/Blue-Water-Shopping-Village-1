@@ -209,12 +209,13 @@ export default function CustomerOrders() {
                 </div>
 
                 <div className="order-card-footer">
-                  <button
+                  <a
                     className="view-details-btn"
-                    onClick={() => navigate(`/customer/orders/${order.id}`)}
+                    href={`/customer/orders/${order.id}`}
+                    aria-label={`View details for order ${order.id?.slice(0, 8)}`}
                   >
                     View Details
-                  </button>
+                  </a>
                   {order.status === 'delivered' && (
                     <button
                       className="reorder-btn"

@@ -218,12 +218,13 @@ export default function CustomerDashboard() {
                     <span className={`status-badge ${order.status}`}>{order.status}</span>
                   </div>
                   <div className="order-total">{formatCurrency(order.total)}</div>
-                  <button
+                  <a
                     className="view-btn"
-                    onClick={() => navigate(`/customer/orders/${order.id}`)}
+                    href={`/customer/orders/${order.id}`}
+                    aria-label={`View details for order ${order.id?.slice(0, 8)}`}
                   >
                     View
-                  </button>
+                  </a>
                 </div>
               ))}
             </div>
