@@ -15,7 +15,6 @@ export default function CustomerOrders() {
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest')
   const [filterStatus, setFilterStatus] = useState<string>('all')
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
 
   useEffect(() => {
     if (!user) {
@@ -73,25 +72,6 @@ export default function CustomerOrders() {
       }
     }
   }, [user, navigate])
-
-  useEffect(() => {
-    if (!selectedOrder) return
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setSelectedOrder(null)
-    }
-
-    document.addEventListener('keydown', handleEscape)
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = previousOverflow
-    }
-  }, [selectedOrder])
-
-  const openOrderDetails = (order: Order) => setSelectedOrder(order)
 
   const filteredOrders = orders.filter(order => {
     if (filterStatus === 'all') return true
@@ -187,20 +167,7 @@ export default function CustomerOrders() {
         ) : (
           <div className="orders-list">
             {sortedOrders.map(order => (
-              <div
-                key={order.id}
-                className="order-card order-card-clickable"
-                role="button"
-                tabIndex={0}
-                onClick={() => openOrderDetails(order)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    openOrderDetails(order)
-                  }
-                }}
-                aria-label={`View details for order ${order.id?.slice(0, 8)}`}
-              >
+              <div key={order.id} className="order-card">
                 <div className="order-card-header">
                   <div className="order-id-section">
                     <h3>Order #{order.id?.slice(0, 8)}</h3>
@@ -244,20 +211,14 @@ export default function CustomerOrders() {
                 <div className="order-card-footer">
                   <button
                     className="view-details-btn"
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      openOrderDetails(order)
-                    }}
+                    onClick={() => navigate(`/customer/orders/${order.id}`)}
                   >
                     View Details
                   </button>
                   {order.status === 'delivered' && (
                     <button
                       className="reorder-btn"
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        navigate(`/customer/orders/${order.id}/reorder`)
-                      }}
+                      onClick={() => navigate(`/customer/orders/${order.id}/reorder`)}
                     >
                       Reorder
                     </button>
@@ -265,88 +226,6 @@ export default function CustomerOrders() {
                 </div>
               </div>
             ))}
-          </div>
-        )}
-
-        {selectedOrder && (
-          <div
-            className="order-modal-overlay"
-            role="presentation"
-            onClick={() => setSelectedOrder(null)}
-          >
-            <section
-              className="order-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="order-modal-title"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div className="order-modal-header">
-                <div>
-                  <span className="order-modal-eyebrow">Order details</span>
-                  <h2 id="order-modal-title">Order #{selectedOrder.id?.slice(0, 8)}</h2>
-                  <p>
-                    {new Date(selectedOrder.created_at || '').toLocaleDateString('en-US', {
-                      year: 'numeric', month: 'long', day: 'numeric'
-                    })}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className="order-modal-close"
-                  onClick={() => setSelectedOrder(null)}
-                  aria-label="Close order details"
-                >
-                  ×
-                </button>
-              </div>
-
-              <div className="order-modal-status-row">
-                <span className={`status-badge ${selectedOrder.status}`}>
-                  {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1).replace('-', ' ')}
-                </span>
-                <strong>{formatCurrency(selectedOrder.total)}</strong>
-              </div>
-
-              <div className="order-modal-section">
-                <h3>Ordered products</h3>
-                <div className="order-modal-items">
-                  {selectedOrder.items && selectedOrder.items.length > 0 ? selectedOrder.items.map(item => (
-                    <div key={item.id} className="order-modal-item">
-                      <div className="order-modal-item-image">
-                        {item.image_url ? <img src={item.image_url} alt="" /> : <span>□</span>}
-                      </div>
-                      <div className="order-modal-item-info">
-                        <strong>{item.name}</strong>
-                        <span>Qty: {item.quantity}</span>
-                      </div>
-                      <strong>{formatCurrency(item.price * item.quantity)}</strong>
-                    </div>
-                  )) : <p className="order-modal-muted">No items in this order.</p>}
-                </div>
-              </div>
-
-              <div className="order-modal-grid">
-                <div className="order-modal-section">
-                  <h3>Delivery address</h3>
-                  <p>{selectedOrder.delivery_address}</p>
-                  <p>{selectedOrder.city}, {selectedOrder.region}</p>
-                </div>
-                <div className="order-modal-section">
-                  <h3>Payment summary</h3>
-                  <div className="order-modal-summary-row"><span>Subtotal</span><strong>{formatCurrency(selectedOrder.subtotal)}</strong></div>
-                  <div className="order-modal-summary-row"><span>Delivery</span><strong>{formatCurrency(selectedOrder.delivery_fee)}</strong></div>
-                  <div className="order-modal-summary-row total"><span>Total</span><strong>{formatCurrency(selectedOrder.total)}</strong></div>
-                </div>
-              </div>
-
-              {selectedOrder.notes && (
-                <div className="order-modal-section order-modal-notes">
-                  <h3>Special instructions</h3>
-                  <p>{selectedOrder.notes}</p>
-                </div>
-              )}
-            </section>
           </div>
         )}
       </div>
