@@ -38,6 +38,7 @@ const Admin = lazy(() => import('./pages/Admin'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const Products = lazy(() => import('./pages/Products'))
 const Checkout = lazy(() => import('./pages/Checkout'))
 const About = lazy(() => import('./pages/About'))
@@ -235,6 +236,7 @@ function AppShell() {
               }
             />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/faq" element={<FAQ />} />
