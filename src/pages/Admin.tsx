@@ -47,6 +47,7 @@ import './Admin.css'
   const RegisteredSellerManagement = lazy(() => import('../components/RegisteredSellerManagement'))
   const POS = lazy(() => import('./POS'))
   const SellerPayouts = lazy(() => import('../components/SellerPayouts'))
+  const AdminPromotions = lazy(() => import('../components/AdminPromotions'))
 
   // Prefetch functions for near-instant transitions
   const prefetchInventory = () => import('../components/InventoryManagement')
@@ -56,8 +57,9 @@ import './Admin.css'
   const prefetchRegisteredSellers = () => import('../components/RegisteredSellerManagement')
   const prefetchPOS = () => import('./POS')
   const prefetchSellerPayouts = () => import('../components/SellerPayouts')
+  const prefetchAdminPromotions = () => import('../components/AdminPromotions')
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts' | 'settings' | 'delivery' | 'marketplace' | 'news'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts' | 'promotions' | 'settings' | 'delivery' | 'marketplace' | 'news'
 
 interface ProductFormErrors {
   name?: string
@@ -804,6 +806,13 @@ export default function Admin() {
             >
               News Updates
             </button>
+            <button
+              className={`tab ${view === 'promotions' ? 'active' : ''}`}
+              onClick={() => setView('promotions')}
+              onMouseEnter={prefetchAdminPromotions}
+            >
+              Advertising
+            </button>
           </>
         )}
         <button
@@ -864,6 +873,8 @@ export default function Admin() {
 
         {/* General Admin News and Newsletter View */}
         {view === 'news' && canManageNews && <AdminNewsUpdates />}
+        {/* General Admin Advertising View */}
+        {view === 'promotions' && canManageNews && <AdminPromotions />}
         {/* Marketplace Settings View */}
         {view === 'marketplace' && role === 'admin' && (
           <div className="marketplace-settings-content animate-fade-in">
