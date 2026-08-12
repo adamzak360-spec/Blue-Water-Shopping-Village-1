@@ -70,13 +70,15 @@ export interface PaystackVerifyPaymentResponse {
  * @returns Authorization URL and payment reference
  */
 export const initializePayment = async (
-  payload: PaystackInitializePaymentPayload
+  payload: PaystackInitializePaymentPayload,
+  accessToken?: string,
 ): Promise<PaystackInitializePaymentResponse> => {
   try {
     const response = await fetch('/api/paystack', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
       body: JSON.stringify({
         action: 'initialize',

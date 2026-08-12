@@ -384,6 +384,10 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
       setState(prev => ({ ...prev, error: 'Please sign in with an email address before subscribing.' }))
       return
     }
+    if (!session?.access_token) {
+      setState(prev => ({ ...prev, error: 'Your session has expired. Please sign in again before subscribing.' }))
+      return
+    }
     if (!plan || !plan.currency || !Number.isFinite(plan.price) || plan.price <= 0) {
       setState(prev => ({ ...prev, error: 'A valid POS subscription plan is not configured for this country.' }))
       return
@@ -409,7 +413,7 @@ export default function POS({ businessIds }: { businessIds?: string[] } = {}) {
           currency,
           billing_interval: 'monthly',
         },
-      })
+      }, session.access_token)
 
       localStorage.setItem('pos_subscription_pending', JSON.stringify({
         businessId,

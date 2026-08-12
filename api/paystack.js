@@ -82,20 +82,79 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Email and amount are required for initialization' });
       }
 
-      const numericAmount = Number(amount);
-      if (!Number.isFinite(numericAmount) || numericAmount <= 0 || !Number.isInteger(numericAmount)) {
+      const requestedAmount = Number(amount);
+      if (!Number.isFinite(requestedAmount) || requestedAmount <= 0 || !Number.isInteger(requestedAmount)) {
         return res.status(400).json({ error: 'Amount must be a positive integer in the smallest currency unit' });
+      }
+
+      let paymentEmail = String(email);
+      let paymentAmount = requestedAmount;
+      let paymentCurrency = currency;
+      let paymentMetadata = metadata;
+
+      // POS subscriptions must be initialized from the current server-side plan.
+      // This prevents a modified browser request from creating a checkout for a
+      // different amount than the administrator configured.
+      if (metadata?.type === 'pos_subscription') {
+        const businessId = String(metadata.business_id || '');
+        const token = getBearerToken(req);
+        if (!token || !businessId) {
+          return res.status(401).json({ error: 'Authenticated business is required for POS subscription checkout' });
+        }
+
+        const supabaseAdmin = getSupabaseAdmin();
+        const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(token);
+        if (authError || !authData?.user) {
+          return res.status(401).json({ error: 'Authentication expired. Please sign in again.' });
+        }
+
+        const { data: business, error: businessError } = await supabaseAdmin
+          .from('businesses')
+          .select('id, owner_id, country_code')
+          .eq('id', businessId)
+          .maybeSingle();
+        if (businessError) throw businessError;
+        if (!business || business.owner_id !== authData.user.id) {
+          return res.status(403).json({ error: 'You are not allowed to subscribe this business.' });
+        }
+
+        const { data: plan, error: planError } = await supabaseAdmin
+          .from('pos_subscription_plans')
+          .select('monthly_price, currency_code')
+          .eq('country_code', business.country_code || 'GH')
+          .maybeSingle();
+        if (planError) throw planError;
+        if (!plan) {
+          return res.status(400).json({ error: 'No POS subscription plan is configured for this country.' });
+        }
+
+        const managedAmount = Math.round(Number(plan.monthly_price) * 100);
+        const managedCurrency = String(plan.currency_code || '').toUpperCase();
+        if (!Number.isInteger(managedAmount) || managedAmount <= 0 || !/^[A-Z]{3}$/.test(managedCurrency)) {
+          return res.status(500).json({ error: 'The POS subscription plan is not configured correctly.' });
+        }
+
+        paymentEmail = authData.user.email || paymentEmail;
+        paymentAmount = managedAmount;
+        paymentCurrency = managedCurrency;
+        paymentMetadata = {
+          type: 'pos_subscription',
+          business_id: businessId,
+          country_code: business.country_code || 'GH',
+          currency: managedCurrency,
+          billing_interval: 'monthly',
+        };
       }
 
       const response = await axios.post(
         `${PAYSTACK_BASE_URL}/transaction/initialize`,
         {
-          email,
-          amount: numericAmount,
-          currency,
+          email: paymentEmail,
+          amount: paymentAmount,
+          currency: paymentCurrency,
           reference,
           callback_url,
-          metadata,
+          metadata: paymentMetadata,
         },
         { headers: paystackHeaders(PAYSTACK_SECRET_KEY) },
       );
