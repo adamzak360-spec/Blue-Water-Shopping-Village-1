@@ -8,6 +8,13 @@ import './RegisteredSellerManagement.css'
 
 const DEFAULT_MARKETPLACE_ID = '00000000-0000-0000-0000-000000000001'
 
+type ReviewStatus = 'approved' | 'rejected' | 'suspended' | 'pending'
+
+const statusLabel = (status?: string | null) => {
+  if (!status || status === 'not_submitted') return 'Not Submitted'
+  return status.charAt(0).toUpperCase() + status.slice(1)
+}
+
 export default function RegisteredSellerManagement() {
   const { role } = useAuth()
   const [businesses, setBusinesses] = useState<Business[]>([])
@@ -16,6 +23,10 @@ export default function RegisteredSellerManagement() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [error, setError] = useState('')
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
+  const [reviewStatus, setReviewStatus] = useState<ReviewStatus>('approved')
+  const [reviewReason, setReviewReason] = useState('')
+  const [isReviewing, setIsReviewing] = useState(false)
 
   const loadBusinesses = useCallback(async () => {
     setIsLoading(true)
@@ -56,40 +67,39 @@ export default function RegisteredSellerManagement() {
     return counts
   }, {}), [products])
 
-  const handleVerificationReview = async (business: Business) => {
-    const decision = window.prompt('Enter approve, reject, suspend, or restore:')?.trim().toLowerCase()
-    if (!decision) return
+  const openVerificationReview = (business: Business) => {
+    setSelectedBusiness(business)
+    setReviewStatus(business.verification_status === 'approved' ? 'approved' : 'pending')
+    setReviewReason(business.rejection_reason || '')
+    setError('')
+  }
 
-    const status = decision === 'approve'
-      ? 'approved'
-      : decision === 'reject'
-        ? 'rejected'
-        : decision === 'suspend'
-          ? 'suspended'
-          : decision === 'restore'
-            ? 'pending'
-            : null
-
-    if (!status) {
-      setError('Choose approve, reject, suspend, or restore.')
-      return
+  const closeVerificationReview = () => {
+    if (!isReviewing) {
+      setSelectedBusiness(null)
+      setReviewReason('')
     }
+  }
 
-    const reason = status === 'rejected' || status === 'suspended'
-      ? window.prompt('Enter the review reason (required):')?.trim()
-      : undefined
-
-    if ((status === 'rejected' || status === 'suspended') && !reason) {
+  const handleVerificationSubmit = async () => {
+    if (!selectedBusiness) return
+    const needsReason = reviewStatus === 'rejected' || reviewStatus === 'suspended'
+    if (needsReason && !reviewReason.trim()) {
       setError('A reason is required for rejected or suspended sellers.')
       return
     }
 
+    setIsReviewing(true)
     setError('')
     try {
-      await reviewBusinessVerification(business.id, status, reason)
+      await reviewBusinessVerification(selectedBusiness.id, reviewStatus, needsReason ? reviewReason.trim() : undefined)
       await loadBusinesses()
+      setSelectedBusiness(null)
+      setReviewReason('')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to update seller verification')
+    } finally {
+      setIsReviewing(false)
     }
   }
 
@@ -122,7 +132,7 @@ export default function RegisteredSellerManagement() {
         <div>
           <p className="section-eyebrow">Marketplace administration</p>
           <h2>Registered Sellers &amp; Stores</h2>
-          <p>Review every registered seller store and remove test or abandoned stores without opening Supabase.</p>
+          <p>Review seller accounts, open submitted documents, and approve or reject verification requests from this page.</p>
         </div>
         <div className="seller-management-count">{businesses.length} stores</div>
       </div>
@@ -138,6 +148,10 @@ export default function RegisteredSellerManagement() {
         <button className="btn-secondary" onClick={loadBusinesses} disabled={isLoading}>
           {isLoading ? 'Refreshing...' : 'Refresh'}
         </button>
+      </div>
+
+      <div className="verification-help-banner">
+        <strong>Where to verify sellers:</strong> find a seller below, then use <strong>Open Review</strong> in the Verification column. Submitted registration and address documents open in a new tab.
       </div>
 
       {error && <div className="seller-management-error">{error}</div>}
@@ -166,6 +180,7 @@ export default function RegisteredSellerManagement() {
             <tbody>
               {filteredBusinesses.map((business) => {
                 const isDefault = business.id === DEFAULT_MARKETPLACE_ID
+                const hasDocuments = Boolean(business.registration_document_url || business.proof_of_address_url)
                 return (
                   <tr key={business.id}>
                     <td>
@@ -181,28 +196,26 @@ export default function RegisteredSellerManagement() {
                     <td>
                       <div className="verification-status-cell">
                         <span className={`status-badge status-${business.verification_status || 'not_submitted'}`}>
-                          {business.verification_status || 'Not Submitted'}
+                          {statusLabel(business.verification_status)}
                         </span>
+                        {hasDocuments && <span className="documents-ready-label">Documents submitted</span>}
                         {(business.verification_status === 'pending' || business.verification_status === 'approved' || business.verification_status === 'rejected' || business.verification_status === 'suspended') && (
-                          <button
-                            className="btn-sm btn-secondary"
-                            style={{ marginTop: '4px' }}
-                            onClick={() => handleVerificationReview(business)}
-                          >
-                            Review
+                          <button className="btn-sm btn-secondary review-button" onClick={() => openVerificationReview(business)}>
+                            Open Review
                           </button>
                         )}
-                        <div style={{ marginTop: '8px', fontSize: '0.8rem' }}>
-                          Comm: {(business as any).commission_bps / 100}% 
-                          <button 
-                            className="btn-sm" 
-                            style={{ marginLeft: '4px', padding: '2px 4px' }}
+                        {business.verification_status === 'not_submitted' && !hasDocuments && (
+                          <span className="seller-slug">Awaiting documents</span>
+                        )}
+                        <div className="commission-line">
+                          Comm: {((business as any).commission_bps || 0) / 100}%
+                          <button
+                            className="btn-sm"
+                            aria-label={`Edit commission for ${business.name}`}
                             onClick={() => {
-                              const bps = prompt('Enter new commission in BPS (e.g. 500 for 5%):', (business as any).commission_bps);
+                              const bps = prompt('Enter new commission in BPS (e.g. 500 for 5%):', (business as any).commission_bps)
                               if (bps) {
-                                supabase!.from('businesses').update({ 
-                                  commission_bps: parseInt(bps) 
-                                }).eq('id', business.id).then(() => loadBusinesses());
+                                supabase!.from('businesses').update({ commission_bps: parseInt(bps, 10) }).eq('id', business.id).then(() => loadBusinesses())
                               }
                             }}
                           >
@@ -218,11 +231,7 @@ export default function RegisteredSellerManagement() {
                       {isDefault ? (
                         <span className="protected-store">Protected marketplace</span>
                       ) : (
-                        <button
-                          className="btn-delete"
-                          onClick={() => handleDelete(business)}
-                          disabled={deletingId === business.id}
-                        >
+                        <button className="btn-delete" onClick={() => handleDelete(business)} disabled={deletingId === business.id}>
                           {deletingId === business.id ? 'Deleting...' : 'Delete store'}
                         </button>
                       )}
@@ -234,6 +243,71 @@ export default function RegisteredSellerManagement() {
           </table>
         </div>
       )}
+
+      {selectedBusiness && (
+        <div className="verification-modal-backdrop" role="presentation" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) closeVerificationReview()
+        }}>
+          <div className="verification-modal" role="dialog" aria-modal="true" aria-labelledby="verification-modal-title">
+            <div className="verification-modal-header">
+              <div>
+                <p className="section-eyebrow">Seller verification</p>
+                <h3 id="verification-modal-title">{selectedBusiness.business_name || selectedBusiness.name}</h3>
+                <p>{selectedBusiness.contact_email || 'Seller email unavailable'}</p>
+              </div>
+              <button className="modal-close-button" onClick={closeVerificationReview} aria-label="Close seller verification review">×</button>
+            </div>
+
+            <div className="verification-detail-grid">
+              <div><span>Store</span><strong>{selectedBusiness.name}</strong></div>
+              <div><span>Current status</span><strong>{statusLabel(selectedBusiness.verification_status)}</strong></div>
+              <div><span>Registration number</span><strong>{selectedBusiness.registration_number || 'Not provided'}</strong></div>
+              <div><span>Tax ID</span><strong>{selectedBusiness.tax_id || 'Not provided'}</strong></div>
+              <div><span>Location</span><strong>{selectedBusiness.location || 'Not provided'}</strong></div>
+              <div><span>Submitted</span><strong>{selectedBusiness.updated_at ? new Date(selectedBusiness.updated_at).toLocaleString() : 'Not available'}</strong></div>
+            </div>
+
+            <div className="verification-documents">
+              <h4>Submitted documents</h4>
+              <div className="document-links">
+                {selectedBusiness.registration_document_url ? (
+                  <a href={selectedBusiness.registration_document_url} target="_blank" rel="noreferrer" className="document-link">Open registration document</a>
+                ) : <span className="document-missing">Registration document not submitted</span>}
+                {selectedBusiness.proof_of_address_url ? (
+                  <a href={selectedBusiness.proof_of_address_url} target="_blank" rel="noreferrer" className="document-link">Open proof of address</a>
+                ) : <span className="document-missing">Proof of address not submitted</span>}
+              </div>
+            </div>
+
+            {selectedBusiness.rejection_reason && (
+              <div className="previous-review-note"><strong>Previous review note:</strong> {selectedBusiness.rejection_reason}</div>
+            )}
+
+            <div className="verification-decision-panel">
+              <label htmlFor="verification-decision">Decision</label>
+              <select id="verification-decision" value={reviewStatus} onChange={(event) => setReviewStatus(event.target.value as ReviewStatus)}>
+                <option value="approved">Approve / Verify seller</option>
+                <option value="rejected">Reject submission</option>
+                <option value="suspended">Suspend verification</option>
+                <option value="pending">Return to pending</option>
+              </select>
+              {(reviewStatus === 'rejected' || reviewStatus === 'suspended') && (
+                <label htmlFor="verification-reason">
+                  Reason required
+                  <textarea id="verification-reason" value={reviewReason} onChange={(event) => setReviewReason(event.target.value)} placeholder="Explain the review decision for the audit trail..." rows={3} />
+                </label>
+              )}
+              <div className="verification-modal-actions">
+                <button className="btn-secondary" onClick={closeVerificationReview} disabled={isReviewing}>Cancel</button>
+                <button className="btn-primary" onClick={handleVerificationSubmit} disabled={isReviewing}>
+                  {isReviewing ? 'Saving review...' : 'Save verification decision'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
+
