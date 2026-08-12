@@ -6,6 +6,7 @@ import type { Business } from '../services/businessService'
 import ProductCard from '../components/ProductCard'
 import { CheckCircle } from 'lucide-react'
 import './Home.css'
+import './BusinessStorefront.css'
 
 export default function BusinessStorefront() {
   const { slug } = useParams<{ slug: string }>()
@@ -136,7 +137,7 @@ export default function BusinessStorefront() {
         {products.length === 0 ? (
           <p style={{ textAlign: 'center', color: '#6b7280', padding: '40px 0' }}>No active products available in this store right now.</p>
         ) : (
-          <div className="products-grid">
+          <div className="products-grid store-products-grid">
             {products.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}
