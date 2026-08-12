@@ -77,6 +77,23 @@ export default function Products() {
   const categories = [...new Set(products.map(p => p.category))].sort()
   const activeCount = products.filter(p => p.status === 'active').length
 
+  // Keep every product unique while alternating four vertical pairs (8 cards)
+  // with three pairs in a horizontal scroller (6 cards).
+  const productSections: Array<{ type: 'grid' | 'horizontal'; products: Product[] }> = []
+  for (let start = 0; start < filteredProducts.length;) {
+    const verticalProducts = filteredProducts.slice(start, start + 8)
+    if (verticalProducts.length > 0) {
+      productSections.push({ type: 'grid', products: verticalProducts })
+      start += verticalProducts.length
+    }
+
+    const horizontalProducts = filteredProducts.slice(start, start + 6)
+    if (horizontalProducts.length > 0) {
+      productSections.push({ type: 'horizontal', products: horizontalProducts })
+      start += horizontalProducts.length
+    }
+  }
+
   const handleSearch = (term: string) => {
     setSearchTerm(term)
     if (term && !recentSearches.includes(term)) {
@@ -269,9 +286,25 @@ export default function Products() {
             <div className="results-info">
               Showing {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
             </div>
-            <div className="products-grid">
-              {filteredProducts.map(product => (
-                <ProductCard key={product.id} product={product} />
+            <div className="products-browse-sections">
+              {productSections.map((section, sectionIndex) => (
+                section.type === 'grid' ? (
+                  <div className="products-grid" key={`grid-${sectionIndex}`}>
+                    {section.products.map(product => (
+                      <ProductCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                ) : (
+                  <section className="products-horizontal-section" key={`horizontal-${sectionIndex}`} aria-label="More products">
+                    <div className="products-horizontal-scroll">
+                      {section.products.map(product => (
+                        <div className="products-horizontal-item" key={product.id}>
+                          <ProductCard product={product} />
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )
               ))}
             </div>
             </>
