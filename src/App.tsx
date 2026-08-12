@@ -70,6 +70,7 @@ const prefetchFAQ = () => import('./pages/FAQ')
 const prefetchLogin = () => import('./pages/Login')
 import TermsPopup from './components/TermsPopup'
 import WhatsAppButton from './components/WhatsAppButton'
+import InstallAppPrompt from './components/InstallAppPrompt'
 
 function App() {
   return <AppShell />
@@ -217,6 +218,7 @@ function AppShell() {
       <div className={`drawer-overlay ${isMenuOpen ? 'show' : ''}`} onClick={toggleMenu}></div>
 
       <TermsPopup />
+      <InstallAppPrompt />
       <main className="app-main">
         <Suspense fallback={
           <div className="loading-screen" aria-label="Loading Reliable">

@@ -1,0 +1,92 @@
+.install-app-prompt {
+  position: fixed;
+  z-index: 1200;
+  right: 1rem;
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: min(24rem, calc(100vw - 2rem));
+  padding: 0.75rem 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 1rem;
+  background: #032d61;
+  color: #fff;
+  box-shadow: 0 18px 45px rgba(3, 45, 97, 0.28);
+}
+
+.install-app-icon {
+  display: grid;
+  flex: 0 0 2.25rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: 0.7rem;
+  background: #d71920;
+  color: #fff;
+}
+
+.install-app-copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 0.15rem;
+}
+
+.install-app-copy strong {
+  font-size: 0.92rem;
+  line-height: 1.1;
+}
+
+.install-app-copy span {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.76rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.install-app-action,
+.install-app-dismiss {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.install-app-action {
+  padding: 0.55rem 0.8rem;
+  border-radius: 0.65rem;
+  background: #fff;
+  color: #032d61;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.install-app-action:hover {
+  background: #f6f7f9;
+}
+
+.install-app-dismiss {
+  display: grid;
+  flex: 0 0 auto;
+  width: 1.9rem;
+  height: 1.9rem;
+  place-items: center;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.install-app-dismiss:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+@media (max-width: 480px) {
+  .install-app-prompt {
+    right: 0.75rem;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    width: calc(100vw - 1.5rem);
+  }
+}
