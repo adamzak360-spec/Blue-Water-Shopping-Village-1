@@ -36,6 +36,7 @@ import { Pencil, Trash2 } from 'lucide-react'
 import { BusinessVerificationForm } from '../components/BusinessVerificationForm'
 import { PayoutProfileForm } from '../components/PayoutProfileForm'
 import DeliverySettings from '../components/DeliverySettings'
+import AdminNewsUpdates from '../components/AdminNewsUpdates'
 import './Admin.css'
 
   // Lazy load admin sub-components for better performance
@@ -56,7 +57,7 @@ import './Admin.css'
   const prefetchPOS = () => import('./POS')
   const prefetchSellerPayouts = () => import('../components/SellerPayouts')
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts' | 'settings' | 'delivery' | 'marketplace'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts' | 'settings' | 'delivery' | 'marketplace' | 'news'
 
 interface ProductFormErrors {
   name?: string
@@ -796,6 +797,12 @@ export default function Admin() {
             >
               🌍 Marketplace Settings
             </button>
+            <button
+              className={`tab ${view === 'news' ? 'active' : ''}`}
+              onClick={() => setView('news')}
+            >
+              News Updates
+            </button>
           </>
         )}
         <button
@@ -854,6 +861,8 @@ export default function Admin() {
         {/* POS View */}
         {view === 'pos' && <POS businessIds={role === 'seller' ? sellerBusinessIds : undefined} />}
 
+        {/* General Admin News and Newsletter View */}
+        {view === 'news' && role === 'admin' && <AdminNewsUpdates />}
         {/* Marketplace Settings View */}
         {view === 'marketplace' && role === 'admin' && (
           <div className="marketplace-settings-content animate-fade-in">

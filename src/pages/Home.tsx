@@ -9,6 +9,12 @@ import CallToOrderBanner from '../components/CallToOrderBanner'
 import { ChevronLeft, ChevronRight, ArrowRight, Zap, TrendingUp, Star, Package, Award, Heart } from 'lucide-react'
 import './Home.css'
 
+type NewsUpdate = {
+  id: string
+  title: string
+  message: string
+}
+
 const HERO_BANNERS = [
   {
     id: 1,
@@ -70,6 +76,7 @@ function getCategoryIcon(name: string): string {
 
 export default function Home() {
   const [allProducts, setAllProducts] = useState<Product[]>([])
+  const [newsUpdates, setNewsUpdates] = useState<NewsUpdate[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [currentBanner, setCurrentBanner] = useState(0)
   
@@ -85,8 +92,17 @@ export default function Home() {
       try {
         const data = await getAllProducts()
         setAllProducts(data)
+        if (isSupabaseConfigured && supabase) {
+          const { data: updates, error: updatesError } = await supabase
+            .from('news_updates')
+            .select('id, title, message')
+            .order('starts_at', { ascending: false })
+            .limit(3)
+          if (updatesError) console.warn('News updates unavailable:', updatesError.message)
+          else setNewsUpdates((updates || []) as NewsUpdate[])
+        }
       } catch (err) {
-        console.error('Failed to load products:', err)
+        console.error('Failed to load homepage data:', err)
       } finally {
         setIsLoading(false)
       }
@@ -174,6 +190,21 @@ export default function Home() {
         </div>
       </section>
 
+      {newsUpdates.length > 0 && (
+        <section className="section news-updates-section" aria-label="News updates">
+          <div className="container">
+            <div className="news-updates-strip">
+              {newsUpdates.map((update) => (
+                <article className="public-news-update" key={update.id}>
+                  <span className="public-news-label">News Update</span>
+                  <h3>{update.title}</h3>
+                  <p>{update.message}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
       {/* --- Call To Order Banner --- */}
       <CallToOrderBanner />
 
