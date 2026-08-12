@@ -26,6 +26,12 @@ export interface Business {
   rejection_reason?: string
   verified_at?: string
   verified_by?: string
+  facebook_url?: string | null
+  tiktok_url?: string | null
+  instagram_url?: string | null
+  x_url?: string | null
+  whatsapp_url?: string | null
+  youtube_url?: string | null
   created_at: string
   updated_at: string
 }

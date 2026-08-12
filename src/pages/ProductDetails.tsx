@@ -13,6 +13,7 @@ import StockStatus from '../components/StockStatus'
 import ProductShare from '../components/ProductShare'
 import ProductCard from '../components/ProductCard'
 import VerifiedSellerBadge from '../components/VerifiedSellerBadge'
+import BusinessSocialLinks from '../components/BusinessSocialLinks'
 import './ProductDetails.css'
 
 export default function ProductDetails() {
@@ -370,12 +371,23 @@ export default function ProductDetails() {
             </div>
             <h1 className="product-title">{product.name}</h1>
             {sellerBusiness && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', margin: '12px 0' }}>
-                <Link to={`/store/${sellerBusiness.slug}`} style={{ fontWeight: 700, color: '#1f2937', textDecoration: 'none' }}>
-                  Sold by {sellerBusiness.name}
-                </Link>
-                <VerifiedSellerBadge status={sellerBusiness.verification_status} compact />
-              </div>
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', margin: '12px 0' }}>
+                  <Link to={`/store/${sellerBusiness.slug}`} style={{ fontWeight: 700, color: '#1f2937', textDecoration: 'none' }}>
+                    Sold by {sellerBusiness.name}
+                  </Link>
+                  <VerifiedSellerBadge status={sellerBusiness.verification_status} compact />
+                </div>
+                <BusinessSocialLinks
+                  compact
+                  facebook_url={sellerBusiness.facebook_url}
+                  tiktok_url={sellerBusiness.tiktok_url}
+                  instagram_url={sellerBusiness.instagram_url}
+                  x_url={sellerBusiness.x_url}
+                  whatsapp_url={sellerBusiness.whatsapp_url}
+                  youtube_url={sellerBusiness.youtube_url}
+                />
+              </>
             )}
             <div className="product-meta">
               {ratingStats.totalReviews > 0 && (

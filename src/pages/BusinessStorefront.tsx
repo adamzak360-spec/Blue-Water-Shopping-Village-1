@@ -5,6 +5,7 @@ import type { Product } from '../types'
 import type { Business } from '../services/businessService'
 import ProductCard from '../components/ProductCard'
 import VerifiedSellerBadge from '../components/VerifiedSellerBadge'
+import BusinessSocialLinks from '../components/BusinessSocialLinks'
 import './Home.css'
 import './BusinessStorefront.css'
 
@@ -123,6 +124,14 @@ export default function BusinessStorefront() {
               <p style={{ fontSize: '1rem', opacity: 0.9 }}>📍 {business.location}</p>
             )}
           </div>
+          <BusinessSocialLinks
+            facebook_url={business.facebook_url}
+            tiktok_url={business.tiktok_url}
+            instagram_url={business.instagram_url}
+            x_url={business.x_url}
+            whatsapp_url={business.whatsapp_url}
+            youtube_url={business.youtube_url}
+          />
         </div>
       </div>
 

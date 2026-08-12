@@ -148,6 +148,12 @@ export default function Admin() {
     contact_email: '',
     contact_phone: '',
     location: '',
+    facebook_url: '',
+    tiktok_url: '',
+    instagram_url: '',
+    x_url: '',
+    whatsapp_url: '',
+    youtube_url: '',
   })
   const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([])
   const [subscriptionPlansLoading, setSubscriptionPlansLoading] = useState(false)
@@ -190,6 +196,12 @@ export default function Admin() {
             contact_email: b.contact_email || '',
             contact_phone: b.contact_phone || '',
             location: b.location || '',
+            facebook_url: b.facebook_url || '',
+            tiktok_url: b.tiktok_url || '',
+            instagram_url: b.instagram_url || '',
+            x_url: b.x_url || '',
+            whatsapp_url: b.whatsapp_url || '',
+            youtube_url: b.youtube_url || '',
           })
         }
       } catch (err) {
@@ -844,7 +856,7 @@ export default function Admin() {
           className={`tab ${view === 'settings' ? 'active' : ''}`}
           onClick={() => setView('settings')}
         >
-          ⚙️ Store Settings
+          {role === 'seller' ? '🔗 Store & Social Settings' : '⚙️ Store Settings'}
         </button>
         <button
           className={`tab ${view === 'delivery' ? 'active' : ''}`}
@@ -987,10 +999,21 @@ export default function Admin() {
           <div className="store-settings-content animate-fade-in">
             <div className="section-title-wrapper">
               <h2 className="section-title">Store Settings</h2>
-              <p>Customize your storefront and contact information.</p>
+                            <p>Customize your storefront, contact information, and customer connections.</p>
             </div>
-
+            {role === 'seller' && (
+              <div style={{ marginBottom: '1.25rem', padding: '1rem 1.15rem', borderLeft: '4px solid #dc2626', borderRadius: '10px', background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                <div>
+                  <strong style={{ color: '#991b1b', display: 'block', marginBottom: '0.25rem' }}>Connect your social media pages</strong>
+                  <span style={{ color: '#7f1d1d', fontSize: '0.9rem' }}>Add your Facebook, Instagram, TikTok, X, WhatsApp, and YouTube links for customers to discover.</span>
+                </div>
+                <button type="button" className="btn-primary" onClick={() => document.getElementById('social-media-settings')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+                  Add Social Links
+                </button>
+              </div>
+            )}
             <div className="settings-grid">
+
               <div className="settings-card">
                 <h3>Store Profile</h3>
                 <form onSubmit={async (e) => {
@@ -1048,6 +1071,45 @@ export default function Admin() {
                       value={storeSettings.location}
                       onChange={e => setStoreSettings({...storeSettings, location: e.target.value})}
                     />
+                  </div>
+                  <div id="social-media-settings" className="social-settings-section" style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid #e5e7eb', scrollMarginTop: '1rem' }}>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <h4 style={{ margin: 0, color: '#1f2937' }}>Social Media Profiles</h4>
+                      <p style={{ margin: '0.35rem 0 0', color: '#6b7280', fontSize: '0.88rem' }}>
+                        Add your public business profiles so customers can connect with your store.
+                      </p>
+                    </div>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Facebook URL</label>
+                        <input type="url" placeholder="https://facebook.com/yourstore" value={storeSettings.facebook_url} onChange={e => setStoreSettings({...storeSettings, facebook_url: e.target.value})} />
+                      </div>
+                      <div className="form-group">
+                        <label>Instagram URL</label>
+                        <input type="url" placeholder="https://instagram.com/yourstore" value={storeSettings.instagram_url} onChange={e => setStoreSettings({...storeSettings, instagram_url: e.target.value})} />
+                      </div>
+                    </div>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>TikTok URL</label>
+                        <input type="url" placeholder="https://tiktok.com/@yourstore" value={storeSettings.tiktok_url} onChange={e => setStoreSettings({...storeSettings, tiktok_url: e.target.value})} />
+                      </div>
+                      <div className="form-group">
+                        <label>X (Twitter) URL</label>
+                        <input type="url" placeholder="https://x.com/yourstore" value={storeSettings.x_url} onChange={e => setStoreSettings({...storeSettings, x_url: e.target.value})} />
+                      </div>
+                    </div>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>WhatsApp Link</label>
+                        <input type="url" placeholder="https://wa.me/233XXXXXXXXX" value={storeSettings.whatsapp_url} onChange={e => setStoreSettings({...storeSettings, whatsapp_url: e.target.value})} />
+                        <small style={{ color: '#6b7280' }}>Use a wa.me link with your full international number.</small>
+                      </div>
+                      <div className="form-group">
+                        <label>YouTube URL</label>
+                        <input type="url" placeholder="https://youtube.com/@yourstore" value={storeSettings.youtube_url} onChange={e => setStoreSettings({...storeSettings, youtube_url: e.target.value})} />
+                      </div>
+                    </div>
                   </div>
                   <button type="submit" className="btn-primary" disabled={isUpdatingStore}>
                     {isUpdatingStore ? 'Updating...' : 'Save Changes'}
