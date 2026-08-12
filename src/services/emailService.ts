@@ -67,6 +67,7 @@ class EmailService {
           to: payload.to,
           subject: payload.subject,
           html: payload.html,
+          text: payload.text,
           replyTo,
         }),
       });

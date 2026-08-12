@@ -1,7 +1,6 @@
 const axios = require('axios');
 
 module.exports = async (req, res) => {
-  // Handle CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
@@ -19,39 +18,64 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { to, subject, html, replyTo } = req.body;
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.VITE_FROM_EMAIL || process.env.FROM_EMAIL || 'onboarding@resend.dev';
+  const { to, subject, html, text, replyTo } = req.body || {};
+  const brevoApiKey = process.env.BREVO_API_KEY;
+  const resendApiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.BREVO_FROM_EMAIL || process.env.VITE_FROM_EMAIL || process.env.FROM_EMAIL || 'onboarding@resend.dev';
+  const fromName = process.env.BREVO_FROM_NAME || 'Reliable Premium Marketplace';
 
-  if (!apiKey) {
-    console.error('[SERVERLESS] RESEND_API_KEY is not set');
-    return res.status(500).json({ error: 'Email service not configured. RESEND_API_KEY is missing.' });
+  if (!to || !subject || !html) {
+    return res.status(400).json({ error: 'Recipient, subject, and HTML content are required.' });
+  }
+
+  if (!brevoApiKey && !resendApiKey) {
+    console.error('[SERVERLESS] No email provider API key is configured');
+    return res.status(500).json({ error: 'Email service not configured. Add BREVO_API_KEY or RESEND_API_KEY.' });
   }
 
   try {
-    console.log(`[SERVERLESS] Attempting to send email to ${to} with subject: ${subject}`);
-    
+    if (brevoApiKey) {
+      console.log(`[SERVERLESS] Sending email through Brevo to ${to} with subject: ${subject}`);
+      const response = await axios.post('https://api.brevo.com/v3/smtp/email', {
+        sender: { name: fromName, email: fromEmail },
+        to: Array.isArray(to) ? to.map(email => ({ email })) : [{ email: to }],
+        subject,
+        htmlContent: html,
+        textContent: text,
+        replyTo: replyTo ? { email: replyTo } : undefined,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'api-key': brevoApiKey,
+        },
+      });
+
+      console.log('[SERVERLESS] Brevo email sent successfully:', response.data.messageId);
+      return res.status(200).json({ success: true, id: response.data.messageId, provider: 'brevo' });
+    }
+
+    console.log(`[SERVERLESS] Sending email through Resend to ${to} with subject: ${subject}`);
     const response = await axios.post('https://api.resend.com/emails', {
       from: fromEmail,
       to,
       subject,
       html,
+      text,
       reply_to: replyTo || fromEmail,
     }, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      }
+        'Authorization': `Bearer ${resendApiKey}`,
+      },
     });
 
-    console.log('[SERVERLESS] Email sent successfully:', response.data.id);
-    return res.status(200).json({ success: true, id: response.data.id });
+    console.log('[SERVERLESS] Resend email sent successfully:', response.data.id);
+    return res.status(200).json({ success: true, id: response.data.id, provider: 'resend' });
   } catch (error) {
-    if (error.response) {
-      console.error('[SERVERLESS] Resend API error:', error.response.data);
-      return res.status(error.response.status).json({ error: error.response.data.message || 'Failed to send email' });
-    }
-    console.error('[SERVERLESS] Error in email handler:', error);
-    return res.status(500).json({ error: error.message });
+    const providerError = error.response?.data;
+    console.error('[SERVERLESS] Email provider error:', providerError || error.message || error);
+    const message = providerError?.message || providerError?.code || 'Failed to send email';
+    return res.status(error.response?.status || 500).json({ error: message });
   }
-}
+};
