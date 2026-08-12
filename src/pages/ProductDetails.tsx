@@ -173,7 +173,7 @@ export default function ProductDetails() {
   const isOutOfStock = product.stock_quantity === 0 || product.status === 'inactive'
 
   const handleCallOrder = () => {
-    window.location.href = 'tel:+233538557781'
+    window.location.href = 'tel:+233595609966'
   }
 
   const renderStars = (rating: number) => {

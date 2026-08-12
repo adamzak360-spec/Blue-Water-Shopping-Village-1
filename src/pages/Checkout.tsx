@@ -479,8 +479,8 @@ export default function Checkout() {
               
               <div className="checkout-help-section">
                 <p>Need help with your order?</p>
-                <a href="tel:+233538557781" className="checkout-call-btn">
-                  📞 Call us: +233 53 855 7781
+                <a href="tel:+233595609966" className="checkout-call-btn">
+                  📞 Call us: +233 59 560 9966
                 </a>
               </div>
             </>

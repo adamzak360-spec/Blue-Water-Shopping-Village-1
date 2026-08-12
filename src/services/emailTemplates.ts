@@ -10,7 +10,7 @@ import { Order, CartItem } from '../types'
 const COMPANY_NAME = 'Reliable'
 const COMPANY_WEBSITE = 'https://reliable-now.vercel.app'
 const SUPPORT_EMAIL = 'support@reliable.com'
-const PHONE = '+233 53 855 7781'
+const PHONE = '+233 59 560 9966'
 const SUPPORT_WHATSAPP = '+233 20 335 5542'
 const COMPANY_LOCATION = 'Tamale, Ghana'
 
@@ -195,7 +195,7 @@ function getEmailWrapper(content: string, title: string): string {
           <div class="footer">
             <p><strong>${COMPANY_NAME}</strong></p>
             <p>${COMPANY_LOCATION}</p>
-            <p>📞 <a href="tel:+233538557781">${PHONE}</a></p>
+            <p>📞 <a href="tel:+233595609966">${PHONE}</a></p>
             <p>💬 WhatsApp: <a href="https://wa.me/233203355542">${SUPPORT_WHATSAPP}</a></p>
             <p>✉ <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></p>
             <p><a href="${COMPANY_WEBSITE}">Visit Our Website</a></p>
@@ -900,7 +900,7 @@ export function getOutForDeliveryTemplate(order: Order & { id: string }): { html
       <div class="section">
         <h2>Questions?</h2>
         <p>If you need to reschedule delivery or have any concerns, please contact us immediately:</p>
-        <p><strong>Phone:</strong> <a href="tel:+233538557781">${PHONE}</a></p>
+        <p><strong>Phone:</strong> <a href="tel:+233595609966">${PHONE}</a></p>
         <p><strong>WhatsApp:</strong> <a href="https://wa.me/233203355542">${SUPPORT_WHATSAPP}</a></p>
         <p><strong>Email:</strong> <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></p>
       </div>
@@ -976,7 +976,7 @@ export function getDeliveredTemplate(order: Order & { id: string }): { html: str
       <div class="section">
         <h2>Need Help?</h2>
         <p>If you have any issues with your order or need assistance, please don't hesitate to contact us:</p>
-        <p><strong>Phone:</strong> <a href="tel:+233538557781">${PHONE}</a></p>
+        <p><strong>Phone:</strong> <a href="tel:+233595609966">${PHONE}</a></p>
         <p><strong>WhatsApp:</strong> <a href="https://wa.me/233203355542">${SUPPORT_WHATSAPP}</a></p>
         <p><strong>Email:</strong> <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></p>
       </div>

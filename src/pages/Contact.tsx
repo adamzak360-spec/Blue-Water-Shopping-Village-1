@@ -25,8 +25,8 @@ export default function Contact() {
               <div className="contact-card">
                 <div className="contact-card-icon">&#128222;</div>
                 <h4>Phone</h4>
-                <a href="tel:+233538557781" style={{ color: 'inherit', textDecoration: 'none' }}>
-                  <p>+233 53 855 7781</p>
+                <a href="tel:+233595609966" style={{ color: 'inherit', textDecoration: 'none' }}>
+                  <p>+233 59 560 9966</p>
                 </a>
                 <p className="contact-note">Available Mon - Sat, 8:00 AM - 8:00 PM</p>
               </div>

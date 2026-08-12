@@ -135,7 +135,7 @@ export default function Delivery() {
             </p>
             <p>
               <strong>Email:</strong> support@reliable.com<br />
-              <strong>Phone:</strong> +233 53 855 7781<br />
+              <strong>Phone:</strong> +233 59 560 9966<br />
               <strong>Hours:</strong> Monday–Saturday, 8:00 AM–8:00 PM
             </p>
           </section>

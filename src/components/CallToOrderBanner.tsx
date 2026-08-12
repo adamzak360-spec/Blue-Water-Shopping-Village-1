@@ -24,7 +24,7 @@ export default function CallToOrderBanner() {
         console.warn('Supabase not configured')
         setSettings({
           id: 'default',
-          phone_number: '+233 53 855 7781',
+          phone_number: '+233 59 560 9966',
           is_active: true,
           updated_at: new Date().toISOString()
         })
@@ -42,7 +42,7 @@ export default function CallToOrderBanner() {
           // Table doesn't exist or no data, use default
           setSettings({
             id: 'default',
-            phone_number: '+233 53 855 7781',
+            phone_number: '+233 59 560 9966',
             is_active: true,
             updated_at: new Date().toISOString()
           })
@@ -50,7 +50,7 @@ export default function CallToOrderBanner() {
           console.error('Error loading settings:', error)
           setSettings({
             id: 'default',
-            phone_number: '+233 53 855 7781',
+            phone_number: '+233 59 560 9966',
             is_active: true,
             updated_at: new Date().toISOString()
           })
@@ -62,7 +62,7 @@ export default function CallToOrderBanner() {
       console.error('Error:', err)
       setSettings({
         id: 'default',
-        phone_number: '+233 53 855 7781',
+        phone_number: '+233 59 560 9966',
         is_active: true,
         updated_at: new Date().toISOString()
       })

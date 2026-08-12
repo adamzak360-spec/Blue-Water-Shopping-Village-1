@@ -326,8 +326,8 @@ export default function Home() {
           <div className="call-to-order-card">
             <h3>Need Help Placing an Order?</h3>
             <p>Our customer support team is ready to assist you</p>
-            <a href="tel:+233538557781" className="call-to-order-link">
-              📞 Call us: +233 53 855 7781
+            <a href="tel:+233595609966" className="call-to-order-link">
+              📞 Call us: +233 59 560 9966
             </a>
           </div>
         </div>
