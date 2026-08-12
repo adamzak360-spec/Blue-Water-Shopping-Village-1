@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabaseClient'
-import { deleteBusiness, getAllBusinesses, type Business } from '../services/businessService'
+import { deleteBusiness, getAllBusinesses, reviewBusinessVerification, type Business } from '../services/businessService'
 import { getAllProducts } from '../services/productService'
 import { useAuth } from '../context/AuthContext'
 import type { Product } from '../types'
@@ -55,6 +55,43 @@ export default function RegisteredSellerManagement() {
     if (product.business_id) counts[product.business_id] = (counts[product.business_id] || 0) + 1
     return counts
   }, {}), [products])
+
+  const handleVerificationReview = async (business: Business) => {
+    const decision = window.prompt('Enter approve, reject, suspend, or restore:')?.trim().toLowerCase()
+    if (!decision) return
+
+    const status = decision === 'approve'
+      ? 'approved'
+      : decision === 'reject'
+        ? 'rejected'
+        : decision === 'suspend'
+          ? 'suspended'
+          : decision === 'restore'
+            ? 'pending'
+            : null
+
+    if (!status) {
+      setError('Choose approve, reject, suspend, or restore.')
+      return
+    }
+
+    const reason = status === 'rejected' || status === 'suspended'
+      ? window.prompt('Enter the review reason (required):')?.trim()
+      : undefined
+
+    if ((status === 'rejected' || status === 'suspended') && !reason) {
+      setError('A reason is required for rejected or suspended sellers.')
+      return
+    }
+
+    setError('')
+    try {
+      await reviewBusinessVerification(business.id, status, reason)
+      await loadBusinesses()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to update seller verification')
+    }
+  }
 
   const handleDelete = async (business: Business) => {
     if (business.id === DEFAULT_MARKETPLACE_ID) return
@@ -146,24 +183,11 @@ export default function RegisteredSellerManagement() {
                         <span className={`status-badge status-${business.verification_status || 'not_submitted'}`}>
                           {business.verification_status || 'Not Submitted'}
                         </span>
-                        {business.verification_status === 'pending' && (
-                          <button 
-                            className="btn-sm btn-secondary" 
+                        {(business.verification_status === 'pending' || business.verification_status === 'approved' || business.verification_status === 'rejected' || business.verification_status === 'suspended') && (
+                          <button
+                            className="btn-sm btn-secondary"
                             style={{ marginTop: '4px' }}
-                            onClick={() => {
-                              const reason = prompt('Approve or Reject? Type "approve" or enter rejection reason:');
-                              if (reason === 'approve') {
-                                supabase!.from('businesses').update({ 
-                                  verification_status: 'approved', 
-                                  verified_at: new Date().toISOString() 
-                                }).eq('id', business.id).then(() => loadBusinesses());
-                              } else if (reason) {
-                                supabase!.from('businesses').update({ 
-                                  verification_status: 'rejected', 
-                                  rejection_reason: reason 
-                                }).eq('id', business.id).then(() => loadBusinesses());
-                              }
-                            }}
+                            onClick={() => handleVerificationReview(business)}
                           >
                             Review
                           </button>

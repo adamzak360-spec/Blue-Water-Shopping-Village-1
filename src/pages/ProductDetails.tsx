@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { supabase } from '../supabaseClient'
+import type { Business } from '../services/businessService'
 import { getProductById, getAllProducts, getProductVariants } from '../services/productService'
 import { getApprovedReviewsByProductId, submitReview, getProductRatingStats } from '../services/reviewService'
 import type { Product, Review, ProductVariant } from '../types'
@@ -10,6 +12,7 @@ import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock, Heart
 import StockStatus from '../components/StockStatus'
 import ProductShare from '../components/ProductShare'
 import ProductCard from '../components/ProductCard'
+import VerifiedSellerBadge from '../components/VerifiedSellerBadge'
 import './ProductDetails.css'
 
 export default function ProductDetails() {
@@ -18,6 +21,7 @@ export default function ProductDetails() {
   const { isWishlisted, toggleWishlist } = useWishlist()
 
   const [product, setProduct] = useState<Product | null>(null)
+  const [sellerBusiness, setSellerBusiness] = useState<Business | null>(null)
   const [variants, setVariants] = useState<ProductVariant[]>([])
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
@@ -59,6 +63,15 @@ export default function ProductDetails() {
           return
         }
         setProduct(productData)
+
+        if (productData.business_id && supabase) {
+          const { data: businessData } = await supabase
+            .from('businesses')
+            .select('id, name, slug, verification_status')
+            .eq('id', productData.business_id)
+            .maybeSingle()
+          setSellerBusiness((businessData as Business | null) || null)
+        }
 
         if (productData.has_sizes) {
           const variantData = await getProductVariants(productId)
@@ -356,6 +369,14 @@ export default function ProductDetails() {
               <span className="breadcrumb-current">{product.category}</span>
             </div>
             <h1 className="product-title">{product.name}</h1>
+            {sellerBusiness && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', margin: '12px 0' }}>
+                <Link to={`/store/${sellerBusiness.slug}`} style={{ fontWeight: 700, color: '#1f2937', textDecoration: 'none' }}>
+                  Sold by {sellerBusiness.name}
+                </Link>
+                <VerifiedSellerBadge status={sellerBusiness.verification_status} compact />
+              </div>
+            )}
             <div className="product-meta">
               {ratingStats.totalReviews > 0 && (
                 <>

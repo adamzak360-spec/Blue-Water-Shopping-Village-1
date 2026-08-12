@@ -183,6 +183,25 @@ export async function createBusinessForUser(
   return { business: data as Business, error: null }
 }
 
+export async function reviewBusinessVerification(
+  businessId: string,
+  status: 'not_submitted' | 'pending' | 'approved' | 'rejected' | 'suspended',
+  reason?: string,
+) {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  const { data, error } = await supabase.rpc('admin_review_business_verification', {
+    p_business_id: businessId,
+    p_new_status: status,
+    p_reason: reason || null,
+  })
+
+  if (error) throw error
+  return data
+}
+
 export async function submitBusinessVerification(
   businessId: string,
   data: {

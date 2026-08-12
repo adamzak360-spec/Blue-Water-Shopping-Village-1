@@ -4,7 +4,7 @@ import { supabase, isSupabaseConfigured } from '../supabaseClient'
 import type { Product } from '../types'
 import type { Business } from '../services/businessService'
 import ProductCard from '../components/ProductCard'
-import { CheckCircle } from 'lucide-react'
+import VerifiedSellerBadge from '../components/VerifiedSellerBadge'
 import './Home.css'
 import './BusinessStorefront.css'
 
@@ -105,11 +105,9 @@ export default function BusinessStorefront() {
               style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', marginBottom: '20px', border: '4px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }} 
             />
           )}
-          <h1 style={{ fontSize: '3rem', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+          <h1 style={{ fontSize: '3rem', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
             {business.name}
-            {business.verification_status === 'approved' && (
-              <CheckCircle size={32} color="#4ade80" fill="currentColor" style={{ color: 'white' }} />
-            )}
+            <VerifiedSellerBadge status={business.verification_status} />
           </h1>
           <p style={{ fontSize: '1.25rem', maxWidth: '700px', margin: '0 auto 24px', opacity: 0.95, fontWeight: 500 }}>
             {business.description || 'Welcome to our official online store! Browse our premium products below.'}

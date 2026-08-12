@@ -142,7 +142,7 @@ export interface CartItem extends Product {
   selected_size?: string
 }
 
-export type VerificationStatus = 'not_submitted' | 'pending' | 'approved' | 'rejected'
+export type VerificationStatus = 'not_submitted' | 'pending' | 'approved' | 'rejected' | 'suspended'
 
 export interface IdentityVerification {
   id: string
