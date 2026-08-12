@@ -42,6 +42,17 @@ export interface ConfirmPOSSubscriptionResponse {
   }
 }
 
+export interface SellerPromotionConfirmationPayload {
+  promotion_id: string
+  reference: string
+}
+
+export interface SellerPromotionConfirmationResponse {
+  status: boolean
+  message: string
+  data: { id: string; status: string; starts_at: string; ends_at: string; payment_reference: string }
+}
+
 export interface PaystackVerifyPaymentResponse {
   status: boolean
   message: string
@@ -135,6 +146,20 @@ export const confirmPOSSubscription = async (
   }
 
   return data as ConfirmPOSSubscriptionResponse
+}
+
+export const confirmSellerPromotion = async (
+  payload: SellerPromotionConfirmationPayload,
+  accessToken: string,
+): Promise<SellerPromotionConfirmationResponse> => {
+  const response = await fetch('/api/paystack', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ action: 'confirm_seller_promotion', reference: payload.reference, promotion_id: payload.promotion_id }),
+  })
+  const data = await response.json()
+  if (!response.ok || !data.status) throw new Error(data.error || data.message || 'Failed to confirm seller promotion')
+  return data as SellerPromotionConfirmationResponse
 }
 
 export const verifyPayment = async (reference: string): Promise<PaystackVerifyPaymentResponse> => {

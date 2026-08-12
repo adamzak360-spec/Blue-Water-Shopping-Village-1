@@ -92,6 +92,63 @@ module.exports = async (req, res) => {
       let paymentCurrency = currency;
       let paymentMetadata = metadata;
 
+      // Seller promotions must be initialized from the current server-side plan.
+      // The browser may select a target, but it cannot choose the price or owner.
+      if (metadata?.type === 'seller_promotion') {
+        const businessId = String(metadata.business_id || '');
+        const productId = metadata.product_id ? String(metadata.product_id) : null;
+        const planId = String(metadata.plan_id || '');
+        const promotionType = String(metadata.promotion_type || '');
+        const token = getBearerToken(req);
+        if (!token || !businessId || !planId || !promotionType) {
+          return res.status(401).json({ error: 'Authenticated seller and promotion details are required' });
+        }
+        if (!['FEATURED_PRODUCT', 'FEATURED_STORE'].includes(promotionType)) {
+          return res.status(400).json({ error: 'Invalid promotion type' });
+        }
+
+        const supabaseAdmin = getSupabaseAdmin();
+        const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(token);
+        if (authError || !authData?.user) return res.status(401).json({ error: 'Authentication expired. Please sign in again.' });
+
+        const { data: plan, error: planError } = await supabaseAdmin
+          .from('promotion_plans')
+          .select('id, code, price_minor, currency, duration_days, placement, max_active_promotions, is_active')
+          .eq('id', planId).eq('code', promotionType).maybeSingle();
+        if (planError) throw planError;
+        if (!plan || !plan.is_active) return res.status(400).json({ error: 'This promotion plan is not available.' });
+
+        const { data: business, error: businessError } = await supabaseAdmin
+          .from('businesses').select('id, owner_id').eq('id', businessId).maybeSingle();
+        if (businessError) throw businessError;
+        if (!business || business.owner_id !== authData.user.id) return res.status(403).json({ error: 'You are not allowed to promote this store.' });
+
+        if (promotionType === 'FEATURED_PRODUCT') {
+          if (!productId) return res.status(400).json({ error: 'A product is required for featured product promotion.' });
+          const { data: product, error: productError } = await supabaseAdmin.from('products').select('id, business_id').eq('id', productId).maybeSingle();
+          if (productError) throw productError;
+          if (!product || product.business_id !== businessId) return res.status(403).json({ error: 'You are not allowed to promote this product.' });
+        }
+
+        const { count: activeCount, error: countError } = await supabaseAdmin
+          .from('seller_promotions').select('id', { count: 'exact', head: true })
+          .eq('plan_id', planId).eq('status', 'ACTIVE');
+        if (countError) throw countError;
+        if ((activeCount || 0) >= plan.max_active_promotions) return res.status(409).json({ error: 'This promotion placement is currently full.' });
+
+        paymentEmail = authData.user.email || paymentEmail;
+        paymentAmount = Number(plan.price_minor);
+        paymentCurrency = String(plan.currency || '').toUpperCase();
+        paymentMetadata = { type: 'seller_promotion', promotion_type: promotionType, plan_id: planId, business_id: businessId, product_id: productId };
+
+        const { error: promotionError } = await supabaseAdmin.from('seller_promotions').insert({
+          seller_id: authData.user.id, store_id: businessId, product_id: productId, plan_id: planId,
+          promotion_type: promotionType, amount_minor: paymentAmount, currency: paymentCurrency,
+          payment_reference: reference, status: 'PENDING_PAYMENT',
+        });
+        if (promotionError) throw promotionError;
+      }
+
       // POS subscriptions must be initialized from the current server-side plan.
       // This prevents a modified browser request from creating a checkout for a
       // different amount than the administrator configured.
@@ -171,6 +228,51 @@ module.exports = async (req, res) => {
       const verified = await verifyPaystackTransaction(String(reference), PAYSTACK_SECRET_KEY);
       console.log('[PAYSTACK API] verify successful');
       return res.status(200).json(verified);
+    }
+
+    if (action === 'confirm_seller_promotion') {
+      const promotionId = String(body.promotion_id || '');
+      const promotionReference = String(reference || '');
+      const token = getBearerToken(req);
+      if (!token || !promotionId || !promotionReference) return res.status(400).json({ error: 'Authenticated promotion, reference, and payment are required' });
+
+      const supabaseAdmin = getSupabaseAdmin();
+      const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(token);
+      if (authError || !authData?.user) return res.status(401).json({ error: 'Authentication expired. Please sign in again.' });
+
+      const { data: promotion, error: promotionError } = await supabaseAdmin.from('seller_promotions')
+        .select('id, seller_id, store_id, product_id, plan_id, promotion_type, amount_minor, currency, status, payment_reference')
+        .eq('id', promotionId).maybeSingle();
+      if (promotionError) throw promotionError;
+      if (!promotion || promotion.seller_id !== authData.user.id) return res.status(403).json({ error: 'You are not allowed to confirm this promotion.' });
+      if (promotion.payment_reference !== promotionReference) return res.status(409).json({ error: 'Payment reference does not match this promotion.' });
+
+      const { data: plan, error: planError } = await supabaseAdmin.from('promotion_plans')
+        .select('id, code, price_minor, currency, duration_days, is_active').eq('id', promotion.plan_id).maybeSingle();
+      if (planError) throw planError;
+      if (!plan || Number(plan.price_minor) !== Number(promotion.amount_minor) || String(plan.currency).toUpperCase() !== String(promotion.currency).toUpperCase()) return res.status(409).json({ error: 'Promotion price changed. Please start again.' });
+
+      const verified = await verifyPaystackTransaction(promotionReference, PAYSTACK_SECRET_KEY);
+      const transaction = verified?.data;
+      const transactionMetadata = transaction?.metadata || {};
+      if (!verified?.status || transaction?.status !== 'success' || String(transaction?.reference) !== promotionReference || Number(transaction?.amount) !== Number(promotion.amount_minor) || String(transaction?.currency || '').toUpperCase() !== String(promotion.currency).toUpperCase() || (transactionMetadata.type && transactionMetadata.type !== 'seller_promotion')) {
+        await supabaseAdmin.from('seller_promotions').update({ status: 'PAYMENT_FAILED', updated_at: new Date().toISOString() }).eq('id', promotionId).eq('seller_id', authData.user.id);
+        return res.status(400).json({ error: 'Paystack payment could not be verified for this promotion.' });
+      }
+
+      const { data: existingPayment, error: existingPaymentError } = await supabaseAdmin.from('seller_promotion_payments').select('promotion_id, seller_id').eq('paystack_reference', promotionReference).maybeSingle();
+      if (existingPaymentError) throw existingPaymentError;
+      if (existingPayment && (existingPayment.promotion_id !== promotionId || existingPayment.seller_id !== authData.user.id)) return res.status(409).json({ error: 'This Paystack reference is already linked to another promotion.' });
+      if (!existingPayment) {
+        const { error: paymentError } = await supabaseAdmin.from('seller_promotion_payments').insert({ promotion_id: promotionId, seller_id: authData.user.id, paystack_reference: promotionReference, amount_minor: promotion.amount_minor, currency: promotion.currency, status: 'SUCCESS', paid_at: transaction?.paid_at || new Date().toISOString(), metadata: transactionMetadata });
+        if (paymentError && paymentError.code !== '23505') throw paymentError;
+      }
+
+      const start = new Date();
+      const end = new Date(start.getTime() + Number(plan.duration_days) * 86400000);
+      const { data: activated, error: activationError } = await supabaseAdmin.from('seller_promotions').update({ status: 'ACTIVE', starts_at: start.toISOString(), ends_at: end.toISOString(), payment_paid_at: transaction?.paid_at || start.toISOString(), updated_at: new Date().toISOString() }).eq('id', promotionId).eq('seller_id', authData.user.id).eq('status', 'PENDING_PAYMENT').select('id, status, starts_at, ends_at, payment_reference').maybeSingle();
+      if (activationError) throw activationError;
+      return res.status(200).json({ status: true, message: 'Seller promotion confirmed', data: activated || { id: promotionId, status: 'ACTIVE', starts_at: start.toISOString(), ends_at: end.toISOString(), payment_reference: promotionReference } });
     }
 
     if (action === 'confirm_pos_subscription') {
@@ -298,7 +400,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    return res.status(400).json({ error: 'Invalid action. Use "initialize", "verify", or "confirm_pos_subscription"' });
+    return res.status(400).json({ error: 'Invalid action. Use "initialize", "verify", "confirm_pos_subscription", or "confirm_seller_promotion"' });
   } catch (error) {
     const errorData = error.response?.data || error.message;
     console.error(`[PAYSTACK API] ${action} failed:`, errorData);
