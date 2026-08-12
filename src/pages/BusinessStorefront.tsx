@@ -90,15 +90,15 @@ export default function BusinessStorefront() {
   return (
     <div className="home-page">
       {/* Store Banner / Header */}
-      <div style={{ 
-        backgroundImage: business.banner_url ? `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${business.banner_url})` : 'linear-gradient(135deg, #1e3a8a, #3b82f6)', 
+      <div className="public-store-hero" style={{ 
+        backgroundImage: business.banner_url ? `linear-gradient(rgba(3, 18, 48, 0.72), rgba(3, 18, 48, 0.72)), url(${business.banner_url})` : 'linear-gradient(135deg, #0b2d5c, #1769aa)', 
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         color: 'white', 
         padding: '80px 20px', 
         textAlign: 'center' 
       }}>
-        <div className="container">
+        <div className="container public-store-hero-content">
           {business.logo_url && (
             <img 
               src={business.logo_url} 
@@ -106,7 +106,7 @@ export default function BusinessStorefront() {
               style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', marginBottom: '20px', border: '4px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }} 
             />
           )}
-          <h1 style={{ fontSize: '3rem', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <h1 className="public-store-name" style={{ fontSize: '3rem', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
             {business.name}
             <VerifiedSellerBadge status={business.verification_status} />
           </h1>
