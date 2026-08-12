@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { getAllProducts } from '../services/productService'
 import type { Product } from '../types'
 import ProductCard from '../components/ProductCard'
-import { Search, X } from 'lucide-react'
+import { ArrowRight, Search, X } from 'lucide-react'
 import './Products.css'
 
 interface SearchSuggestion {
@@ -296,6 +296,12 @@ export default function Products() {
                   </div>
                 ) : (
                   <section className="products-horizontal-section" key={`horizontal-${sectionIndex}`} aria-label="More products">
+                    <div className="products-horizontal-header">
+                      <span className="products-horizontal-label">More products</span>
+                      <span className="products-horizontal-hint" aria-hidden="true">
+                        Swipe to explore <ArrowRight size={16} strokeWidth={2.25} />
+                      </span>
+                    </div>
                     <div className="products-horizontal-scroll">
                       {section.products.map(product => (
                         <div className="products-horizontal-item" key={product.id}>
