@@ -105,6 +105,7 @@ const defaultFormState = {
 export default function Admin() {
   const { user, signOut, role } = useAuth()
   const navigate = useNavigate()
+  const canManageNews = ['admin', 'general_admin', 'general-admin'].includes(String(role || '').toLowerCase())
   const [business, setBusiness] = useState<Business | null>(null)
   const [view, setView] = useState<AdminView>('dashboard')
   const [products, setProducts] = useState<Product[]>([])
@@ -782,7 +783,7 @@ export default function Admin() {
         >
           Suppliers
         </button>
-        {role === 'admin' && (
+        {canManageNews && (
           <>
             <button
               className={`tab ${view === 'registered-sellers' ? 'active' : ''}`}
@@ -862,7 +863,7 @@ export default function Admin() {
         {view === 'pos' && <POS businessIds={role === 'seller' ? sellerBusinessIds : undefined} />}
 
         {/* General Admin News and Newsletter View */}
-        {view === 'news' && role === 'admin' && <AdminNewsUpdates />}
+        {view === 'news' && canManageNews && <AdminNewsUpdates />}
         {/* Marketplace Settings View */}
         {view === 'marketplace' && role === 'admin' && (
           <div className="marketplace-settings-content animate-fade-in">
