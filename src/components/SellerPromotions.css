@@ -1,0 +1,9 @@
+.seller-promotions { padding: 1.25rem; }
+.seller-promotion-card { max-width: 900px; background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.25rem; box-shadow: 0 8px 24px rgba(15,23,42,.05); }
+.seller-promotion-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; align-items: center; }
+.seller-promotion-grid select { padding: .8rem; border: 1px solid #cbd5e1; border-radius: .55rem; background: #fff; }
+.seller-promotion-grid button { border: 0; border-radius: .55rem; padding: .8rem 1rem; background: #b91c1c; color: #fff; font-weight: 700; cursor: pointer; }
+.seller-promotion-grid button:disabled { opacity: .55; cursor: not-allowed; }
+.seller-promotion-note { color: #475569; margin-bottom: 0; }
+.seller-promotion-message { color: #0f766e; font-weight: 700; }
+@media (max-width: 620px) { .seller-promotions { padding: .75rem .4rem; } .seller-promotion-grid { grid-template-columns: 1fr; } }

@@ -91,6 +91,7 @@ module.exports = async (req, res) => {
       let paymentAmount = requestedAmount;
       let paymentCurrency = currency;
       let paymentMetadata = metadata;
+      let createdPromotionId = null;
 
       // Seller promotions must be initialized from the current server-side plan.
       // The browser may select a target, but it cannot choose the price or owner.
@@ -141,12 +142,13 @@ module.exports = async (req, res) => {
         paymentCurrency = String(plan.currency || '').toUpperCase();
         paymentMetadata = { type: 'seller_promotion', promotion_type: promotionType, plan_id: planId, business_id: businessId, product_id: productId };
 
-        const { error: promotionError } = await supabaseAdmin.from('seller_promotions').insert({
+        const { data: createdPromotion, error: promotionError } = await supabaseAdmin.from('seller_promotions').insert({
           seller_id: authData.user.id, store_id: businessId, product_id: productId, plan_id: planId,
           promotion_type: promotionType, amount_minor: paymentAmount, currency: paymentCurrency,
           payment_reference: reference, status: 'PENDING_PAYMENT',
-        });
+        }).select('id').single();
         if (promotionError) throw promotionError;
+        createdPromotionId = createdPromotion?.id || null;
       }
 
       // POS subscriptions must be initialized from the current server-side plan.
@@ -217,6 +219,7 @@ module.exports = async (req, res) => {
       );
 
       console.log('[PAYSTACK API] initialize successful');
+      if (createdPromotionId && response.data?.data) response.data.data.promotion_id = createdPromotionId;
       return res.status(200).json(response.data);
     }
 

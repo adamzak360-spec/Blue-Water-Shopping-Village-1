@@ -48,6 +48,7 @@ import './Admin.css'
   const POS = lazy(() => import('./POS'))
   const SellerPayouts = lazy(() => import('../components/SellerPayouts'))
   const AdminPromotions = lazy(() => import('../components/AdminPromotions'))
+  const SellerPromotions = lazy(() => import('../components/SellerPromotions'))
 
   // Prefetch functions for near-instant transitions
   const prefetchInventory = () => import('../components/InventoryManagement')
@@ -58,6 +59,7 @@ import './Admin.css'
   const prefetchPOS = () => import('./POS')
   const prefetchSellerPayouts = () => import('../components/SellerPayouts')
   const prefetchAdminPromotions = () => import('../components/AdminPromotions')
+  const prefetchSellerPromotions = () => import('../components/SellerPromotions')
 
 type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts' | 'promotions' | 'settings' | 'delivery' | 'marketplace' | 'news'
 
@@ -815,6 +817,15 @@ export default function Admin() {
             </button>
           </>
         )}
+        {role === 'seller' && (
+          <button
+            className={`tab ${view === 'promotions' ? 'active' : ''}`}
+            onClick={() => setView('promotions')}
+            onMouseEnter={prefetchSellerPromotions}
+          >
+            Promote Products
+          </button>
+        )}
         <button
           className={`tab ${view === 'payouts' ? 'active' : ''}`}
           onClick={() => setView('payouts')}
@@ -875,6 +886,7 @@ export default function Admin() {
         {view === 'news' && canManageNews && <AdminNewsUpdates />}
         {/* General Admin Advertising View */}
         {view === 'promotions' && canManageNews && <AdminPromotions />}
+        {view === 'promotions' && role === 'seller' && <SellerPromotions businessIds={sellerBusinessIds} />}
         {/* Marketplace Settings View */}
         {view === 'marketplace' && role === 'admin' && (
           <div className="marketplace-settings-content animate-fade-in">
