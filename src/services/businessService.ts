@@ -7,8 +7,8 @@ export interface Business {
   name: string
   slug: string
   owner_id?: string
-  logo_url?: string
-  banner_url?: string
+  logo_url?: string | null
+  banner_url?: string | null
   description?: string
   contact_email?: string
   contact_phone?: string
@@ -236,6 +236,25 @@ export async function uploadBusinessAsset(file: File, businessId: string, type: 
     .getPublicUrl(data.path)
 
   return urlData.publicUrl
+}
+
+export async function deleteBusinessAsset(assetUrl: string): Promise<void> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  const marker = '/storage/v1/object/public/business-assets/'
+  const markerIndex = assetUrl.indexOf(marker)
+  if (markerIndex === -1) {
+    throw new Error('This asset cannot be removed because its storage path is invalid.')
+  }
+
+  const storagePath = decodeURIComponent(assetUrl.slice(markerIndex + marker.length))
+  const { error } = await supabase.storage
+    .from('business-assets')
+    .remove([storagePath])
+
+  if (error) throw error
 }
 
 export async function updateBusinessProfile(

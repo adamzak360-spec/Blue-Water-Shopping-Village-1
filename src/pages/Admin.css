@@ -830,3 +830,45 @@ tr:hover td {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Branding asset actions */
+.branding-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  width: 100%;
+}
+
+.asset-action-button {
+  min-height: 38px;
+}
+
+.asset-action-button svg {
+  flex-shrink: 0;
+}
+
+.asset-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 480px) {
+  .branding-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .asset-action-button {
+    width: 100%;
+  }
+}
