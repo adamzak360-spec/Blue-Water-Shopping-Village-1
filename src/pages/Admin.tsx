@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../context/AuthContext'
-import { getBusinessByOwner, getAllBusinessesByOwner, updateBusinessProfile, uploadBusinessAsset, type Business } from '../services/businessService'
+import { getBusinessByOwner, getAllBusinessesByOwner, updateBusinessProfile, uploadBusinessAsset, deleteBusinessAsset, type Business } from '../services/businessService'
 import {
   getAllProducts,
   createProduct,
@@ -31,7 +31,8 @@ import {
 } from '../services/adminAnalyticsService'
 import type { Product, DashboardStats, Order, Review, ProductVariant } from '../types'
 import { formatCurrency } from '../utils/currency'
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, type ChangeEvent } from 'react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { BusinessVerificationForm } from '../components/BusinessVerificationForm'
 import { PayoutProfileForm } from '../components/PayoutProfileForm'
 import DeliverySettings from '../components/DeliverySettings'
@@ -134,6 +135,7 @@ export default function Admin() {
   const [reviewsError, setReviewsError] = useState('')
   const [profile, setProfile] = useState<any>(null)
   const [isUpdatingStore, setIsUpdatingStore] = useState(false)
+  const [assetActionLoading, setAssetActionLoading] = useState<'logo' | 'banner' | null>(null)
   const [storeSettings, setStoreSettings] = useState({
     name: '',
     description: '',
@@ -274,6 +276,47 @@ export default function Admin() {
 
     setIsLoading(false)
   }, [user, role, business])
+
+  const handleBrandingUpload = async (event: ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
+    const file = event.target.files?.[0]
+    if (!file || !business) return
+
+    setAssetActionLoading(type)
+    setError('')
+    try {
+      const url = await uploadBusinessAsset(file, business.id, type)
+      await updateBusinessProfile(business.id, type === 'logo' ? { logo_url: url } : { banner_url: url })
+      showNotification(`${type === 'logo' ? 'Logo' : 'Banner'} updated!`)
+      await loadData()
+    } catch (err: any) {
+      setError(err.message || `Failed to update store ${type}`)
+    } finally {
+      setAssetActionLoading(null)
+      event.target.value = ''
+    }
+  }
+
+  const handleBrandingDelete = async (type: 'logo' | 'banner') => {
+    if (!business) return
+    const assetUrl = type === 'logo' ? business.logo_url : business.banner_url
+    if (!assetUrl) return
+
+    const label = type === 'logo' ? 'store logo' : 'store banner'
+    if (!window.confirm(`Delete the ${label}? This cannot be undone.`)) return
+
+    setAssetActionLoading(type)
+    setError('')
+    try {
+      await deleteBusinessAsset(assetUrl)
+      await updateBusinessProfile(business.id, type === 'logo' ? { logo_url: null } : { banner_url: null })
+      showNotification(`${type === 'logo' ? 'Logo' : 'Banner'} deleted!`)
+      await loadData()
+    } catch (err: any) {
+      setError(err.message || `Failed to delete ${label}`)
+    } finally {
+      setAssetActionLoading(null)
+    }
+  }
 
   useEffect(() => {
     loadData()
@@ -993,46 +1036,74 @@ export default function Admin() {
               <div className="settings-card">
                 <h3>Branding Assets</h3>
                 <div className="branding-upload-group">
-                  <label>Store Logo</label>
+                  <label htmlFor="store-logo-upload">Store Logo</label>
                   <div className="asset-preview-container">
-                    {business?.logo_url ? <img src={business.logo_url} alt="Logo" className="logo-preview" /> : <div className="placeholder-preview">No Logo</div>}
-                    <input type="file" accept="image/*" onChange={async (e) => {
-                      if (e.target.files?.[0] && business) {
-                        try {
-                          setIsLoading(true);
-                          const url = await uploadBusinessAsset(e.target.files[0], business.id, 'logo');
-                          await updateBusinessProfile(business.id, { logo_url: url });
-                          showNotification('Logo updated!');
-                          loadData();
-                        } catch (err: any) {
-                          setError(err.message);
-                        } finally {
-                          setIsLoading(false);
-                        }
-                      }
-                    }} />
+                    {business?.logo_url ? <img src={business.logo_url} alt="Store logo" className="logo-preview" /> : <div className="placeholder-preview">No Logo</div>}
+                    <div className="branding-actions" aria-label="Store logo actions">
+                      <button
+                        type="button"
+                        className="btn-secondary btn-sm asset-action-button"
+                        onClick={() => document.getElementById('store-logo-upload')?.click()}
+                        disabled={assetActionLoading === 'logo'}
+                      >
+                        <Pencil size={16} />
+                        {assetActionLoading === 'logo' ? 'Working...' : business?.logo_url ? 'Edit Logo' : 'Add Logo'}
+                      </button>
+                      {business?.logo_url && (
+                        <button
+                          type="button"
+                          className="btn-delete btn-sm asset-action-button"
+                          onClick={() => handleBrandingDelete('logo')}
+                          disabled={assetActionLoading === 'logo'}
+                        >
+                          <Trash2 size={16} />
+                          Delete Logo
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      id="store-logo-upload"
+                      className="asset-file-input"
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) => handleBrandingUpload(event, 'logo')}
+                    />
                   </div>
                 </div>
 
                 <div className="branding-upload-group" style={{ marginTop: '2rem' }}>
-                  <label>Store Banner</label>
+                  <label htmlFor="store-banner-upload">Store Banner</label>
                   <div className="asset-preview-container banner">
-                    {business?.banner_url ? <img src={business.banner_url} alt="Banner" className="banner-preview" /> : <div className="placeholder-preview">No Banner</div>}
-                    <input type="file" accept="image/*" onChange={async (e) => {
-                      if (e.target.files?.[0] && business) {
-                        try {
-                          setIsLoading(true);
-                          const url = await uploadBusinessAsset(e.target.files[0], business.id, 'banner');
-                          await updateBusinessProfile(business.id, { banner_url: url });
-                          showNotification('Banner updated!');
-                          loadData();
-                        } catch (err: any) {
-                          setError(err.message);
-                        } finally {
-                          setIsLoading(false);
-                        }
-                      }
-                    }} />
+                    {business?.banner_url ? <img src={business.banner_url} alt="Store banner" className="banner-preview" /> : <div className="placeholder-preview">No Banner</div>}
+                    <div className="branding-actions" aria-label="Store banner actions">
+                      <button
+                        type="button"
+                        className="btn-secondary btn-sm asset-action-button"
+                        onClick={() => document.getElementById('store-banner-upload')?.click()}
+                        disabled={assetActionLoading === 'banner'}
+                      >
+                        <Pencil size={16} />
+                        {assetActionLoading === 'banner' ? 'Working...' : business?.banner_url ? 'Edit Banner' : 'Add Banner'}
+                      </button>
+                      {business?.banner_url && (
+                        <button
+                          type="button"
+                          className="btn-delete btn-sm asset-action-button"
+                          onClick={() => handleBrandingDelete('banner')}
+                          disabled={assetActionLoading === 'banner'}
+                        >
+                          <Trash2 size={16} />
+                          Delete Banner
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      id="store-banner-upload"
+                      className="asset-file-input"
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) => handleBrandingUpload(event, 'banner')}
+                    />
                   </div>
                 </div>
               </div>
