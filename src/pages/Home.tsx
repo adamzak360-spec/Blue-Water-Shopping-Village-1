@@ -241,9 +241,9 @@ export default function Home() {
         className="flash-deals-section"
       />
 
-      {/* Best Sellers */}
+      {/* Marketplace Favorites */}
       <ProductSection 
-        title="Best Sellers" 
+        title="Marketplace Favorites"
         icon={<Award size={20} color="#f59e0b" />} 
         products={bestSellers} 
         scrollRef={scrollRefs.bestSellers}
