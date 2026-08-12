@@ -310,9 +310,9 @@ const SupplierManagement: React.FC<SupplierManagementProps> = ({ productIds }) =
       {/* Modal */}
       {isModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-content order-details-modal" style={{ maxWidth: '600px' }}>
+          <div className="modal-content supplier-modal" role="dialog" aria-modal="true" aria-labelledby="supplier-modal-title" onClick={(event) => event.stopPropagation()}>
             <div className="modal-header">
-              <h3>{editingSupplier ? 'Edit Supplier' : 'Add New Supplier'}</h3>
+              <h3 id="supplier-modal-title">{editingSupplier ? 'Edit Supplier' : 'Add New Supplier'}</h3>
               <button className="close-modal" onClick={() => setIsModalOpen(false)}>&times;</button>
             </div>
             

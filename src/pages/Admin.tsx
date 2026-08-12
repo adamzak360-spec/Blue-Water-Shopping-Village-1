@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../context/AuthContext'
-import { getBusinessByOwner, getAllBusinessesByOwner, updateBusinessProfile, uploadBusinessAsset, deleteBusinessAsset, type Business } from '../services/businessService'
+import { getBusinessByOwner, getAllBusinessesByOwner, getAllBusinesses, updateBusinessProfile, uploadBusinessAsset, deleteBusinessAsset, type Business } from '../services/businessService'
 import {
   getAllProducts,
   createProduct,
@@ -32,7 +32,7 @@ import {
 import type { Product, DashboardStats, Order, Review, ProductVariant } from '../types'
 import { formatCurrency } from '../utils/currency'
 import { lazy, Suspense, type ChangeEvent } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, Printer, Share2 } from 'lucide-react'
 import { BusinessVerificationForm } from '../components/BusinessVerificationForm'
 import { PayoutProfileForm } from '../components/PayoutProfileForm'
 import DeliverySettings from '../components/DeliverySettings'
@@ -132,6 +132,7 @@ export default function Admin() {
   const [editProduct, setEditProduct] = useState<Product | null>(null)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [showOrderModal, setShowOrderModal] = useState(false)
+  const [businesses, setBusinesses] = useState<Business[]>([])
   const [sellerBusinessIds, setSellerBusinessIds] = useState<string[]>([])
   const [productsLoading, setProductsLoading] = useState(false)
   const [ordersLoading, setOrdersLoading] = useState(false)
@@ -189,6 +190,7 @@ export default function Admin() {
 
         if (b) {
           setBusiness(b)
+          setBusinesses([b])
           currentBusiness = b
           setStoreSettings({
             name: b.name || '',
@@ -215,11 +217,17 @@ export default function Admin() {
       try {
         const owned = await getAllBusinessesByOwner(user.id)
         setSellerBusinessIds(owned.map((b) => b.id))
+        setBusinesses(owned)
       } catch (err) {
         console.error('Error fetching owned businesses:', err)
       }
     } else {
       setSellerBusinessIds([])
+      try {
+        setBusinesses(await getAllBusinesses())
+      } catch (err) {
+        console.error('Error loading businesses for order details:', err)
+      }
     }
 
     const businessId = role === 'admin' ? undefined : currentBusiness?.id
@@ -605,6 +613,33 @@ export default function Admin() {
   const handleViewOrder = (order: Order) => {
     setSelectedOrder(order)
     setShowOrderModal(true)
+  }
+  const getShopName = (businessId?: string) => {
+    if (!businessId) return 'Marketplace shop'
+    const store = businesses.find((candidate) => candidate.id === businessId)
+    return store?.name || store?.business_name || (business?.id === businessId ? business.name || business.business_name : null) || 'Marketplace shop'
+  }
+  const handlePrintOrder = () => {
+    document.body.classList.add('printing-order-details')
+    window.setTimeout(() => {
+      window.print()
+      document.body.classList.remove('printing-order-details')
+    }, 50)
+  }
+  const handleShareOrder = async () => {
+    if (!selectedOrder) return
+    const items = selectedOrder.items.map((item) => `- ${item.name} x${item.quantity} (${getShopName(item.business_id || selectedOrder.business_id)})`).join('\\n')
+    const text = `Reliable order ${selectedOrder.id?.substring(0, 8) || ''}\\nCustomer: ${selectedOrder.customer_name}\\nItems:\\n${items}\\nTotal: ${formatCurrency(selectedOrder.total, selectedOrder.payout_currency || 'GHS')}\\nStatus: ${selectedOrder.status.replace('-', ' ')}`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: `Reliable order ${selectedOrder.id?.substring(0, 8) || ''}`, text })
+      } else {
+        await navigator.clipboard.writeText(text)
+        showNotification('Order details copied to clipboard')
+      }
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') showNotification('Unable to share order details', 'error')
+    }
   }
 
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
@@ -1786,6 +1821,7 @@ export default function Admin() {
                     <tr>
                       <th>Image</th>
                       <th>Product</th>
+                      <th>Shop</th>
                       <th>Quantity</th>
                       <th>Unit Price</th>
                       <th>Line Total</th>
@@ -1808,6 +1844,7 @@ export default function Admin() {
                           )}
                           <div className="product-id-small">{item.id}</div>
                         </td>
+                        <td className="order-shop-cell">{getShopName(item.business_id || selectedOrder.business_id)}</td>
                         <td>{item.quantity}</td>
                         <td>{formatCurrency(item.price, selectedOrder.payout_currency || 'GHS')}</td>
                         <td>{formatCurrency(item.quantity * item.price, selectedOrder.payout_currency || 'GHS')}</td>
@@ -1819,6 +1856,10 @@ export default function Admin() {
             </div>
 
             <div className="modal-actions">
+              <div className="modal-actions-primary">
+                <button className="btn-secondary" onClick={handlePrintOrder} title="Print order details"><Printer size={16} /> Print</button>
+                <button className="btn-secondary" onClick={handleShareOrder} title="Share order details"><Share2 size={16} /> Share</button>
+              </div>
               <button className="btn-close" onClick={() => setShowOrderModal(false)}>Close</button>
             </div>
           </div>
