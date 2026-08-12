@@ -92,7 +92,7 @@ export default function Delivery() {
               </li>
               <li>
                 <strong>Progress updates</strong> — Your account may show stages such as Processing,
-                Ready for Pickup, Out for Delivery, and Delivered. Status changes may also appear in the
+                Out for Delivery, Ready for Pickup, and Delivered. Status changes may also appear in the
                 notification bell and be sent by email.
               </li>
               <li>

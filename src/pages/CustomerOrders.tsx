@@ -89,8 +89,8 @@ export default function CustomerOrders() {
     { value: 'pending', label: 'Pending' },
     { value: 'approved', label: 'Approved' },
     { value: 'processing', label: 'Processing' },
-    { value: 'ready-for-pickup', label: 'Ready for Pickup' },
     { value: 'out-for-delivery', label: 'Out for Delivery' },
+    { value: 'ready-for-pickup', label: 'Ready for Pickup' },
     { value: 'delivered', label: 'Delivered' },
     { value: 'cancelled', label: 'Cancelled' },
   ]
