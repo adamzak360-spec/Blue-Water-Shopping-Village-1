@@ -342,7 +342,9 @@ export default function Home() {
               <p>Subscribe to receive updates, access to exclusive deals, and more.</p>
               <form className="newsletter-form" onSubmit={async (e) => {
                 e.preventDefault()
-                const emailInput = (e.currentTarget.elements[0] as HTMLInputElement).value.trim()
+                const form = e.currentTarget
+                const emailField = form.elements[0] as HTMLInputElement
+                const emailInput = emailField.value.trim()
                 const emailErr = validateEmail(emailInput)
                 if (emailErr) {
                   alert(emailErr)
@@ -361,7 +363,7 @@ export default function Home() {
                     }
                   } else {
                     alert('Successfully subscribed! Welcome to the Reliable community.');
-                    (e.currentTarget.elements[0] as HTMLInputElement).value = '';
+                    emailField.value = '';
                   }
                 } catch (err: any) {
                   alert(err.message || 'Failed to subscribe. Please try again later.')
