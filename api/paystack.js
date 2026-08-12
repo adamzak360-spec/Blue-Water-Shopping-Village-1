@@ -4,10 +4,14 @@ const { createClient } = require('@supabase/supabase-js');
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 
 function getSupabaseAdmin() {
-  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Keep the service credential server-only. Accept the established Supabase
+  // aliases used by existing Reliable deployments, but never fall back to the
+  // browser anon key for privileged seller/payment operations.
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://iwouhwizzwwykchgflyk.supabase.co';
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
-    throw new Error('Supabase server configuration is missing');
+    const missing = [!url ? 'SUPABASE_URL' : '', !key ? 'SUPABASE_SERVICE_ROLE_KEY' : ''].filter(Boolean).join(', ');
+    throw new Error(`Supabase server configuration is missing: ${missing}`);
   }
 
   return createClient(url, key, {
