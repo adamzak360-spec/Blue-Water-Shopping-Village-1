@@ -1,7 +1,7 @@
 {
-  "name": "Reliable Now",
+  "name": "Reliable Premium Marketplace",
   "short_name": "Reliable",
-  "description": "Your Premium Marketplace - Quality products delivered to your doorstep",
+  "description": "Reliable Premium Marketplace — quality products from trusted stores, delivered to your doorstep.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

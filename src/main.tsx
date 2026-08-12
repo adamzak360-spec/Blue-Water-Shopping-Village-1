@@ -10,6 +10,14 @@ import './index.css'
 import './animations.css'
 import './components/ProductGrid.css' // Ensure grid styles have priority
 
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((error) => {
+      console.warn('Reliable offline shell could not be registered:', error)
+    })
+  })
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AppErrorBoundary>
