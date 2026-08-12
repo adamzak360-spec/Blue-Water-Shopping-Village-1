@@ -3,6 +3,26 @@ import { supabase } from '../supabaseClient'
 import { formatCurrency } from '../utils/currency'
 import './SellerPayouts.css'
 
+type WalletSummary = {
+  pending_minor: number
+  available_minor: number
+  total_earnings_minor: number
+  total_sales_minor: number
+  commission_minor: number
+  paid_out_minor: number
+  adjustments_minor: number
+}
+
+type WalletLedgerEntry = {
+  id: string
+  transaction_type: string
+  amount_minor: number
+  status: string
+  reference: string
+  description: string
+  created_at: string
+}
+
 type Payout = {
   payout_id: string
   order_id: string
@@ -36,6 +56,8 @@ export default function SellerPayouts({ businessIds }: { businessIds?: string[] 
   const [filter, setFilter] = useState('')
   const [search, setSearch] = useState('')
   const [error, setError] = useState('')
+  const [wallet, setWallet] = useState<WalletSummary | null>(null)
+  const [ledger, setLedger] = useState<WalletLedgerEntry[]>([])
 
   const load = async () => {
     if (!supabase) return
@@ -44,6 +66,16 @@ export default function SellerPayouts({ businessIds }: { businessIds?: string[] 
     const { data, error: queryError } = await query
     if (queryError) setError(queryError.message)
     else setPayouts((data || []) as Payout[])
+
+    if (businessIds && businessIds.length > 0) {
+      const [{ data: walletData, error: walletError }, { data: ledgerData, error: ledgerError }] = await Promise.all([
+        supabase.rpc('get_seller_wallet_summary'),
+        supabase.from('seller_wallet_ledger').select('id, transaction_type, amount_minor, status, reference, description, created_at').order('created_at', { ascending: false }).limit(50),
+      ])
+      if (walletError) setError(walletError.message)
+      else setWallet((walletData?.[0] || null) as WalletSummary | null)
+      if (!ledgerError) setLedger((ledgerData || []) as WalletLedgerEntry[])
+    }
   }
 
   useEffect(() => { load() }, [businessIds?.join(',')])
@@ -71,6 +103,43 @@ export default function SellerPayouts({ businessIds }: { businessIds?: string[] 
       </div>
 
       {error && <div className="error-banner">{error}</div>}
+
+      {businessIds && businessIds.length > 0 && wallet && (
+        <>
+          <div className="wallet-heading">
+            <div>
+              <h3>My Wallet / Earnings</h3>
+              <p>Eligible earnings are not marked paid until the verified Paystack transfer succeeds.</p>
+            </div>
+          </div>
+          <div className="wallet-summary-grid">
+            <div><span>Available Balance</span><strong>{formatCurrency(wallet.available_minor / 100)}</strong></div>
+            <div><span>Pending Earnings</span><strong>{formatCurrency(wallet.pending_minor / 100)}</strong></div>
+            <div><span>Total Earnings</span><strong>{formatCurrency(wallet.total_earnings_minor / 100)}</strong></div>
+            <div><span>Total Sales</span><strong>{formatCurrency(wallet.total_sales_minor / 100)}</strong></div>
+            <div><span>Reliable Commission</span><strong>{formatCurrency(wallet.commission_minor / 100)}</strong></div>
+            <div><span>Total Paid Out</span><strong>{formatCurrency(wallet.paid_out_minor / 100)}</strong></div>
+          </div>
+          <div className="wallet-ledger-wrap">
+            <h3>Wallet History</h3>
+            <table className="payout-table">
+              <thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody>
+                {ledger.map((entry) => (
+                  <tr key={entry.id}>
+                    <td>{new Date(entry.created_at).toLocaleDateString()}</td>
+                    <td>{entry.transaction_type.replace('_', ' ')}</td>
+                    <td><small>{entry.description}</small><small>{entry.reference}</small></td>
+                    <td className={entry.amount_minor >= 0 ? 'wallet-credit' : 'wallet-debit'}>{entry.amount_minor >= 0 ? '+' : ''}{formatCurrency(entry.amount_minor / 100)}</td>
+                    <td><span className="payout-badge">{entry.status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {ledger.length === 0 && <div className="payout-empty">No wallet entries yet.</div>}
+          </div>
+        </>
+      )}
 
       <div className="payout-summary-grid">
         {['HELD', 'ELIGIBLE', 'QUEUED', 'PROCESSING', 'PAID', 'FAILED', 'REVERSED'].map((status) => (
