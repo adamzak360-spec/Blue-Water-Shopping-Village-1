@@ -773,3 +773,60 @@ tr:hover td {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* POS subscription pricing controls */
+.subscription-pricing-card {
+  grid-column: 1 / -1;
+}
+
+.subscription-pricing-card > p {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-lg);
+}
+
+.subscription-plan-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 0.7fr) minmax(140px, 1fr) minmax(100px, 0.7fr) auto;
+  align-items: end;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.subscription-plan-row:last-child {
+  border-bottom: 0;
+}
+
+.subscription-plan-row .form-group {
+  min-width: 0;
+}
+
+.subscription-plan-row .subscription-plan-save {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.subscription-pricing-card .form-error {
+  margin-bottom: var(--space-md);
+}
+
+@media (max-width: 768px) {
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .subscription-plan-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .subscription-plan-row .subscription-plan-save {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .subscription-plan-row {
+    grid-template-columns: 1fr;
+  }
+}

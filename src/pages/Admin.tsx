@@ -65,6 +65,13 @@ interface ProductFormErrors {
   stock_quantity?: string
 }
 
+interface SubscriptionPlan {
+  id: string
+  country_code: string
+  monthly_price: number
+  currency_code: string
+}
+
 const defaultFormState = {
   name: '',
   description: '',
@@ -134,6 +141,10 @@ export default function Admin() {
     contact_phone: '',
     location: '',
   })
+  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([])
+  const [subscriptionPlansLoading, setSubscriptionPlansLoading] = useState(false)
+  const [subscriptionPlansSaving, setSubscriptionPlansSaving] = useState<string | null>(null)
+  const [subscriptionPlansError, setSubscriptionPlansError] = useState('')
 
   // Suppress unused variable warnings for build
   console.log('Loading states:', { productsLoading, ordersLoading, reviewsLoading })
@@ -267,6 +278,74 @@ export default function Admin() {
   useEffect(() => {
     loadData()
   }, [user, role, business])
+
+  useEffect(() => {
+    if (role !== 'admin') return
+
+    let cancelled = false
+    const loadSubscriptionPlans = async () => {
+      setSubscriptionPlansLoading(true)
+      setSubscriptionPlansError('')
+      try {
+        const { data, error: plansError } = await supabase!
+          .from('pos_subscription_plans')
+          .select('id, country_code, monthly_price, currency_code')
+          .order('country_code', { ascending: true })
+
+        if (plansError) throw plansError
+        if (!cancelled) {
+          setSubscriptionPlans((data || []).map((plan) => ({
+            id: plan.id,
+            country_code: plan.country_code,
+            monthly_price: Number(plan.monthly_price),
+            currency_code: plan.currency_code,
+          })))
+        }
+      } catch (err: any) {
+        if (!cancelled) setSubscriptionPlansError(err.message || 'Failed to load POS subscription plans')
+      } finally {
+        if (!cancelled) setSubscriptionPlansLoading(false)
+      }
+    }
+
+    loadSubscriptionPlans()
+    return () => { cancelled = true }
+  }, [role])
+
+  const saveSubscriptionPlan = async (plan: SubscriptionPlan) => {
+    const monthlyPrice = Number(plan.monthly_price)
+    const currencyCode = plan.currency_code.trim().toUpperCase()
+
+    if (!Number.isFinite(monthlyPrice) || monthlyPrice <= 0) {
+      setSubscriptionPlansError(`Enter a valid monthly price for ${plan.country_code}.`)
+      return
+    }
+    if (!/^[A-Z]{3}$/.test(currencyCode)) {
+      setSubscriptionPlansError(`Use a 3-letter currency code for ${plan.country_code}.`)
+      return
+    }
+
+    setSubscriptionPlansSaving(plan.id)
+    setSubscriptionPlansError('')
+    try {
+      const { error: saveError } = await supabase!
+        .from('pos_subscription_plans')
+        .update({ monthly_price: monthlyPrice, currency_code: currencyCode })
+        .eq('id', plan.id)
+
+      if (saveError) throw saveError
+      setSubscriptionPlans((current) => current.map((item) => (
+        item.id === plan.id
+          ? { ...item, monthly_price: monthlyPrice, currency_code: currencyCode }
+          : item
+      )))
+      showNotification(`${plan.country_code} POS subscription price updated.`)
+    } catch (err: any) {
+      setSubscriptionPlansError(err.message || 'Failed to update POS subscription price')
+    } finally {
+      setSubscriptionPlansSaving(null)
+    }
+  }
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -741,6 +820,60 @@ export default function Admin() {
             </div>
 
             <div className="settings-grid">
+              <div className="settings-card subscription-pricing-card">
+                <h3>POS Subscription Pricing</h3>
+                <p>Set the monthly POS access price for each country. Changes apply to new checkouts; existing active subscriptions keep their current expiry.</p>
+                {subscriptionPlansError && <div className="form-error" role="alert">{subscriptionPlansError}</div>}
+                {subscriptionPlansLoading ? (
+                  <p>Loading subscription plans...</p>
+                ) : subscriptionPlans.length === 0 ? (
+                  <p>No country plans are configured yet.</p>
+                ) : (
+                  <div className="admin-form">
+                    {subscriptionPlans.map((plan) => (
+                      <div className="form-row subscription-plan-row" key={plan.id}>
+                        <div className="form-group">
+                          <label htmlFor={`pos-plan-country-${plan.id}`}>Country</label>
+                          <input id={`pos-plan-country-${plan.id}`} value={plan.country_code} readOnly />
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor={`pos-plan-price-${plan.id}`}>Monthly price</label>
+                          <input
+                            id={`pos-plan-price-${plan.id}`}
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            value={plan.monthly_price}
+                            onChange={(e) => setSubscriptionPlans((current) => current.map((item) => (
+                              item.id === plan.id ? { ...item, monthly_price: Number(e.target.value) } : item
+                            )))}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor={`pos-plan-currency-${plan.id}`}>Currency</label>
+                          <input
+                            id={`pos-plan-currency-${plan.id}`}
+                            maxLength={3}
+                            value={plan.currency_code}
+                            onChange={(e) => setSubscriptionPlans((current) => current.map((item) => (
+                              item.id === plan.id ? { ...item, currency_code: e.target.value.toUpperCase() } : item
+                            )))}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="btn-primary btn-sm subscription-plan-save"
+                          disabled={subscriptionPlansSaving === plan.id}
+                          onClick={() => saveSubscriptionPlan(plan)}
+                        >
+                          {subscriptionPlansSaving === plan.id ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="settings-card">
                 <h3>Supported Countries</h3>
                 <div className="countries-list">
