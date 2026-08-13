@@ -7,6 +7,7 @@ import { getProductById } from '../services/productService'
 import type { Product } from '../types'
 import {
   deleteChatMessage,
+  getChatParticipantNames,
   getOrCreatePublicProductConversation,
   listConversationMessages,
   reportChatMessage,
@@ -26,6 +27,7 @@ export default function ProductChat() {
   const [sellerName, setSellerName] = useState('Seller')
   const [conversationId, setConversationId] = useState('')
   const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [senderNames, setSenderNames] = useState<Record<string, string>>({})
   const [draft, setDraft] = useState('')
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null)
   const [menuMessageId, setMenuMessageId] = useState<string | null>(null)
@@ -58,7 +60,9 @@ export default function ProductChat() {
         const conversation = await getOrCreatePublicProductConversation(productId, businessId)
         if (!active) return
         setConversationId(conversation.id)
-        setMessages(await listConversationMessages(conversation.id))
+        const loadedMessages = await listConversationMessages(conversation.id)
+        setMessages(loadedMessages)
+        setSenderNames(await getChatParticipantNames(loadedMessages.map(message => message.sender_id)))
       } catch (err) {
         if (active) setError(err instanceof Error ? err.message : 'Unable to load this product discussion.')
       } finally {
@@ -73,6 +77,7 @@ export default function ProductChat() {
     if (!conversationId) return
     return subscribeToConversation(conversationId, incoming => {
       setMessages(previous => previous.some(message => message.id === incoming.id) ? previous : [...previous, incoming])
+      void getChatParticipantNames([incoming.sender_id]).then(names => setSenderNames(previous => ({ ...previous, ...names })))
     })
   }, [conversationId])
 
@@ -161,10 +166,15 @@ export default function ProductChat() {
         {messages.map(message => {
           const mine = message.sender_id === user?.id
           const canDelete = mine || role === 'seller' || role === 'admin'
+          const senderLabel = message.sender_role === 'seller'
+            ? `${senderNames[message.sender_id] || sellerName} · Seller`
+            : message.sender_role === 'admin'
+              ? `${senderNames[message.sender_id] || 'Reliable Admin'} · Admin`
+              : senderNames[message.sender_id] || 'Reliable member'
           return (
             <article key={message.id} className={`chat-message ${mine ? 'mine' : 'theirs'}`}>
               <div className="chat-message-bubble">
-                <small>{message.sender_role === 'seller' ? `${sellerName} · Seller` : message.sender_role === 'admin' ? 'Reliable Admin' : 'Customer'}</small>
+                <small>{senderLabel}</small>
                 {message.reply_to_message_id && <small>Replying to an earlier message</small>}
                 <p>{message.body}</p>
                 <time>{new Date(message.created_at).toLocaleString()}</time>

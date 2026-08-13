@@ -41,6 +41,15 @@ export async function getOrCreatePublicProductConversation(productId: string, bu
   return data as ChatConversation
 }
 
+export async function getChatParticipantNames(userIds: string[]) {
+  const client = ensureSupabase()
+  const ids = [...new Set(userIds.filter(Boolean))]
+  if (ids.length === 0) return {} as Record<string, string>
+  const { data, error } = await client.from('profiles').select('id, full_name').in('id', ids)
+  if (error) throw error
+  return Object.fromEntries((data || []).map(profile => [profile.id, profile.full_name || 'Reliable member'])) as Record<string, string>
+}
+
 export async function listConversationMessages(conversationId: string, limit = 50, before?: string) {
   const client = ensureSupabase()
   let query = client
