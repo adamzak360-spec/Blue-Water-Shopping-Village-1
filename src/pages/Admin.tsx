@@ -620,10 +620,26 @@ export default function Admin() {
     return store?.name || store?.business_name || (business?.id === businessId ? business.name || business.business_name : null) || 'Marketplace shop'
   }
   const handlePrintOrder = () => {
+    const modal = document.querySelector('.order-details-modal')
+    if (!modal) return
+
+    document.querySelector('.order-print-root')?.remove()
+    const printRoot = document.createElement('div')
+    printRoot.className = 'order-print-root order-details-modal'
+    printRoot.setAttribute('aria-hidden', 'true')
+    printRoot.innerHTML = modal.innerHTML
+    document.body.appendChild(printRoot)
     document.body.classList.add('printing-order-details')
+
+    const cleanup = () => {
+      document.body.classList.remove('printing-order-details')
+      printRoot.remove()
+    }
+
+    window.addEventListener('afterprint', cleanup, { once: true })
     window.setTimeout(() => {
       window.print()
-      document.body.classList.remove('printing-order-details')
+      window.setTimeout(cleanup, 1500)
     }, 50)
   }
   const handleShareOrder = async () => {
