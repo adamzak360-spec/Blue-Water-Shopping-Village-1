@@ -26,7 +26,7 @@ function escapeXml(value = '') {
 }
 
 module.exports = async (req, res) => {
-  if (req.method !== 'GET') return res.status(405).send('Method not allowed');
+  if (req.method !== 'GET' && req.method !== 'HEAD') return res.status(405).send('Method not allowed');
 
   const supabaseUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim().replace(/\/$/, '');
   const anonKey = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
@@ -47,7 +47,8 @@ module.exports = async (req, res) => {
 
     res.setHeader('Cache-Control', 'public, s-maxage=900, stale-while-revalidate=86400');
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-    return res.status(200).send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join('')}</urlset>`);
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join('')}</urlset>`;
+    return req.method === 'HEAD' ? res.status(200).end() : res.status(200).send(xml);
   } catch (error) {
     console.error('Sitemap generation failed:', error);
     return res.status(500).send('Unable to generate sitemap');
