@@ -20,6 +20,34 @@ const getSupabase = () => {
   return supabase
 }
 
+const enrichOrderWithSellerContext = async <T extends Order>(order: T): Promise<T> => {
+  if (!order.business_id) return order
+  const { data: store, error } = await getSupabase()
+    .from('businesses')
+    .select('name, business_name, location, contact_email, contact_phone, phone, whatsapp_url')
+    .eq('id', order.business_id)
+    .maybeSingle()
+  if (error) {
+    console.warn('[OrderService] Could not load seller context for email:', error.message)
+    return order
+  }
+  if (!store) return order
+  const deliveryNote = order.delivery_method
+    ? `${order.delivery_method}${order.delivery_area ? ` for ${order.delivery_area}` : ''}. Please follow the store's instructions for this order.`
+    : undefined
+  return {
+    ...order,
+    seller_context: {
+      storeName: store.name || store.business_name || undefined,
+      location: store.location || undefined,
+      contactEmail: store.contact_email || undefined,
+      contactPhone: store.contact_phone || store.phone || undefined,
+      whatsappUrl: store.whatsapp_url || undefined,
+      deliveryNote,
+    },
+  }
+}
+
 export const createOrder = async (orderData: Omit<Order, 'id' | 'created_at'>) => {
   console.log('Attempting to create order with data:', orderData);
   
@@ -64,8 +92,10 @@ export const createOrder = async (orderData: Omit<Order, 'id' | 'created_at'>) =
   // Trigger email and in-app notifications in the background
   const createdOrder = data[0];
   
-  // Email notification
-  sendNewOrderNotifications(createdOrder, createdOrder.customer_email).catch(err => {
+  // Email notification: include the store that owns the purchased item.
+  enrichOrderWithSellerContext(createdOrder).then((emailOrder) =>
+    sendNewOrderNotifications(emailOrder, emailOrder.customer_email)
+  ).catch(err => {
     console.error('[OrderService] Error sending new order notifications:', err);
   });
 
@@ -134,6 +164,7 @@ export const updateOrderStatus = async (orderId: string, status: Order['status']
   // Trigger status-specific email notifications and in-app notifications in the background
   const updatedOrder = data[0];
   if (previousStatus !== status) {
+    const emailOrder = await enrichOrderWithSellerContext(updatedOrder)
     let customerEmail = updatedOrder.customer_email;
     if (!customerEmail && updatedOrder.user_id) {
       const { data: profile } = await getSupabase()
@@ -177,32 +208,32 @@ export const updateOrderStatus = async (orderId: string, status: Order['status']
     if (customerEmail) {
       switch (status) {
         case 'approved':
-          sendOrderApprovedEmail(updatedOrder, customerEmail).catch(err => {
+          sendOrderApprovedEmail(emailOrder, customerEmail).catch(err => {
             console.error('[OrderService] Error sending approved email:', err);
           });
           break;
         case 'processing':
-          sendOrderStatusChangeNotifications(updatedOrder, customerEmail, previousStatus).catch(err => {
+          sendOrderStatusChangeNotifications(emailOrder, customerEmail, previousStatus).catch(err => {
             console.error('[OrderService] Error sending processing email:', err);
           });
           break;
         case 'ready-for-pickup':
-          sendReadyForPickupEmail(updatedOrder, customerEmail).catch(err => {
+          sendReadyForPickupEmail(emailOrder, customerEmail).catch(err => {
             console.error('[OrderService] Error sending ready for pickup email:', err);
           });
           break;
         case 'out-for-delivery':
-          sendOutForDeliveryEmail(updatedOrder, customerEmail).catch(err => {
+          sendOutForDeliveryEmail(emailOrder, customerEmail).catch(err => {
             console.error('[OrderService] Error sending out for delivery email:', err);
           });
           break;
         case 'delivered':
-          sendDeliveredEmail(updatedOrder, customerEmail).catch(err => {
+          sendDeliveredEmail(emailOrder, customerEmail).catch(err => {
             console.error('[OrderService] Error sending delivered email:', err);
           });
           break;
         case 'cancelled':
-          sendOrderStatusChangeNotifications(updatedOrder, customerEmail, previousStatus).catch(err => {
+          sendOrderStatusChangeNotifications(emailOrder, customerEmail, previousStatus).catch(err => {
             console.error('[OrderService] Error sending cancellation email:', err);
           });
           sendAdminOrderCancellationNotification(updatedOrder).catch(err => {
@@ -210,7 +241,7 @@ export const updateOrderStatus = async (orderId: string, status: Order['status']
           });
           break;
         default:
-          sendOrderStatusChangeNotifications(updatedOrder, customerEmail, previousStatus).catch(err => {
+          sendOrderStatusChangeNotifications(emailOrder, customerEmail, previousStatus).catch(err => {
             console.error('[OrderService] Error sending status change notifications:', err);
           });
       }

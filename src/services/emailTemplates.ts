@@ -5,7 +5,7 @@
  * All templates are responsive and include company branding
  */
 
-import { Order, CartItem } from '../types'
+import { Order, CartItem, SellerOrderContext } from '../types'
 
 const COMPANY_NAME = 'Reliable'
 const COMPANY_WEBSITE = 'https://reliable-now.vercel.app'
@@ -13,6 +13,36 @@ const SUPPORT_EMAIL = 'support@reliable.com'
 const PHONE = '+233 59 560 9966'
 const SUPPORT_WHATSAPP = '+233 20 335 5542'
 const COMPANY_LOCATION = 'Tamale, Ghana'
+
+function getSellerContext(order: Order): SellerOrderContext {
+  return order.seller_context || {}
+}
+
+function getSellerContextHtml(order: Order): string {
+  const seller = getSellerContext(order)
+  const name = seller.storeName || 'The store you ordered from'
+  const location = seller.location || 'Seller location not provided'
+  const phone = seller.contactPhone || 'Seller phone not provided'
+  const email = seller.contactEmail || 'Seller email not provided'
+  const deliveryNote = seller.deliveryNote || 'The store will coordinate the delivery or pickup details for this order.'
+  const whatsapp = seller.whatsappUrl
+    ? `<p><strong>WhatsApp:</strong> <a href="${seller.whatsappUrl}">Contact the store on WhatsApp</a></p>`
+    : ''
+  return `<div class="section" style="background:#eff6ff;border-left:4px solid #1e3a8a;padding:16px;border-radius:6px;">
+    <h2>Store & Delivery Contact</h2>
+    <p><strong>Store:</strong> ${name}</p>
+    <p><strong>Seller location:</strong> ${location}</p>
+    <p><strong>Seller contact:</strong> <a href="tel:${phone}">${phone}</a> · <a href="mailto:${email}">${email}</a></p>
+    ${whatsapp}
+    <p><strong>Delivery or pickup note:</strong> ${deliveryNote}</p>
+    <p style="font-size:13px;color:#4b5563;">Reliable provides the marketplace, order tracking, and customer support. The store above is responsible for the item-specific delivery or pickup arrangement.</p>
+  </div>`
+}
+
+function getSellerContextText(order: Order): string {
+  const seller = getSellerContext(order)
+  return `\nStore & Delivery Contact:\nStore: ${seller.storeName || 'The store you ordered from'}\nSeller location: ${seller.location || 'Seller location not provided'}\nSeller phone: ${seller.contactPhone || 'Seller phone not provided'}\nSeller email: ${seller.contactEmail || 'Seller email not provided'}${seller.whatsappUrl ? `\nSeller WhatsApp: ${seller.whatsappUrl}` : ''}\nDelivery or pickup note: ${seller.deliveryNote || 'The store will coordinate the delivery or pickup details for this order.'}\nReliable provides marketplace tracking and customer support; the store is responsible for the item-specific delivery or pickup arrangement.\n`
+}
 
 /**
  * Base email template wrapper
@@ -232,6 +262,7 @@ export function getOrderConfirmationTemplate(order: Order & { id: string }): { h
       <p>Thank you for shopping with ${COMPANY_NAME}!</p>
     </div>
     <div class="content">
+      ${getSellerContextHtml(order)}
       <div class="section">
         <h2>Order Details</h2>
         <p><strong>Order ID:</strong> ${order.id}</p>
@@ -294,7 +325,7 @@ Thank you for your order!
 Order ID: ${order.id}
 Date: ${new Date(order.created_at || '').toLocaleDateString()}
 Status: ${order.status}
-
+${getSellerContextText(order)}
 Items Ordered:
 ${order.items.map((item: CartItem) => `- ${item.name} x${item.quantity}: GH₵${(item.price * item.quantity).toFixed(2)}`).join('\n')}
 
@@ -341,6 +372,7 @@ export function getOrderStatusUpdateTemplate(
       <p>Your order has been updated</p>
     </div>
     <div class="content">
+      ${getSellerContextHtml(order)}
       <div class="section">
         <h2>Order Update</h2>
         <p><strong>Order ID:</strong> ${order.id}</p>
@@ -374,7 +406,7 @@ Order Status Update
 Order ID: ${order.id}
 Previous Status: ${previousStatus}
 Current Status: ${order.status}
-
+${getSellerContextText(order)}
 ${statusMessages[order.status] || 'Your order status has been updated.'}
 
 Order Total: GH₵${order.total.toFixed(2)}
@@ -691,6 +723,7 @@ export function getOrderApprovedTemplate(order: Order & { id: string }): { html:
       <p>Your order is being prepared</p>
     </div>
     <div class="content">
+      ${getSellerContextHtml(order)}
       <div class="section">
         <h2>Great News!</h2>
         <p>Your order has been approved and is now being prepared for delivery.</p>
@@ -725,6 +758,7 @@ Great News! Your order has been approved and is now being prepared for delivery.
 Order ID: ${order.id}
 Status: Approved
 Total: GH₵${order.total.toFixed(2)}
+${getSellerContextText(order)}
 
 We are carefully preparing your order. You will receive another notification when your order is ready for pickup or out for delivery.
 
@@ -747,6 +781,7 @@ export function getPaymentConfirmedTemplate(order: Order & { id: string }): { ht
       <p>Your payment has been received</p>
     </div>
     <div class="content">
+      ${getSellerContextHtml(order)}
       <div class="section">
         <h2>Payment Received</h2>
         <p>Thank you! We have successfully received your payment.</p>
@@ -783,6 +818,7 @@ Order ID: ${order.id}
 Amount Paid: GH₵${order.total.toFixed(2)}
 Payment Status: Paid
 Payment Date: ${order.paid_at ? new Date(order.paid_at).toLocaleDateString() : 'N/A'}
+${getSellerContextText(order)}
 
 Your order is now being processed. We will notify you as soon as it is ready for pickup or out for delivery.
 
@@ -805,6 +841,7 @@ export function getReadyForPickupTemplate(order: Order & { id: string }): { html
       <p>Your order is waiting for you</p>
     </div>
     <div class="content">
+      ${getSellerContextHtml(order)}
       <div class="section">
         <h2>Your Order is Ready!</h2>
         <p>Great news! Your order is now ready for pickup.</p>
@@ -819,8 +856,8 @@ export function getReadyForPickupTemplate(order: Order & { id: string }): { html
 
       <div class="section">
         <h2>Pickup Instructions</h2>
-        <p>Please collect your order at your earliest convenience from our location in ${COMPANY_LOCATION}.</p>
-        <p><strong>Contact:</strong> ${PHONE}</p>
+        <p>Please follow the store-specific pickup or delivery instructions shown above. Reliable's general support location is ${COMPANY_LOCATION}.</p>
+        <p><strong>Reliable Support:</strong> ${PHONE}</p>
         <p><strong>WhatsApp:</strong> <a href="https://wa.me/233203355542">${SUPPORT_WHATSAPP}</a></p>
       </div>
 
@@ -848,12 +885,12 @@ Great news! Your order is now ready for pickup.
 
 Order ID: ${order.id}
 Total Amount: GH₵${order.total.toFixed(2)}
+${getSellerContextText(order)}
 Status: Ready for Pickup
-
 Pickup Instructions:
-Please collect your order at your earliest convenience from our location in ${COMPANY_LOCATION}.
+Please follow the store-specific pickup or delivery instructions in the Store & Delivery Contact section above. Reliable general support location: ${COMPANY_LOCATION}.
 
-Contact: ${PHONE}
+Reliable Support: ${PHONE}
 WhatsApp: ${SUPPORT_WHATSAPP}
 
 What to Bring:
@@ -879,6 +916,7 @@ export function getOutForDeliveryTemplate(order: Order & { id: string }): { html
       <p>Your package is on the way</p>
     </div>
     <div class="content">
+      ${getSellerContextHtml(order)}
       <div class="section">
         <h2>Your Order is On the Way!</h2>
         <p>Exciting news! Your order has left our warehouse and is now on its way to you.</p>
@@ -921,6 +959,7 @@ Exciting news! Your order has left our warehouse and is now on its way to you.
 Order ID: ${order.id}
 Status: Out for Delivery
 Delivery Address: ${order.delivery_address}, ${order.city}, ${order.region}
+${getSellerContextText(order)}
 
 Delivery Information:
 Your package will be delivered to the address above. Please ensure someone is available to receive it.
@@ -950,6 +989,7 @@ export function getDeliveredTemplate(order: Order & { id: string }): { html: str
       <p>Thank you for your business</p>
     </div>
     <div class="content">
+      ${getSellerContextHtml(order)}
       <div class="section">
         <h2>Your Order Has Been Delivered</h2>
         <p>We hope you enjoy your purchase! Thank you for choosing ${COMPANY_NAME}.</p>
@@ -999,6 +1039,7 @@ Order Summary:
 Order ID: ${order.id}
 Delivered On: ${new Date().toLocaleDateString()}
 Total Amount: GH₵${order.total.toFixed(2)}
+${getSellerContextText(order)}
 
 We'd Love Your Feedback:
 Your feedback helps us improve our service. Please let us know about your experience with ${COMPANY_NAME}.
@@ -1117,6 +1158,7 @@ Order ID: ${order.id}
 Customer: ${order.customer_name}
 Email: ${order.customer_email}
 Total Amount: GH₵${order.total.toFixed(2)}
+${getSellerContextText(order)}
 Cancellation Date: ${new Date().toLocaleDateString()}
 
 Action Required:

@@ -181,6 +181,15 @@ export interface CustomerProfile {
 export type DeliveryConfirmation = 'PENDING' | 'CONFIRMED' | 'NOT_RECEIVED' | 'DISPUTED'
 export type PayoutStatus = 'HELD' | 'ELIGIBLE' | 'QUEUED' | 'PROCESSING' | 'PAID' | 'FAILED' | 'REVERSED'
 
+export interface SellerOrderContext {
+  storeName?: string
+  location?: string
+  contactEmail?: string
+  contactPhone?: string
+  whatsappUrl?: string
+  deliveryNote?: string
+}
+
 export interface Order {
   id?: string
   user_id?: string
@@ -211,6 +220,7 @@ export interface Order {
   country_code?: string
   source?: string
   business_id?: string
+  seller_context?: SellerOrderContext
   created_at?: string
   customer_delivery_confirmation?: DeliveryConfirmation
   customer_delivery_confirmation_at?: string
