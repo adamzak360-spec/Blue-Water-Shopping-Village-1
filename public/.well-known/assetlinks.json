@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.reliable.premiummarketplace",
+      "sha256_cert_fingerprints": [
+        "A8:AE:47:7B:41:76:4E:C7:AD:9B:75:0C:94:D4:34:BE:4A:59:1E:15:BA:9E:E3:69:B6:07:5E:FA:C1:A2:AC:08"
+      ]
+    }
+  }
+]
+
