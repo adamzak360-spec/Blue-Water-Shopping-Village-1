@@ -6,7 +6,7 @@ import { validateEmail, validatePassword, validateRequired } from '../utils/vali
 import './Login.css' // Reuse login styles
 
 export default function Register() {
-  const { signUp } = useAuth()
+  const { signUp, signInWithGoogle } = useAuth()
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -23,6 +23,17 @@ export default function Register() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleGoogleSignIn = async () => {
+    setError('')
+    setIsLoading(true)
+    const redirect = new URLSearchParams(window.location.search).get('redirect') || ''
+    const { error: googleError } = await signInWithGoogle(redirect)
+    if (googleError) {
+      setError(googleError.message || 'Unable to continue with Google.')
+      setIsLoading(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,6 +95,18 @@ export default function Register() {
             <span>{error}</span>
           </div>
         )}
+
+        <button
+          type="button"
+          className="google-login-button"
+          onClick={handleGoogleSignIn}
+          disabled={isLoading}
+        >
+          <span className="google-mark" aria-hidden="true">G</span>
+          {isLoading ? 'Connecting to Google...' : 'Continue with Google'}
+        </button>
+
+        <div className="auth-divider"><span>or create an account with email</span></div>
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">

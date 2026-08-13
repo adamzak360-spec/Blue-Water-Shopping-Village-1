@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import './Login.css'
 
 export default function Login() {
-  const { user, signIn, isLoading: authLoading, role } = useAuth()
+  const { user, signIn, signInWithGoogle, isLoading: authLoading, role } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -49,6 +49,17 @@ export default function Login() {
       navigate('/dashboard', { replace: true });
     }
   }, [user, role, navigate])
+
+  const handleGoogleSignIn = async () => {
+    setError('')
+    setIsLoading(true)
+    const redirect = new URLSearchParams(window.location.search).get('redirect') || ''
+    const { error: googleError } = await signInWithGoogle(redirect)
+    if (googleError) {
+      setError(googleError.message || 'Unable to continue with Google.')
+      setIsLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -107,6 +118,18 @@ export default function Login() {
             <span>{success}</span>
           </div>
         )}
+
+        <button
+          type="button"
+          className="google-login-button"
+          onClick={handleGoogleSignIn}
+          disabled={isLoading}
+        >
+          <span className="google-mark" aria-hidden="true">G</span>
+          {isLoading ? 'Connecting to Google...' : 'Continue with Google'}
+        </button>
+
+        <div className="auth-divider"><span>or continue with email</span></div>
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">

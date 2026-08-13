@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null
   isLoading: boolean
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
+  signInWithGoogle: (redirectPath?: string) => Promise<{ error: Error | null }>
   signUp: (email: string, password: string, metadata: Record<string, any>) => Promise<{ error: Error | null }>
   signOut: () => Promise<{ error: Error | null }>
   updateUserMetadata: (metadata: Record<string, any>) => Promise<{ error: Error | null }>
@@ -22,6 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
   signIn: async () => ({ error: new Error('Supabase not configured') }),
+  signInWithGoogle: async () => ({ error: new Error('Supabase not configured') }),
   signUp: async () => ({ error: new Error('Supabase not configured') }),
   signOut: async () => ({ error: new Error('Supabase not configured') }),
   updateUserMetadata: async () => ({ error: new Error('Supabase not configured') }),
@@ -133,6 +135,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error }
   }
 
+  const signInWithGoogle = async (redirectPath = '') => {
+    if (!isSupabaseConfigured || !supabase) {
+      return { error: new Error('Supabase not configured') }
+    }
+
+    const publicAppUrl = (import.meta.env.VITE_PUBLIC_APP_URL || 'https://reliable-now.vercel.app').replace(/\/$/, '')
+    const safeRedirect = redirectPath.startsWith('/') && !redirectPath.startsWith('//') ? redirectPath : ''
+    const callbackUrl = `${publicAppUrl}/login${safeRedirect ? `?redirect=${encodeURIComponent(safeRedirect)}` : ''}`
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: callbackUrl },
+    })
+    return { error }
+  }
+
   const signUp = async (email: string, password: string, metadata: Record<string, any>) => {
     if (!isSupabaseConfigured || !supabase) {
       return { error: new Error('Supabase not configured') }
@@ -203,10 +220,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ 
-      session, 
-      user, 
-      isLoading, 
-      signIn, 
+      session,
+      user,
+      isLoading,
+      signIn,
+      signInWithGoogle,
       signUp, 
       signOut, 
       updateUserMetadata, 

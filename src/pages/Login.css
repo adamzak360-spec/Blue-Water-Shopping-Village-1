@@ -267,3 +267,74 @@
   .seller-register-card .form-row { flex-direction: column; gap: 0; }
   .slug-input-wrapper span { display: none; }
 }
+
+/* Google OAuth */
+.google-login-button {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.google-login-button:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #9ca3af;
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.08);
+}
+.google-login-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.google-mark {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #4285f4;
+  font-family: Arial, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+  color: #6b7280;
+  font-size: 0.78rem;
+  text-align: center;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  height: 1px;
+  flex: 1;
+  background: #e5e7eb;
+}
+@media (prefers-color-scheme: dark) {
+  .google-login-button {
+    background: #111827;
+    border-color: #4b5563;
+    color: #f9fafb;
+  }
+  .google-login-button:hover:not(:disabled) { background: #1f2937; }
+  .auth-divider::before,
+  .auth-divider::after { background: #4b5563; }
+}
+@media (max-width: 480px) {
+  .login-page { padding: 1rem; }
+  .login-card { padding: 1.5rem; }
+  .google-login-button { min-height: 50px; }
+}
