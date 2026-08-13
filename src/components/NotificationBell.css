@@ -159,3 +159,48 @@
   color: #3b82f6;
   background-color: #e5e7eb;
 }
+
+.notification-preferences {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.notification-preference-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 7px;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.notification-preference-btn:hover,
+.notification-preference-btn.active {
+  background: #e6fffb;
+  border-color: #0f766e;
+  color: #0f766e;
+}
+
+@media (max-width: 420px) {
+  .notification-dropdown {
+    width: min(320px, calc(100vw - 24px));
+    right: -8px;
+  }
+
+  .notification-header {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .notification-preference-btn span {
+    display: none;
+  }
+}
