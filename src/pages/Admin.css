@@ -932,11 +932,45 @@ tr:hover td {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 @media (max-width: 640px) {
-  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-overlay { align-items: flex-end; padding: 0; overflow-x: hidden; }
   .modal-content, .order-details-modal {
-    width: 100%;
+    box-sizing: border-box;
+    width: 100vw !important;
+    max-width: 100vw !important;
     max-height: 92vh;
+    margin: 0;
+    overflow-x: hidden;
     border-radius: 18px 18px 0 0;
+  }
+  .order-details-modal > * {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+  .order-details-modal .details-section {
+    box-sizing: border-box;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .order-details-modal .details-card {
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .order-details-modal .detail-item {
+    display: grid;
+    grid-template-columns: minmax(88px, auto) minmax(0, 1fr);
+    align-items: start;
+    min-width: 0;
+  }
+  .order-details-modal .detail-label,
+  .order-details-modal .detail-value {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 }
 @media (prefers-reduced-motion: reduce) { .modal-content { animation: none; } }
