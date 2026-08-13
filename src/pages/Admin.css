@@ -947,11 +947,77 @@ tr:hover td {
 .modal-actions-primary { display: flex; gap: .6rem; flex-wrap: wrap; }
 .modal-actions button { display: inline-flex; align-items: center; gap: .4rem; }
 
+@page { size: A4 portrait; margin: 12mm; }
 @media print {
+  html, body { min-width: 0 !important; background: #fff !important; }
+  body.printing-order-details { color: #172033; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; }
   body.printing-order-details * { visibility: hidden !important; }
   body.printing-order-details .order-details-modal,
   body.printing-order-details .order-details-modal * { visibility: visible !important; }
-  body.printing-order-details .modal-overlay { position: static; background: none; padding: 0; }
-  body.printing-order-details .order-details-modal { position: absolute; inset: 0; width: 100%; max-width: none; max-height: none; overflow: visible; border: 0; box-shadow: none; }
-  body.printing-order-details .modal-actions, body.printing-order-details .close-modal { display: none !important; }
+  body.printing-order-details .modal-overlay {
+    position: static;
+    display: block;
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    background: none;
+  }
+  body.printing-order-details .order-details-modal {
+    position: static;
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    animation: none;
+  }
+  body.printing-order-details .modal-header {
+    position: static;
+    display: block;
+    padding: 0 0 8pt;
+    border-bottom: 2px solid #123b68;
+  }
+  body.printing-order-details .modal-header h3 { color: #123b68; font-size: 18pt; margin: 0; }
+  body.printing-order-details .close-modal,
+  body.printing-order-details .modal-actions { display: none !important; }
+  body.printing-order-details .details-section { margin: 12pt 0 0; break-inside: avoid; }
+  body.printing-order-details .details-section h4 {
+    margin: 0 0 5pt;
+    padding-bottom: 3pt;
+    color: #123b68;
+    font-size: 12pt;
+    border-bottom: 1px solid #cbd5e1;
+  }
+  body.printing-order-details .details-card {
+    padding: 7pt 9pt;
+    border: 1px solid #d7dee8;
+    border-radius: 5pt;
+    background: #f8fafc;
+  }
+  body.printing-order-details .detail-item { display: flex; align-items: flex-start; gap: 8pt; margin: 3pt 0; font-size: 9.5pt; }
+  body.printing-order-details .detail-label { min-width: 92pt; color: #475569; font-weight: 700; }
+  body.printing-order-details .detail-value { min-width: 0; overflow-wrap: anywhere; }
+  body.printing-order-details .order-items-list { overflow: visible; }
+  body.printing-order-details .order-items-list table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 8.5pt; }
+  body.printing-order-details .order-items-list th,
+  body.printing-order-details .order-items-list td { padding: 5pt 4pt; vertical-align: top; border-bottom: 1px solid #dbe2ea; overflow-wrap: anywhere; }
+  body.printing-order-details .order-items-list th { color: #123b68; background: #eef4fa; font-size: 8pt; text-transform: uppercase; letter-spacing: .02em; }
+  body.printing-order-details .order-items-list th:nth-child(1), body.printing-order-details .order-items-list td:nth-child(1) { width: 12%; }
+  body.printing-order-details .order-items-list th:nth-child(2), body.printing-order-details .order-items-list td:nth-child(2) { width: 29%; }
+  body.printing-order-details .order-items-list th:nth-child(3), body.printing-order-details .order-items-list td:nth-child(3) { width: 21%; }
+  body.printing-order-details .order-items-list th:nth-child(4), body.printing-order-details .order-items-list td:nth-child(4) { width: 9%; text-align: center; }
+  body.printing-order-details .order-items-list th:nth-child(5), body.printing-order-details .order-items-list td:nth-child(5) { width: 14.5%; }
+  body.printing-order-details .order-items-list th:nth-child(6), body.printing-order-details .order-items-list td:nth-child(6) { width: 14.5%; }
+  body.printing-order-details .product-thumb { width: 34pt; height: 34pt; object-fit: cover; border-radius: 3pt; }
+  body.printing-order-details .product-thumb-placeholder { width: 34pt; height: 34pt; font-size: 6pt; }
+  body.printing-order-details .product-name { font-weight: 700; line-height: 1.25; }
+  body.printing-order-details .product-variant-small { margin-top: 2pt; font-size: 8pt; color: #475569; }
+  body.printing-order-details .product-id-small { display: none; }
+  body.printing-order-details .order-shop-cell { min-width: 0; color: #123b68; font-weight: 700; }
+  body.printing-order-details .grand-total { font-size: 11pt; font-weight: 700; }
+  body.printing-order-details .status-badge { border: 0; padding: 0; background: none; font-weight: 700; }
 }
