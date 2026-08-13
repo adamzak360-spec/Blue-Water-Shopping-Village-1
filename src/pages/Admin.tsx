@@ -1644,12 +1644,15 @@ export default function Admin() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredOrders.map(order => (
-                    <tr key={order.id}>
+                  {filteredOrders.map(order => {
+                    const isNewOrder = order.is_new ?? !['delivered', 'cancelled'].includes(order.status)
+                    return (
+                    <tr key={order.id} className={isNewOrder ? 'new-order-row' : undefined}>
                       <td className="order-id-cell">
                         <span className="order-id" title={order.id}>
                           {order.id?.substring(0, 8)}...
                         </span>
+                        {isNewOrder && <span className="new-order-badge">NEW</span>}
                       </td>
                       <td>
                         <div className="customer-info">
@@ -1663,6 +1666,7 @@ export default function Admin() {
                         <span className={`status-badge status-${order.status}`}>
                           {order.status.replace('-', ' ')}
                         </span>
+                        {isNewOrder && <span className="new-order-label">Needs attention</span>}
                       </td>
                       <td className="actions-cell">
                         <select
@@ -1690,7 +1694,8 @@ export default function Admin() {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

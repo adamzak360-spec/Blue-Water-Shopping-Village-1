@@ -196,6 +196,7 @@ export interface Order {
   delivery_fee: number
   total: number
   status: 'pending' | 'approved' | 'processing' | 'ready-for-pickup' | 'out-for-delivery' | 'delivered' | 'cancelled'
+  is_new?: boolean
   payment_status: 'pending' | 'paid' | 'failed'
   payment_method?: string
   paystack_reference?: string
