@@ -1989,26 +1989,32 @@ export default function Admin() {
                     {formData.variants.map((variant, idx) => (
                       <div key={idx} className="variant-row">
                         <div className="variant-inputs">
-                          <input
-                            type="text"
-                            placeholder="Size (e.g. M, XL, 42)"
-                            value={variant.variant_value}
-                            onChange={(e) => {
-                              const updated = [...formData.variants]
-                              updated[idx].variant_value = e.target.value
-                              setFormData({ ...formData, variants: updated })
-                            }}
-                          />
-                          <input
-                            type="number"
-                            placeholder="Stock"
-                            value={variant.stock_quantity}
-                            onChange={(e) => {
-                              const updated = [...formData.variants]
-                              updated[idx].stock_quantity = parseInt(e.target.value) || 0
-                              setFormData({ ...formData, variants: updated })
-                            }}
-                          />
+                          <label className="variant-field">
+                            <span>Size / Variant</span>
+                            <input
+                              type="text"
+                              placeholder="e.g. M, XL, 42"
+                              value={variant.variant_value}
+                              onChange={(e) => {
+                                const updated = [...formData.variants]
+                                updated[idx].variant_value = e.target.value
+                                setFormData({ ...formData, variants: updated })
+                              }}
+                            />
+                          </label>
+                          <label className="variant-field">
+                            <span>Stock quantity</span>
+                            <input
+                              type="number"
+                              placeholder="e.g. 10"
+                              value={variant.stock_quantity}
+                              onChange={(e) => {
+                                const updated = [...formData.variants]
+                                updated[idx].stock_quantity = parseInt(e.target.value) || 0
+                                setFormData({ ...formData, variants: updated })
+                              }}
+                            />
+                          </label>
                         </div>
                         <button
                           type="button"
