@@ -31,26 +31,12 @@ const ensureSupabase = () => {
   return supabase
 }
 
-export async function getOrCreateProductConversation(productId: string, businessId: string, customerId: string) {
+export async function getOrCreatePublicProductConversation(productId: string, businessId: string) {
   const client = ensureSupabase()
-  const { data: business, error: businessError } = await client
-    .from('businesses')
-    .select('id, owner_id')
-    .eq('id', businessId)
-    .maybeSingle()
-  if (businessError) throw businessError
-  if (!business?.owner_id) throw new Error('This store is not ready for chat yet.')
-
-  const { data, error } = await client
-    .from('chat_conversations')
-    .upsert({
-      product_id: productId,
-      business_id: businessId,
-      seller_id: business.owner_id,
-      customer_id: customerId,
-    }, { onConflict: 'product_id,customer_id,seller_id' })
-    .select('*')
-    .single()
+  const { data, error } = await client.rpc('get_or_create_public_product_conversation', {
+    p_product_id: productId,
+    p_business_id: businessId,
+  })
   if (error) throw error
   return data as ChatConversation
 }

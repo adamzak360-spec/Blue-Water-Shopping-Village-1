@@ -233,14 +233,7 @@ function AppShell() {
             <Route path="/products" element={<Products />} />
             <Route path="/product/:productId" element={<ProductDetails />} />
             <Route path="/checkout" element={<Checkout />} />
-            <Route
-              path="/chat/product/:productId"
-              element={
-                <ProtectedRoute>
-                  <ProductChat />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/chat/product/:productId" element={<ProductChat />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/seller/register" element={<SellerRegister />} />
