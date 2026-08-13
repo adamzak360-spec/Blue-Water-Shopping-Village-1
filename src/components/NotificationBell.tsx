@@ -73,6 +73,11 @@ export default function NotificationBell() {
       handleMarkAsRead(notification.id)
     }
     
+    if (notification.product_id) {
+      navigate(`/chat/product/${notification.product_id}`)
+      setIsOpen(false)
+      return
+    }
     if (notification.order_id) {
       navigate(`/customer/orders/${notification.order_id}`)
       setIsOpen(false)

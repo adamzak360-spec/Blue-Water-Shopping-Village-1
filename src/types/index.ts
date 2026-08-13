@@ -229,8 +229,11 @@ export interface Notification {
   user_id: string
   title: string
   message: string
-  type: 'info' | 'order_update' | 'promotion'
+  type: 'info' | 'order_update' | 'promotion' | 'chat_reply' | 'chat_reaction'
   is_read: boolean
   order_id?: string
+  product_id?: string
+  chat_message_id?: string
+  actor_id?: string
   created_at: string
 }
