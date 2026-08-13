@@ -92,7 +92,16 @@ export default function ProductDetails() {
 
         if (productData.has_sizes) {
           const variantData = await getProductVariants(productId)
-          setVariants(variantData)
+          // Some legacy products have valid variant stock rows but an empty
+          // variant_value. Fall back to the product's stored size list so the
+          // selector remains readable and selectable without changing stock.
+          const normalizedVariants = variantData.map((variant, index) => ({
+            ...variant,
+            variant_value: String(
+              variant.variant_value || productData.sizes?.[index]?.size || `Option ${index + 1}`
+            ).trim(),
+          }))
+          setVariants(normalizedVariants)
         }
 
         getAllProducts().then(allProducts => {
