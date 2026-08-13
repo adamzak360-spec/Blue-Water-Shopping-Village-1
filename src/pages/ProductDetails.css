@@ -1182,3 +1182,63 @@
     width: 100%;
   }
 }
+
+
+/* Review section alignment: keep form content comfortably inset on mobile. */
+.reviews-section {
+  width: min(100%, 980px);
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding-inline: clamp(1.25rem, 5vw, 3rem);
+}
+
+.review-form-container {
+  width: min(100%, 680px);
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding-block: clamp(1.25rem, 4vw, 2rem);
+}
+
+.review-form,
+.review-form .form-group {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.review-form .form-group input,
+.review-form .form-group textarea,
+.review-form .form-group select {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.review-form button[type="submit"],
+.submit-review-btn {
+  align-self: center;
+  width: min(100%, 520px);
+  min-height: 52px;
+  box-sizing: border-box;
+  padding: 0.8rem 1.5rem;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .reviews-section {
+    padding-inline: 1.25rem;
+  }
+
+  .review-form-container {
+    padding-block: 1.25rem;
+  }
+
+  .reviews-section h2 {
+    padding-block: 1.25rem;
+    line-height: 1.2;
+  }
+
+  .review-form-container h3 {
+    margin-bottom: 1.25rem;
+    line-height: 1.25;
+  }
+}
