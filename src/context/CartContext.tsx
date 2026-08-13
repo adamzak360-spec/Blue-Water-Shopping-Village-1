@@ -42,14 +42,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const existingItem = prevCart.find(item => 
         item.id === cartItem.id && item.selected_size === cartItem.selected_size
       )
+      const requestedQuantity = Math.max(1, Number(cartItem.quantity) || 1)
+      const availableStock = Math.max(0, Number(cartItem.stock_quantity) || 0)
+
       if (existingItem) {
+        const nextQuantity = availableStock > 0
+          ? Math.min(availableStock, existingItem.quantity + requestedQuantity)
+          : existingItem.quantity
         return prevCart.map(item =>
           (item.id === cartItem.id && item.selected_size === cartItem.selected_size)
-            ? { ...item, quantity: item.quantity + (cartItem.quantity || 1) } 
+            ? { ...item, quantity: nextQuantity }
             : item
         )
       }
-      return [...prevCart, { ...cartItem, quantity: cartItem.quantity || 1 }]
+
+      if (availableStock <= 0) return prevCart
+      return [...prevCart, { ...cartItem, quantity: Math.min(requestedQuantity, availableStock) }]
     })
   }
 

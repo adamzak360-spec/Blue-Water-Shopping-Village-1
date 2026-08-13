@@ -118,25 +118,44 @@ export default function ProductDetails() {
   }
 
   const handleAddToCart = () => {
-    if (product?.has_sizes && selectedSizes.length === 0) {
+    if (!product) return
+
+    // Only require a size when the product actually has variants loaded. Some
+    // legacy products have has_sizes enabled but no variant rows; those must
+    // remain purchasable using their base stock.
+    const hasSelectableVariants = product.has_sizes && variants.length > 0
+    if (hasSelectableVariants && selectedSizes.length === 0) {
       setSizeError('Please select at least one size')
       return
     }
+
+    const availableStock = currentStock
+    if (availableStock <= 0) {
+      setSizeError('This product is currently out of stock')
+      return
+    }
+    if (quantity > availableStock) {
+      setQuantity(availableStock)
+      setSizeError(`Only ${availableStock} ${availableStock === 1 ? 'unit is' : 'units are'} available`)
+      return
+    }
+
     setSizeError('')
 
-    // Add to cart for each selected size
-    if (product?.has_sizes) {
+    // Add one cart line per selected variant. For products with no loaded
+    // variants, add the base product instead of silently blocking checkout.
+    if (hasSelectableVariants) {
       selectedSizes.forEach(size => {
         addToCart({
-          ...product!,
-          quantity: quantity, // Use the selected quantity for each size
+          ...product,
+          quantity,
           selected_size: size
         } as any)
       })
     } else {
       addToCart({
-        ...product!,
-        quantity: quantity,
+        ...product,
+        quantity,
         selected_size: undefined
       } as any)
     }
@@ -197,7 +216,8 @@ export default function ProductDetails() {
   
   const mainMedia = productMedia[mainMediaIndex] || { type: 'image' as const, url: product.image_url }
 
-  const isOutOfStock = product.stock_quantity === 0 || product.status === 'inactive'
+  const baseStock = Number(product.stock_quantity) || 0
+  const isOutOfStock = baseStock <= 0 || product.status === 'inactive'
 
   const handleCallOrder = () => {
     window.location.href = 'tel:+233595609966'
@@ -270,9 +290,10 @@ export default function ProductDetails() {
     : 0
 
   // Get current stock based on selection
-  const currentStock = product.has_sizes && selectedSizes.length > 0
-    ? Math.min(...selectedSizes.map(size => variants.find(v => v.variant_value === size)?.stock_quantity || 0))
-    : product.stock_quantity
+  const hasSelectableVariants = product.has_sizes && variants.length > 0
+  const currentStock = hasSelectableVariants && selectedSizes.length > 0
+    ? Math.min(...selectedSizes.map(size => Number(variants.find(v => v.variant_value === size)?.stock_quantity) || 0))
+    : baseStock
 
   // Build delivery info from product-specific fees
   // Only show delivery options that have been configured for this product (fee > 0)
@@ -478,7 +499,11 @@ export default function ProductDetails() {
                 <Minus size={18} />
               </button>
               <input type="number" value={quantity} readOnly />
-              <button onClick={() => setQuantity(quantity + 1)}>
+              <button
+                onClick={() => setQuantity(Math.min(currentStock, quantity + 1))}
+                disabled={quantity >= currentStock}
+                aria-label="Increase quantity"
+              >
                 <Plus size={18} />
               </button>
             </div>
