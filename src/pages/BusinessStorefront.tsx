@@ -114,14 +114,17 @@ export default function BusinessStorefront() {
             {business.description || 'Welcome to our official online store! Browse our premium products below.'}
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
-            {business.contact_email && (
+            {business.show_contact_email_public && business.contact_email && (
               <p style={{ fontSize: '1rem', opacity: 0.9 }}>📧 {business.contact_email}</p>
             )}
-            {business.contact_phone && (
+            {business.show_contact_phone_public && business.contact_phone && (
               <p style={{ fontSize: '1rem', opacity: 0.9 }}>📞 {business.contact_phone}</p>
             )}
-            {business.location && (
+            {business.show_location_public && business.location && (
               <p style={{ fontSize: '1rem', opacity: 0.9 }}>📍 {business.location}</p>
+            )}
+            {business.show_delivery_info_public && (business.service_area || business.delivery_instructions || business.pickup_instructions) && (
+              <p style={{ fontSize: '1rem', opacity: 0.9 }}>🚚 {business.service_area || 'Delivery and pickup available'} </p>
             )}
           </div>
           <BusinessSocialLinks

@@ -36,12 +36,48 @@ function getSellerContextHtml(order: Order): string {
     ${whatsapp}
     <p><strong>Delivery or pickup note:</strong> ${deliveryNote}</p>
     <p style="font-size:13px;color:#4b5563;">Reliable provides the marketplace, order tracking, and customer support. The store above is responsible for the item-specific delivery or pickup arrangement.</p>
+  </div>${getProductCommunicationHtml(order)}`
+}
+
+function getProductCommunicationHtml(order: Order): string {
+  const items = (order.items || []).filter(item =>
+    item.pickup_instructions || item.delivery_instructions || item.service_area || item.processing_time || item.return_policy || item.customer_email_note
+  )
+  if (!items.length) return ''
+
+  return `<div class="section" style="background:#fffaf0;border-left:4px solid #d97706;padding:16px;border-radius:6px;">
+    <h2>Product-Specific Information</h2>
+    ${items.map(item => `<div style="margin-bottom:14px;">
+      <p><strong>${item.name}</strong></p>
+      ${item.service_area ? `<p><strong>Service area:</strong> ${item.service_area}</p>` : ''}
+      ${item.processing_time ? `<p><strong>Processing time:</strong> ${item.processing_time}</p>` : ''}
+      ${item.pickup_instructions ? `<p><strong>Pickup:</strong> ${item.pickup_instructions}</p>` : ''}
+      ${item.delivery_instructions ? `<p><strong>Delivery:</strong> ${item.delivery_instructions}</p>` : ''}
+      ${item.return_policy ? `<p><strong>Returns:</strong> ${item.return_policy}</p>` : ''}
+      ${item.customer_email_note ? `<p><strong>Seller note:</strong> ${item.customer_email_note}</p>` : ''}
+    </div>`).join('')}
   </div>`
+}
+
+function getProductCommunicationText(order: Order): string {
+  const items = (order.items || []).filter(item =>
+    item.pickup_instructions || item.delivery_instructions || item.service_area || item.processing_time || item.return_policy || item.customer_email_note
+  )
+  if (!items.length) return ''
+  return `\nProduct-Specific Information:\n${items.map(item => [
+    `${item.name}:`,
+    item.service_area ? `Service area: ${item.service_area}` : '',
+    item.processing_time ? `Processing time: ${item.processing_time}` : '',
+    item.pickup_instructions ? `Pickup: ${item.pickup_instructions}` : '',
+    item.delivery_instructions ? `Delivery: ${item.delivery_instructions}` : '',
+    item.return_policy ? `Returns: ${item.return_policy}` : '',
+    item.customer_email_note ? `Seller note: ${item.customer_email_note}` : ''
+  ].filter(Boolean).join('\n')).join('\n\n')}\n`
 }
 
 function getSellerContextText(order: Order): string {
   const seller = getSellerContext(order)
-  return `\nStore & Delivery Contact:\nStore: ${seller.storeName || 'The store you ordered from'}\nSeller location: ${seller.location || 'Seller location not provided'}\nSeller phone: ${seller.contactPhone || 'Seller phone not provided'}\nSeller email: ${seller.contactEmail || 'Seller email not provided'}${seller.whatsappUrl ? `\nSeller WhatsApp: ${seller.whatsappUrl}` : ''}\nDelivery or pickup note: ${seller.deliveryNote || 'The store will coordinate the delivery or pickup details for this order.'}\nReliable provides marketplace tracking and customer support; the store is responsible for the item-specific delivery or pickup arrangement.\n`
+  return `\nStore & Delivery Contact:\nStore: ${seller.storeName || 'The store you ordered from'}\nSeller location: ${seller.location || 'Seller location not provided'}\nSeller phone: ${seller.contactPhone || 'Seller phone not provided'}\nSeller email: ${seller.contactEmail || 'Seller email not provided'}${seller.whatsappUrl ? `\nSeller WhatsApp: ${seller.whatsappUrl}` : ''}\nDelivery or pickup note: ${seller.deliveryNote || 'The store will coordinate the delivery or pickup details for this order.'}\nReliable provides marketplace tracking and customer support; the store is responsible for the item-specific delivery or pickup arrangement.\n${getProductCommunicationText(order)}`
 }
 
 /**

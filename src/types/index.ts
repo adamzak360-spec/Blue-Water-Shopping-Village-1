@@ -78,6 +78,13 @@ export interface Product {
   delivery_fee_dhl?: number            // Used for OA Transport
   delivery_fee_ups?: number            // Used for VVIP Transport
   delivery_fee_fedex?: number
+  // Optional product-specific customer communication overrides
+  pickup_instructions?: string
+  delivery_instructions?: string
+  service_area?: string
+  processing_time?: string
+  return_policy?: string
+  customer_email_note?: string
 }
 
 export interface Review {
@@ -127,6 +134,13 @@ export interface ProductFormData {
   delivery_fee_dhl?: string            // Used for OA Transport
   delivery_fee_ups?: string            // Used for VVIP Transport
   delivery_fee_fedex?: string
+  // Optional product-specific customer communication overrides
+  pickup_instructions?: string
+  delivery_instructions?: string
+  service_area?: string
+  processing_time?: string
+  return_policy?: string
+  customer_email_note?: string
 }
 
 export type DashboardStats = {

@@ -103,6 +103,12 @@ const defaultFormState = {
   delivery_fee_dhl: '',
   delivery_fee_ups: '',
   delivery_fee_fedex: '',
+  pickup_instructions: '',
+  delivery_instructions: '',
+  service_area: '',
+  processing_time: '',
+  return_policy: '',
+  customer_email_note: '',
   specifications: [] as { label: string; value: string }[],
 }
 
@@ -155,6 +161,16 @@ export default function Admin() {
     x_url: '',
     whatsapp_url: '',
     youtube_url: '',
+    pickup_instructions: '',
+    delivery_instructions: '',
+    service_area: '',
+    processing_time: '',
+    return_policy: '',
+    customer_email_note: '',
+    show_contact_email_public: false,
+    show_contact_phone_public: false,
+    show_location_public: false,
+    show_delivery_info_public: false,
   })
   const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([])
   const [subscriptionPlansLoading, setSubscriptionPlansLoading] = useState(false)
@@ -204,6 +220,16 @@ export default function Admin() {
             x_url: b.x_url || '',
             whatsapp_url: b.whatsapp_url || '',
             youtube_url: b.youtube_url || '',
+            pickup_instructions: b.pickup_instructions || '',
+            delivery_instructions: b.delivery_instructions || '',
+            service_area: b.service_area || '',
+            processing_time: b.processing_time || '',
+            return_policy: b.return_policy || '',
+            customer_email_note: b.customer_email_note || '',
+            show_contact_email_public: Boolean(b.show_contact_email_public),
+            show_contact_phone_public: Boolean(b.show_contact_phone_public),
+            show_location_public: Boolean(b.show_location_public),
+            show_delivery_info_public: Boolean(b.show_delivery_info_public),
           })
         }
       } catch (err) {
@@ -491,6 +517,12 @@ export default function Admin() {
         delivery_fee_dhl: formData.delivery_fee_dhl ? parseFloat(formData.delivery_fee_dhl) : 0,
         delivery_fee_ups: formData.delivery_fee_ups ? parseFloat(formData.delivery_fee_ups) : 0,
         delivery_fee_fedex: formData.delivery_fee_fedex ? parseFloat(formData.delivery_fee_fedex) : 0,
+        pickup_instructions: formData.pickup_instructions.trim() || undefined,
+        delivery_instructions: formData.delivery_instructions.trim() || undefined,
+        service_area: formData.service_area.trim() || undefined,
+        processing_time: formData.processing_time.trim() || undefined,
+        return_policy: formData.return_policy.trim() || undefined,
+        customer_email_note: formData.customer_email_note.trim() || undefined,
         specifications: formData.specifications,
         business_id: business?.id
       }
@@ -574,6 +606,12 @@ export default function Admin() {
       delivery_fee_dhl: (product.delivery_fee_dhl || 0).toString(),
       delivery_fee_ups: (product.delivery_fee_ups || 0).toString(),
       delivery_fee_fedex: (product.delivery_fee_fedex || 0).toString(),
+      pickup_instructions: product.pickup_instructions || '',
+      delivery_instructions: product.delivery_instructions || '',
+      service_area: product.service_area || '',
+      processing_time: product.processing_time || '',
+      return_policy: product.return_policy || '',
+      customer_email_note: product.customer_email_note || '',
       specifications: Array.isArray(product.specifications) ? product.specifications : [],
     })
     setView('edit')
@@ -1122,6 +1160,48 @@ export default function Admin() {
                       value={storeSettings.location}
                       onChange={e => setStoreSettings({...storeSettings, location: e.target.value})}
                     />
+                  </div>
+                  <div className="seller-communication-settings" style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid #e5e7eb' }}>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <h4 style={{ margin: 0, color: '#1f2937' }}>Customer Communications</h4>
+                      <p style={{ margin: '0.35rem 0 0', color: '#6b7280', fontSize: '0.88rem' }}>
+                        These details help Reliable explain delivery and pickup instructions in order emails. They are not shown publicly unless you enable the matching visibility option.
+                      </p>
+                    </div>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Service Area</label>
+                        <input type="text" placeholder="e.g. Tamale, Ghana or United States" value={storeSettings.service_area} onChange={e => setStoreSettings({...storeSettings, service_area: e.target.value})} />
+                      </div>
+                      <div className="form-group">
+                        <label>Typical Processing Time</label>
+                        <input type="text" placeholder="e.g. 1–2 business days" value={storeSettings.processing_time} onChange={e => setStoreSettings({...storeSettings, processing_time: e.target.value})} />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Pickup Instructions</label>
+                      <textarea rows={3} placeholder="Where and when customers should collect orders, if pickup is available." value={storeSettings.pickup_instructions} onChange={e => setStoreSettings({...storeSettings, pickup_instructions: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label>Delivery Instructions</label>
+                      <textarea rows={3} placeholder="Delivery coverage, handoff details, or seller-specific delivery notes." value={storeSettings.delivery_instructions} onChange={e => setStoreSettings({...storeSettings, delivery_instructions: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label>Return Policy Summary</label>
+                      <textarea rows={3} placeholder="Optional short return or exchange guidance for customers." value={storeSettings.return_policy} onChange={e => setStoreSettings({...storeSettings, return_policy: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label>Customer Order Email Note</label>
+                      <textarea rows={3} placeholder="Optional note to include in order-related emails from your store." value={storeSettings.customer_email_note} onChange={e => setStoreSettings({...storeSettings, customer_email_note: e.target.value})} />
+                    </div>
+                    <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '10px', marginBottom: '1rem' }}>
+                      <strong style={{ display: 'block', marginBottom: '0.6rem', color: '#1f2937' }}>Public Storefront Visibility</strong>
+                      <p style={{ margin: '0 0 0.75rem', color: '#6b7280', fontSize: '0.86rem' }}>All switches are off by default. Turn on only the details you want visitors to see.</p>
+                      <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}><input type="checkbox" checked={storeSettings.show_contact_email_public} onChange={e => setStoreSettings({...storeSettings, show_contact_email_public: e.target.checked})} /> Show contact email publicly</label>
+                      <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}><input type="checkbox" checked={storeSettings.show_contact_phone_public} onChange={e => setStoreSettings({...storeSettings, show_contact_phone_public: e.target.checked})} /> Show contact phone publicly</label>
+                      <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}><input type="checkbox" checked={storeSettings.show_location_public} onChange={e => setStoreSettings({...storeSettings, show_location_public: e.target.checked})} /> Show location publicly</label>
+                      <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}><input type="checkbox" checked={storeSettings.show_delivery_info_public} onChange={e => setStoreSettings({...storeSettings, show_delivery_info_public: e.target.checked})} /> Show delivery and pickup information publicly</label>
+                    </div>
                   </div>
                   <div id="social-media-settings" className="social-settings-section" style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid #e5e7eb', scrollMarginTop: '1rem' }}>
                     <div style={{ marginBottom: '1rem' }}>
@@ -2347,6 +2427,70 @@ export default function Admin() {
                     value={formData.delivery_fee_fedex}
                     onChange={(e) => setFormData({ ...formData, delivery_fee_fedex: e.target.value })}
                     placeholder="Optional - e.g., 150.00"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Product-specific customer communication overrides */}
+            <div className="form-group full-width">
+              <h4 style={{ marginTop: '1.5rem', marginBottom: '0.5rem', fontSize: '1.1rem', fontWeight: '600' }}>Customer & Delivery Information (Optional)</h4>
+              <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
+                These details override your store defaults for this product only and help customers understand pickup, delivery, timing, and returns in order emails. Leave blank to use your store settings.
+              </p>
+              <div className="form-grid">
+                <div className="form-group full-width">
+                  <label>Pickup instructions</label>
+                  <textarea
+                    value={formData.pickup_instructions}
+                    onChange={(e) => setFormData({ ...formData, pickup_instructions: e.target.value })}
+                    placeholder="Optional: where and how customers should collect this item"
+                    rows={3}
+                  />
+                </div>
+                <div className="form-group full-width">
+                  <label>Delivery instructions</label>
+                  <textarea
+                    value={formData.delivery_instructions}
+                    onChange={(e) => setFormData({ ...formData, delivery_instructions: e.target.value })}
+                    placeholder="Optional: delivery method, handover details, or special requirements"
+                    rows={3}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Service area</label>
+                  <input
+                    type="text"
+                    value={formData.service_area}
+                    onChange={(e) => setFormData({ ...formData, service_area: e.target.value })}
+                    placeholder="Optional: Tamale, Ghana; USA; worldwide"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Processing time</label>
+                  <input
+                    type="text"
+                    value={formData.processing_time}
+                    onChange={(e) => setFormData({ ...formData, processing_time: e.target.value })}
+                    placeholder="Optional: 2–3 business days"
+                  />
+                </div>
+                <div className="form-group full-width">
+                  <label>Return or exchange policy</label>
+                  <textarea
+                    value={formData.return_policy}
+                    onChange={(e) => setFormData({ ...formData, return_policy: e.target.value })}
+                    placeholder="Optional: product-specific return or exchange information"
+                    rows={3}
+                  />
+                </div>
+                <div className="form-group full-width">
+                  <label>Customer email note</label>
+                  <textarea
+                    value={formData.customer_email_note}
+                    onChange={(e) => setFormData({ ...formData, customer_email_note: e.target.value })}
+                    placeholder="Optional: a short note to include in order emails for this product"
+                    rows={3}
                   />
                 </div>
               </div>

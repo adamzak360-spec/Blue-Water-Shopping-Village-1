@@ -32,6 +32,16 @@ export interface Business {
   x_url?: string | null
   whatsapp_url?: string | null
   youtube_url?: string | null
+  pickup_instructions?: string | null
+  delivery_instructions?: string | null
+  service_area?: string | null
+  processing_time?: string | null
+  return_policy?: string | null
+  customer_email_note?: string | null
+  show_contact_email_public?: boolean
+  show_contact_phone_public?: boolean
+  show_location_public?: boolean
+  show_delivery_info_public?: boolean
   created_at: string
   updated_at: string
 }
