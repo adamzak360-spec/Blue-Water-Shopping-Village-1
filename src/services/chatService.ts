@@ -81,19 +81,13 @@ export async function sendChatMessage(input: {
   const client = ensureSupabase()
   const body = input.body.trim()
   if (!body) throw new Error('Message cannot be empty.')
-  const { data, error } = await client
-    .from('chat_messages')
-    .insert({
-      conversation_id: input.conversationId,
-      sender_id: input.senderId,
-      sender_role: input.senderRole,
-      body,
-      reply_to_message_id: input.replyToMessageId || null,
-      shared_message_id: input.sharedMessageId || null,
-    })
-    .select('*')
-    .single()
-  if (error) throw error
+  const { data, error } = await client.rpc('send_product_chat_message', {
+    p_conversation_id: input.conversationId,
+    p_body: body,
+    p_reply_to_message_id: input.replyToMessageId || null,
+    p_shared_message_id: input.sharedMessageId || null,
+  })
+  if (error) throw new Error(error.message || 'Message could not be sent.')
   return data as ChatMessage
 }
 
