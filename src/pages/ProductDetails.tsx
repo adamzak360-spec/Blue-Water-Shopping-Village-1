@@ -15,6 +15,7 @@ import ProductShare from '../components/ProductShare'
 import ProductCard from '../components/ProductCard'
 import VerifiedSellerBadge from '../components/VerifiedSellerBadge'
 import BusinessSocialLinks from '../components/BusinessSocialLinks'
+import { applyProductSeo, resetProductSeo } from '../utils/seo'
 import './ProductDetails.css'
 
 export default function ProductDetails() {
@@ -51,6 +52,17 @@ export default function ProductDetails() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [productId])
+
+  // Keep crawler-facing metadata synchronized with the loaded product while
+  // leaving the existing visible storefront layout unchanged.
+  useEffect(() => {
+    if (!product) {
+      resetProductSeo()
+      return
+    }
+    applyProductSeo(product, ratingStats.averageRating, ratingStats.totalReviews)
+    return () => resetProductSeo()
+  }, [product, reviews, ratingStats])
 
   useEffect(() => {
     const loadProductAndReviews = async () => {
