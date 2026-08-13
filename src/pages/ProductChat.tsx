@@ -171,11 +171,26 @@ export default function ProductChat() {
             : message.sender_role === 'admin'
               ? `${senderNames[message.sender_id] || 'Reliable Admin'} · Admin`
               : senderNames[message.sender_id] || 'Reliable member'
+          const repliedTo = message.reply_to_message_id
+            ? messages.find(candidate => candidate.id === message.reply_to_message_id)
+            : undefined
+          const repliedToLabel = repliedTo
+            ? repliedTo.sender_role === 'seller'
+              ? `${senderNames[repliedTo.sender_id] || sellerName} · Seller`
+              : repliedTo.sender_role === 'admin'
+                ? `${senderNames[repliedTo.sender_id] || 'Reliable Admin'} · Admin`
+                : senderNames[repliedTo.sender_id] || 'Reliable member'
+            : 'Original message'
           return (
             <article key={message.id} className={`chat-message ${mine ? 'mine' : 'theirs'}`}>
               <div className="chat-message-bubble">
                 <small>{senderLabel}</small>
-                {message.reply_to_message_id && <small>Replying to an earlier message</small>}
+                {message.reply_to_message_id && (
+                  <div className="chat-quoted-message" title="Original message being replied to">
+                    <strong>{repliedToLabel}</strong>
+                    <span>{repliedTo?.body || 'Original message'}</span>
+                  </div>
+                )}
                 <p>{message.body}</p>
                 <time>{new Date(message.created_at).toLocaleString()}</time>
                 <button className="chat-message-menu-btn" onClick={() => setMenuMessageId(menuMessageId === message.id ? null : message.id)} aria-label="Message actions"><MoreVertical size={16} /></button>

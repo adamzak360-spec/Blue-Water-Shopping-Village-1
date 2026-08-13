@@ -133,3 +133,31 @@
   .chat-header, .chat-safety-note, .chat-thread, .chat-composer { padding-left: 12px; padding-right: 12px; }
   .chat-message-bubble { max-width: 88%; }
 }
+
+.chat-quoted-message {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 7px 0 8px;
+  padding: 7px 9px;
+  border-left: 3px solid currentColor;
+  border-radius: 5px;
+  background: rgba(15, 118, 110, 0.12);
+  color: inherit;
+  opacity: 0.9;
+  overflow: hidden;
+}
+.chat-quoted-message strong,
+.chat-quoted-message span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chat-quoted-message strong { font-size: 0.74rem; }
+.chat-quoted-message span { font-size: 0.78rem; opacity: 0.86; }
+.chat-message.mine .chat-quoted-message { background: rgba(255, 255, 255, 0.16); }
+.chat-message.theirs .chat-quoted-message { background: #f0fdfa; color: #0f766e; }
+
+@media (max-width: 640px) {
+  .chat-quoted-message { max-width: 100%; }
+}
