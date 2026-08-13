@@ -45,9 +45,10 @@ export async function getChatParticipantNames(userIds: string[]) {
   const client = ensureSupabase()
   const ids = [...new Set(userIds.filter(Boolean))]
   if (ids.length === 0) return {} as Record<string, string>
-  const { data, error } = await client.from('profiles').select('id, full_name').in('id', ids)
+  const { data, error } = await client.rpc('get_chat_sender_names', { p_user_ids: ids })
   if (error) throw error
-  return Object.fromEntries((data || []).map(profile => [profile.id, profile.full_name || 'Reliable member'])) as Record<string, string>
+  const rows = (data || []) as Array<{ user_id: string; display_name: string | null }>
+  return Object.fromEntries(rows.map(profile => [profile.user_id, profile.display_name || 'Reliable member'])) as Record<string, string>
 }
 
 export async function listConversationMessages(conversationId: string, limit = 50, before?: string) {
@@ -88,11 +89,8 @@ export async function sendChatMessage(input: {
 
 export async function deleteChatMessage(messageId: string) {
   const client = ensureSupabase()
-  const { error } = await client
-    .from('chat_messages')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', messageId)
-  if (error) throw error
+  const { error } = await client.rpc('delete_product_chat_message', { p_message_id: messageId })
+  if (error) throw new Error(error.message || 'Message could not be deleted.')
 }
 
 export async function reportChatMessage(messageId: string, reporterId: string, reason: string, details?: string) {
