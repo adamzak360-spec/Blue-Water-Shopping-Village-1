@@ -8,6 +8,17 @@ export const CartSidebar: React.FC = () => {
   const { cart, removeFromCart, updateQuantity, cartSubtotal, isCartOpen, setIsCartOpen, clearCart } = useCart()
   const navigate = useNavigate()
 
+  const cartGroups = Array.from(
+    cart.reduce((groups, item) => {
+      const storeKey = item.business_id || 'marketplace'
+      const group = groups.get(storeKey) || []
+      group.push(item)
+      groups.set(storeKey, group)
+      return groups
+    }, new Map<string, typeof cart>()).entries()
+  )
+  const hasMultipleStores = cartGroups.length > 1
+
   if (!isCartOpen) return null
 
   const handleCheckout = () => {
@@ -30,7 +41,13 @@ export const CartSidebar: React.FC = () => {
               <button className="continue-btn" onClick={() => setIsCartOpen(false)}>Continue Shopping</button>
             </div>
           ) : (
-            cart.map((item, index) => (
+            cartGroups.map(([storeKey, storeItems], groupIndex) => (
+              <div key={storeKey} className="cart-store-group">
+                <div className="cart-store-heading">
+                  <strong>Store {groupIndex + 1}</strong>
+                  <span>{storeKey === 'marketplace' ? 'Reliable Marketplace' : `Store ID: ${storeKey.slice(0, 8)}…`}</span>
+                </div>
+                {storeItems.map((item, index) => (
               <div key={`${item.id}-${item.selected_size || index}`} className="cart-item">
                 <div className="item-image">
                   {item.image_url ? (
@@ -56,12 +73,20 @@ export const CartSidebar: React.FC = () => {
                   &times;
                 </button>
               </div>
+                ))}
+              </div>
             ))
           )}
         </div>
 
         {cart.length > 0 && (
           <div className="cart-footer">
+            {hasMultipleStores && (
+              <div className="cart-store-warning" role="status">
+                <strong>Multiple stores selected</strong>
+                <span>Checkout is handled one store at a time. Remove items from other stores before paying.</span>
+              </div>
+            )}
             <div className="subtotal">
               <span>Subtotal</span>
               <span>{formatCurrency(cartSubtotal, cart[0]?.currency || 'GHS')}</span>

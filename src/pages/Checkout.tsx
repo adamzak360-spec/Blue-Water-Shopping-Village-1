@@ -45,6 +45,16 @@ export default function Checkout() {
     cart.map(item => item.business_id || DEFAULT_BUSINESS_ID)
   ))
   const checkoutBusinessId = cartBusinessIds.length === 1 ? cartBusinessIds[0] : undefined
+  const cartStoreGroups = Array.from(
+    cart.reduce((groups, item) => {
+      const storeKey = item.business_id || DEFAULT_BUSINESS_ID
+      const group = groups.get(storeKey) || []
+      group.push(item)
+      groups.set(storeKey, group)
+      return groups
+    }, new Map<string, typeof cart>()).entries()
+  )
+  const hasMultipleStores = cartStoreGroups.length > 1
   const selectedDeliveryMethod = deliveryOptions.find(method => method.id === formData.deliveryMethod)
   const deliveryFee = selectedDeliveryMethod
     ? selectedDeliveryMethod.price * (selectedDeliveryMethod.pricing_type === 'per_item' ? totalItemQuantity : 1)
@@ -366,6 +376,25 @@ export default function Checkout() {
           {paymentStep === 'form' && (
             <>
               <h2>Customer Information</h2>
+              <div className={`checkout-store-status ${hasMultipleStores ? 'multiple' : 'single'}`} role="status">
+                <strong>{hasMultipleStores ? 'Multiple stores in this cart' : 'Single-store checkout'}</strong>
+                {hasMultipleStores ? (
+                  <>
+                    <span>Your cart contains items from {cartStoreGroups.length} stores.</span>
+                    <span>For accurate delivery, payment, and seller processing, checkout one store at a time. Return to the cart and remove the other stores before proceeding.</span>
+                  </>
+                ) : (
+                  <span>All items below will be processed together under one store order.</span>
+                )}
+                <div className="checkout-store-list">
+                  {cartStoreGroups.map(([storeKey, storeItems], index) => (
+                    <div key={storeKey} className="checkout-store-row">
+                      <span>Store {index + 1}: {storeKey === DEFAULT_BUSINESS_ID ? 'Reliable Marketplace' : `Store ID ${storeKey.slice(0, 8)}…`}</span>
+                      <span>{storeItems.reduce((sum, item) => sum + item.quantity, 0)} item(s)</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
               <form onSubmit={handleFormSubmit} className="checkout-form">
                 <div className="form-group">
                   <label htmlFor="fullName">Full Name *</label>
@@ -489,7 +518,7 @@ export default function Checkout() {
                     rows={3}
                   />
                 </div>
-                <button type="submit" className="submit-order-btn" disabled={isSubmitting || deliveryLoading || deliveryOptions.length === 0}>
+                <button type="submit" className="submit-order-btn" disabled={isSubmitting || hasMultipleStores || deliveryLoading || deliveryOptions.length === 0}>
                   {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
                 </button>
               </form>

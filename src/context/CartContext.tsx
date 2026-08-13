@@ -51,7 +51,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return [...prevCart, { ...cartItem, quantity: cartItem.quantity || 1 }]
     })
-    setIsCartOpen(true)
   }
 
   const removeFromCart = (productId: string, selectedSize?: string) => {
