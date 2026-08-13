@@ -78,6 +78,36 @@ interface SubscriptionPlan {
   currency_code: string
 }
 
+const escapePreviewHtml = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char] || char))
+
+function buildSellerEmailPreviewHtml(store: any, product: any): string {
+  const storeName = escapePreviewHtml(store.name || 'Your Store')
+  const location = escapePreviewHtml(store.location || 'Seller location not provided')
+  const phone = escapePreviewHtml(store.contact_phone || 'Seller phone not provided')
+  const email = escapePreviewHtml(store.contact_email || 'Seller email not provided')
+  const storeNote = escapePreviewHtml(store.customer_email_note || 'The store will coordinate the delivery or pickup details for this order.')
+  const productName = escapePreviewHtml(product.name || 'Sample product')
+  const serviceArea = product.service_area || store.service_area
+  const processingTime = product.processing_time || store.processing_time
+  const pickup = product.pickup_instructions || store.pickup_instructions
+  const delivery = product.delivery_instructions || store.delivery_instructions
+  const returns = product.return_policy || store.return_policy
+  const productNote = product.customer_email_note
+
+  const productRows = [
+    serviceArea ? `<p><strong>Service area:</strong> ${escapePreviewHtml(serviceArea)}</p>` : '',
+    processingTime ? `<p><strong>Processing time:</strong> ${escapePreviewHtml(processingTime)}</p>` : '',
+    pickup ? `<p><strong>Pickup:</strong> ${escapePreviewHtml(pickup)}</p>` : '',
+    delivery ? `<p><strong>Delivery:</strong> ${escapePreviewHtml(delivery)}</p>` : '',
+    returns ? `<p><strong>Returns:</strong> ${escapePreviewHtml(returns)}</p>` : '',
+    productNote ? `<p><strong>Seller note:</strong> ${escapePreviewHtml(productNote)}</p>` : '',
+  ].filter(Boolean).join('')
+
+  return `<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>
+    *{box-sizing:border-box}body{margin:0;background:#f5f5f5;color:#333;font-family:Segoe UI,Tahoma,sans-serif;line-height:1.6}.email{max-width:600px;margin:0 auto;background:#fff}.header{padding:28px 20px;text-align:center;color:#fff;background:linear-gradient(135deg,#1e3a8a,#3b82f6)}.header h1{margin:0 0 4px;font-size:24px}.header p{margin:0;opacity:.9}.content{padding:24px 20px}.section{margin-bottom:22px}.section h2{margin:0 0 12px;padding-bottom:8px;border-bottom:2px solid #e5e7eb;color:#1e3a8a;font-size:18px}.contact{padding:16px;border-left:4px solid #1e3a8a;border-radius:6px;background:#eff6ff}.product{padding:16px;border-left:4px solid #d97706;border-radius:6px;background:#fffaf0}.muted{color:#6b7280;font-size:13px}.item{display:flex;justify-content:space-between;border-bottom:1px solid #e5e7eb;padding:10px 0}.total{display:flex;justify-content:space-between;padding-top:12px;font-weight:700;color:#1e3a8a}.footer{padding:18px 20px;text-align:center;color:#6b7280;font-size:13px;background:#f9fafb}
+  </style></head><body><div class="email"><div class="header"><h1>Reliable</h1><p>Order confirmation preview</p></div><div class="content"><div class="section"><p>Hello Customer,</p><p>This is a preview of the email your customer receives after ordering from your store.</p></div><div class="section"><h2>Order Summary</h2><div class="item"><span>${productName} × 1</span><strong>GH₵100.00</strong></div><div class="total"><span>Total</span><span>GH₵100.00</span></div></div><div class="section contact"><h2>Store &amp; Delivery Contact</h2><p><strong>Store:</strong> ${storeName}</p><p><strong>Seller location:</strong> ${location}</p><p><strong>Seller contact:</strong> ${phone} · ${email}</p><p><strong>Delivery or pickup note:</strong> ${storeNote}</p><p class="muted">Reliable provides the marketplace, order tracking, and customer support. The store above is responsible for the item-specific delivery or pickup arrangement.</p></div>${productRows ? `<div class="section product"><h2>Product-Specific Information</h2><p><strong>${productName}</strong></p>${productRows}</div>` : '<div class="section product"><h2>Product-Specific Information</h2><p class="muted">No product-specific overrides are entered. This order will use your store-level settings.</p></div>'}<div class="section"><p>Order status: <strong>Pending</strong></p><p class="muted">This preview is for sellers only and does not send an email.</p></div></div><div class="footer">Reliable Premium Marketplace · Customer support remains available through Reliable.</div></div></body></html>`
+}
+
 const defaultFormState = {
   name: '',
   description: '',
@@ -149,6 +179,7 @@ export default function Admin() {
   const [profile, setProfile] = useState<any>(null)
   const [isUpdatingStore, setIsUpdatingStore] = useState(false)
   const [assetActionLoading, setAssetActionLoading] = useState<'logo' | 'banner' | null>(null)
+  const [showEmailPreview, setShowEmailPreview] = useState(false)
   const [storeSettings, setStoreSettings] = useState({
     name: '',
     description: '',
@@ -1193,6 +1224,12 @@ export default function Admin() {
                     <div className="form-group">
                       <label>Customer Order Email Note</label>
                       <textarea rows={3} placeholder="Optional note to include in order-related emails from your store." value={storeSettings.customer_email_note} onChange={e => setStoreSettings({...storeSettings, customer_email_note: e.target.value})} />
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center', margin: '0 0 1rem' }}>
+                      <button type="button" className="btn-secondary" onClick={() => setShowEmailPreview(true)}>
+                        Preview Customer Email
+                      </button>
+                      <span style={{ color: '#6b7280', fontSize: '0.86rem' }}>Preview uses your current values and does not send an email.</span>
                     </div>
                     <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '10px', marginBottom: '1rem' }}>
                       <strong style={{ display: 'block', marginBottom: '0.6rem', color: '#1f2937' }}>Public Storefront Visibility</strong>
@@ -2514,6 +2551,26 @@ export default function Admin() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {showEmailPreview && (
+        <div role="dialog" aria-modal="true" aria-label="Customer email preview" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(15, 23, 42, 0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ width: 'min(720px, 100%)', height: 'min(88vh, 860px)', background: '#fff', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,.3)', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', padding: '0.9rem 1rem', borderBottom: '1px solid #e5e7eb' }}>
+              <div>
+                <strong style={{ color: '#1e3a8a' }}>Customer Order Email Preview</strong>
+                <div style={{ color: '#6b7280', fontSize: '0.82rem' }}>Private preview · no email will be sent</div>
+              </div>
+              <button type="button" className="btn-secondary" onClick={() => setShowEmailPreview(false)}>Close</button>
+            </div>
+            <iframe
+              title="Customer order email preview"
+              srcDoc={buildSellerEmailPreviewHtml(storeSettings, { ...formData, name: formData.name || 'Sample product' })}
+              style={{ flex: 1, width: '100%', border: 0, background: '#f5f5f5' }}
+              sandbox="allow-same-origin"
+            />
+          </div>
         </div>
       )}
     </div>
