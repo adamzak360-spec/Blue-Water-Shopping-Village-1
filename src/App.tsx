@@ -57,6 +57,7 @@ const ProductDetails = lazy(() => import('./pages/ProductDetails'))
 const BusinessStorefront = lazy(() => import('./pages/BusinessStorefront'))
 const StoresDirectory = lazy(() => import('./pages/StoresDirectory'))
 const Wishlist = lazy(() => import('./pages/Wishlist'))
+const ProductChat = lazy(() => import('./pages/ProductChat'))
 const SellerRegister = lazy(() => import('./pages/SellerRegister'))
 
 // Prefetch functions for near-instant transitions
@@ -232,6 +233,14 @@ function AppShell() {
             <Route path="/products" element={<Products />} />
             <Route path="/product/:productId" element={<ProductDetails />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route
+              path="/chat/product/:productId"
+              element={
+                <ProtectedRoute>
+                  <ProductChat />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/seller/register" element={<SellerRegister />} />

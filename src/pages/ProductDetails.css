@@ -1053,3 +1053,132 @@
   font-size: 1rem;
   padding: 0.5rem 1rem;
 }
+
+
+.chat-product-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid #0f766e;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #115e59;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chat-product-btn:hover:not(:disabled) {
+  background: #ccfbf1;
+}
+
+.chat-product-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.account-gate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.58);
+}
+
+.account-gate-card {
+  position: relative;
+  width: min(100%, 460px);
+  box-sizing: border-box;
+  padding: 32px;
+  border-radius: 18px;
+  background: #fff;
+  color: #0f172a;
+  text-align: center;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+}
+
+.account-gate-card > svg {
+  color: #0f766e;
+}
+
+.account-gate-card h2 {
+  margin: 18px 0 10px;
+  font-size: 1.35rem;
+  line-height: 1.35;
+}
+
+.account-gate-card p {
+  margin: 0 auto 24px;
+  max-width: 34rem;
+  color: #475569;
+  line-height: 1.55;
+}
+
+.account-gate-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.account-gate-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.account-gate-actions button {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 9px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-gate-actions .btn-primary {
+  border: 1px solid #0f766e;
+  background: #0f766e;
+  color: #fff;
+}
+
+.account-gate-actions .btn-secondary {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #0f172a;
+}
+
+@media (max-width: 640px) {
+  .action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .chat-product-btn,
+  .action-buttons .add-to-cart-btn,
+  .action-buttons .wishlist-btn,
+  .action-buttons > * {
+    min-width: 0;
+  }
+
+  .account-gate-card {
+    padding: 28px 20px 24px;
+  }
+
+  .account-gate-actions {
+    flex-direction: column;
+  }
+
+  .account-gate-actions button {
+    width: 100%;
+  }
+}

@@ -252,3 +252,73 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+.account-required-checkout {
+  min-height: 60vh;
+  display: grid;
+  place-items: center;
+}
+
+.account-required-card {
+  width: min(100%, 560px);
+  box-sizing: border-box;
+  padding: 36px;
+  border: 1px solid #dbe3ea;
+  border-radius: 18px;
+  background: #fff;
+  text-align: center;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.1);
+}
+
+.account-required-card h2 {
+  margin: 0 0 12px;
+  color: #12345b;
+}
+
+.account-required-card p {
+  margin: 0 auto 24px;
+  color: #526173;
+  line-height: 1.6;
+}
+
+.account-required-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.account-required-actions button {
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: 9px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-required-actions .btn-primary {
+  border: 1px solid #12345b;
+  background: #12345b;
+  color: #fff;
+}
+
+.account-required-actions .btn-secondary {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #12345b;
+}
+
+@media (max-width: 640px) {
+  .account-required-card {
+    padding: 28px 20px;
+  }
+
+  .account-required-actions {
+    flex-direction: column;
+  }
+
+  .account-required-actions button {
+    width: 100%;
+  }
+}

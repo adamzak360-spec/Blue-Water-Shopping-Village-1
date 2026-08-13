@@ -21,7 +21,7 @@ const DEFAULT_BUSINESS_ID = '00000000-0000-0000-0000-000000000001'
 
 export default function Checkout() {
   const { cart, cartSubtotal, clearCart } = useCart()
-  const { user } = useAuth()
+  const { user, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [paymentStep, setPaymentStep] = useState<'form' | 'payment' | 'verifying'>('form')
@@ -126,6 +126,23 @@ export default function Checkout() {
           <h2>Your cart is empty</h2>
           <p>Add some products to your cart before checking out.</p>
           <button className="btn-primary" onClick={() => navigate('/products')}>Browse Products</button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!authLoading && !user) {
+    return (
+      <div className="checkout-page account-required-checkout">
+        <div className="page-container">
+          <div className="account-required-card">
+            <h2>Create a customer account to continue.</h2>
+            <p>Sign in or create an account to keep your order history, delivery details, and notifications together.</p>
+            <div className="account-required-actions">
+              <button className="btn-primary" onClick={() => navigate(`/register?redirect=${encodeURIComponent('/checkout')}`)}>Create Customer Account</button>
+              <button className="btn-secondary" onClick={() => navigate(`/login?redirect=${encodeURIComponent('/checkout')}`)}>Login</button>
+            </div>
+          </div>
         </div>
       </div>
     )

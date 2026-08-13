@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import type { Business } from '../services/businessService'
 import { getProductById, getAllProducts, getProductVariants } from '../services/productService'
 import { getApprovedReviewsByProductId, submitReview, getProductRatingStats } from '../services/reviewService'
 import type { Product, Review, ProductVariant } from '../types'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 import { useWishlist } from '../context/WishlistContext'
 import { formatCurrency } from '../utils/currency'
-import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock, Heart, ZoomIn, Phone } from 'lucide-react'
+import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock, Heart, ZoomIn, Phone, MessageCircle } from 'lucide-react'
 import StockStatus from '../components/StockStatus'
 import ProductShare from '../components/ProductShare'
 import ProductCard from '../components/ProductCard'
@@ -18,7 +19,9 @@ import './ProductDetails.css'
 
 export default function ProductDetails() {
   const { productId } = useParams<{ productId: string }>()
+  const navigate = useNavigate()
   const { addToCart } = useCart()
+  const { user } = useAuth()
   const { isWishlisted, toggleWishlist } = useWishlist()
 
   const [product, setProduct] = useState<Product | null>(null)
@@ -41,6 +44,7 @@ export default function ProductDetails() {
   const [reviewMessage, setReviewMessage] = useState('')
   const [isSubmittingReview, setIsSubmittingReview] = useState(false)
   const [reviewSuccess, setReviewSuccess] = useState(false)
+  const [showChatGate, setShowChatGate] = useState(false)
 
 
 
@@ -68,7 +72,7 @@ export default function ProductDetails() {
         if (productData.business_id && supabase) {
           const { data: businessData } = await supabase
             .from('businesses')
-            .select('id, name, slug, verification_status')
+            .select('id, name, slug, owner_id, verification_status')
             .eq('id', productData.business_id)
             .maybeSingle()
           setSellerBusiness((businessData as Business | null) || null)
@@ -103,6 +107,15 @@ export default function ProductDetails() {
 
     loadProductAndReviews()
   }, [productId])
+
+  const handleChat = () => {
+    if (!product || !sellerBusiness) return
+    if (!user) {
+      setShowChatGate(true)
+      return
+    }
+    navigate(`/chat/product/${product.id}?business=${sellerBusiness.id}`)
+  }
 
   const handleAddToCart = () => {
     if (product?.has_sizes && selectedSizes.length === 0) {
@@ -473,6 +486,10 @@ export default function ProductDetails() {
 
           {/* Action Buttons */}
           <div className="action-buttons">
+            <button className="chat-product-btn" onClick={handleChat} disabled={!sellerBusiness}>
+              <MessageCircle size={20} />
+              Chat with Seller
+            </button>
             <button
               className="add-to-cart-btn"
               onClick={handleAddToCart}
@@ -545,6 +562,20 @@ export default function ProductDetails() {
         </div>
       )}
 
+      {showChatGate && (
+        <div className="account-gate-overlay" role="dialog" aria-modal="true" aria-labelledby="chat-gate-title">
+          <div className="account-gate-card">
+            <button className="account-gate-close" onClick={() => setShowChatGate(false)} aria-label="Close">×</button>
+            <MessageCircle size={34} aria-hidden="true" />
+            <h2 id="chat-gate-title">Create a customer account to chat with this seller.</h2>
+            <p>Your account keeps the conversation available across devices and lets you track replies.</p>
+            <div className="account-gate-actions">
+              <button className="btn-primary" onClick={() => navigate(`/register?redirect=${encodeURIComponent(`/chat/product/${product.id}?business=${sellerBusiness?.id || ''}`)}`)}>Create Customer Account</button>
+              <button className="btn-secondary" onClick={() => navigate(`/login?redirect=${encodeURIComponent(`/chat/product/${product.id}?business=${sellerBusiness?.id || ''}`)}`)}>Login</button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Related Products */}
       {relatedProducts.length > 0 && (
         <div className="related-products-section">
