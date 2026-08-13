@@ -95,25 +95,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    // Get initial session
-    supabase!.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      const u = session?.user ?? null
-      setUser(u)
-      fetchProfile(u).then(() => setIsLoading(false))
-    })
+    let active = true
 
-    // Listen for auth changes
+    const applySession = async (nextSession: Session | null) => {
+      if (!active) return
+      setSession(nextSession)
+      const nextUser = nextSession?.user ?? null
+      setUser(nextUser)
+      await fetchProfile(nextUser)
+    }
+
+    const initializeAuth = async () => {
+      try {
+        // Supabase normally exchanges the OAuth code automatically. Explicitly
+        // handle it as well so mobile browsers and installed PWAs do not render
+        // Login before the callback session has been established.
+        const callbackUrl = new URL(window.location.href)
+        const code = callbackUrl.searchParams.get('code')
+        if (code) {
+          const { error } = await supabase!.auth.exchangeCodeForSession(code)
+          if (error) {
+            console.error('Google OAuth callback exchange failed:', error)
+          } else {
+            callbackUrl.searchParams.delete('code')
+            callbackUrl.searchParams.delete('state')
+            window.history.replaceState({}, document.title, `${callbackUrl.pathname}${callbackUrl.search}${callbackUrl.hash}`)
+          }
+        }
+
+        const { data: { session }, error: sessionError } = await supabase!.auth.getSession()
+        if (sessionError) {
+          console.error('Unable to restore authentication session:', sessionError)
+        }
+        await applySession(session ?? null)
+      } catch (error) {
+        console.error('Authentication initialization failed:', error)
+        await applySession(null)
+      } finally {
+        if (active) setIsLoading(false)
+      }
+    }
+
     const {
       data: { subscription },
-    } = supabase!.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      const u = session?.user ?? null
-      setUser(u)
-      fetchProfile(u)
+    } = supabase!.auth.onAuthStateChange(async (_event, nextSession) => {
+      await applySession(nextSession)
+      if (active) setIsLoading(false)
     })
 
+    void initializeAuth()
+
     return () => {
+      active = false
       subscription.unsubscribe()
     }
   }, [])
