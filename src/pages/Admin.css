@@ -954,14 +954,19 @@ tr:hover td {
   body.printing-order-details > * { display: none !important; }
   body.printing-order-details > .order-print-root {
     display: block !important;
-    position: static !important;
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    box-sizing: border-box !important;
     width: 100% !important;
-    max-width: none !important;
+    max-width: 190mm !important;
+    margin: 0 auto !important;
+    padding: 0 5mm !important;
     max-height: none !important;
     min-height: 0 !important;
     height: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    margin: 0 auto !important;
+    padding: 0 5mm !important;
     overflow: visible !important;
     border: 0 !important;
     border-radius: 0 !important;
@@ -994,13 +999,16 @@ tr:hover td {
     border-radius: 4pt;
     background: #f8fafc;
   }
-  body.printing-order-details .detail-item { display: flex; align-items: flex-start; gap: 6pt; margin: 2pt 0; font-size: 8.5pt; }
-  body.printing-order-details .detail-label { min-width: 84pt; color: #475569; font-weight: 700; }
-  body.printing-order-details .detail-value { min-width: 0; overflow-wrap: anywhere; }
+  body.printing-order-details .detail-item { display: flex; align-items: flex-start; gap: 6pt; min-width: 0; margin: 2pt 0; font-size: 8.5pt; }
+  body.printing-order-details .detail-label { flex: 0 0 84pt; min-width: 0; color: #475569; font-weight: 700; }
+  body.printing-order-details .detail-value { flex: 1 1 auto; min-width: 0; max-width: 100%; overflow-wrap: anywhere; word-break: break-word; }
+  body.printing-order-details .details-card,
+  body.printing-order-details .order-items-list,
+  body.printing-order-details .order-items-list table { box-sizing: border-box; max-width: 100%; }
   body.printing-order-details .order-items-list { overflow: visible; }
   body.printing-order-details .order-items-list table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 7.5pt; }
   body.printing-order-details .order-items-list th,
-  body.printing-order-details .order-items-list td { padding: 3pt 3pt; vertical-align: top; border-bottom: 1px solid #dbe2ea; overflow-wrap: anywhere; }
+  body.printing-order-details .order-items-list td { padding: 3pt 3pt; vertical-align: top; border-bottom: 1px solid #dbe2ea; overflow-wrap: anywhere; word-break: break-word; }
   body.printing-order-details .order-items-list th { color: #123b68; background: #eef4fa; font-size: 7pt; text-transform: uppercase; letter-spacing: .01em; }
   body.printing-order-details .order-items-list th:nth-child(1), body.printing-order-details .order-items-list td:nth-child(1) { width: 11%; }
   body.printing-order-details .order-items-list th:nth-child(2), body.printing-order-details .order-items-list td:nth-child(2) { width: 30%; }
@@ -1013,7 +1021,7 @@ tr:hover td {
   body.printing-order-details .product-name { font-weight: 700; line-height: 1.15; }
   body.printing-order-details .product-variant-small { margin-top: 1pt; font-size: 7pt; color: #475569; }
   body.printing-order-details .product-id-small { display: none; }
-  body.printing-order-details .order-shop-cell { min-width: 0; color: #123b68; font-weight: 700; }
+  body.printing-order-details .order-shop-cell { min-width: 0; max-width: 100%; color: #123b68; font-weight: 700; overflow-wrap: anywhere; word-break: break-word; }
   body.printing-order-details .grand-total { font-size: 10pt; font-weight: 700; }
   body.printing-order-details .status-badge { border: 0; padding: 0; background: none; font-weight: 700; }
 }
