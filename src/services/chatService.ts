@@ -13,6 +13,13 @@ export interface ChatConversation {
   last_message_at: string | null
 }
 
+export interface ChatReaction {
+  message_id: string
+  user_id: string
+  reaction: string
+  created_at: string
+}
+
 export interface ChatMessage {
   id: string
   conversation_id: string
@@ -87,6 +94,39 @@ export async function sendChatMessage(input: {
   return data as ChatMessage
 }
 
+export async function listMessageReactions(messageIds: string[]) {
+  const client = ensureSupabase()
+  const ids = [...new Set(messageIds.filter(Boolean))]
+  if (ids.length === 0) return [] as ChatReaction[]
+  const { data, error } = await client
+    .from('chat_message_reactions')
+    .select('message_id, user_id, reaction, created_at')
+    .in('message_id', ids)
+  if (error) throw error
+  return (data || []) as ChatReaction[]
+}
+
+export async function toggleMessageReaction(messageId: string, userId: string, reaction: string) {
+  const client = ensureSupabase()
+  const { data: existing, error: lookupError } = await client
+    .from('chat_message_reactions')
+    .select('message_id')
+    .eq('message_id', messageId)
+    .eq('user_id', userId)
+    .eq('reaction', reaction)
+    .maybeSingle()
+  if (lookupError) throw lookupError
+  if (existing) {
+    const { error } = await client.from('chat_message_reactions').delete()
+      .eq('message_id', messageId).eq('user_id', userId).eq('reaction', reaction)
+    if (error) throw error
+    return false
+  }
+  const { error } = await client.from('chat_message_reactions').insert({ message_id: messageId, user_id: userId, reaction })
+  if (error) throw error
+  return true
+}
+
 export async function deleteChatMessage(messageId: string) {
   const client = ensureSupabase()
   const { error } = await client.rpc('delete_product_chat_message', { p_message_id: messageId })
@@ -102,6 +142,19 @@ export async function reportChatMessage(messageId: string, reporterId: string, r
     details: details?.trim() || null,
   })
   if (error) throw error
+}
+
+export function subscribeToMessageReactions(conversationId: string, onReaction: (reaction: ChatReaction, event: 'INSERT' | 'DELETE') => void) {
+  const client = ensureSupabase()
+  const channel = client
+    .channel(`product-chat-reactions-${conversationId}`)
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'chat_message_reactions',
+    }, payload => onReaction(payload.new as ChatReaction, payload.eventType as 'INSERT' | 'DELETE'))
+    .subscribe()
+  return () => { void client.removeChannel(channel) }
 }
 
 export function subscribeToConversation(conversationId: string, onMessage: (message: ChatMessage) => void) {

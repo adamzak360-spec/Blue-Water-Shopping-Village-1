@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Flag, MessageCircle, MoreVertical, Send, ShieldCheck, Trash2, Users } from 'lucide-react'
+import { ArrowLeft, Flag, MessageCircle, MoreVertical, Send, ShieldCheck, Smile, Trash2, Users } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../supabaseClient'
 import { getProductById } from '../services/productService'
@@ -10,10 +10,14 @@ import {
   getChatParticipantNames,
   getOrCreatePublicProductConversation,
   listConversationMessages,
+  listMessageReactions,
   reportChatMessage,
   sendChatMessage,
   subscribeToConversation,
+  subscribeToMessageReactions,
+  toggleMessageReaction,
   type ChatMessage,
+  type ChatReaction,
 } from '../services/chatService'
 import './ProductChat.css'
 
@@ -28,6 +32,8 @@ export default function ProductChat() {
   const [conversationId, setConversationId] = useState('')
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [senderNames, setSenderNames] = useState<Record<string, string>>({})
+  const [reactions, setReactions] = useState<ChatReaction[]>([])
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [draft, setDraft] = useState('')
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null)
   const [menuMessageId, setMenuMessageId] = useState<string | null>(null)
@@ -62,6 +68,7 @@ export default function ProductChat() {
         setConversationId(conversation.id)
         const loadedMessages = await listConversationMessages(conversation.id)
         setMessages(loadedMessages)
+        setReactions(await listMessageReactions(loadedMessages.map(message => message.id)))
         setSenderNames(await getChatParticipantNames(loadedMessages.map(message => message.sender_id)))
       } catch (err) {
         if (active) setError(err instanceof Error ? err.message : 'Unable to load this product discussion.')
@@ -75,6 +82,15 @@ export default function ProductChat() {
 
   useEffect(() => {
     if (!conversationId) return
+    return subscribeToMessageReactions(conversationId, (incoming, event) => {
+      setReactions(previous => event === 'INSERT'
+        ? previous.some(item => item.message_id === incoming.message_id && item.user_id === incoming.user_id && item.reaction === incoming.reaction) ? previous : [...previous, incoming]
+        : previous.filter(item => !(item.message_id === incoming.message_id && item.user_id === incoming.user_id && item.reaction === incoming.reaction)))
+    })
+  }, [conversationId])
+
+  useEffect(() => {
+    if (!conversationId) return
     return subscribeToConversation(conversationId, incoming => {
       setMessages(previous => previous.some(message => message.id === incoming.id) ? previous : [...previous, incoming])
       void getChatParticipantNames([incoming.sender_id]).then(names => setSenderNames(previous => ({ ...previous, ...names })))
@@ -82,6 +98,24 @@ export default function ProductChat() {
   }, [conversationId])
 
   const participantLabel = useMemo(() => `${sellerName} and the Reliable community`, [sellerName])
+  const quickEmojis = ['👍', '❤️', '😂', '😮', '😢', '🎉']
+
+  const insertEmoji = (emoji: string) => {
+    setDraft(previous => `${previous}${emoji}`)
+    setShowEmojiPicker(false)
+  }
+
+  const handleReaction = async (message: ChatMessage, reaction: string) => {
+    if (!user) { requireAccount(); return }
+    try {
+      const added = await toggleMessageReaction(message.id, user.id, reaction)
+      setReactions(previous => added
+        ? [...previous, { message_id: message.id, user_id: user.id, reaction, created_at: new Date().toISOString() }]
+        : previous.filter(item => !(item.message_id === message.id && item.user_id === user.id && item.reaction === reaction)))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Reaction could not be saved.')
+    }
+  }
 
   const requireAccount = () => {
     setError('Sign in or create an account to join this public discussion.')
@@ -192,6 +226,14 @@ export default function ProductChat() {
                   </div>
                 )}
                 <p>{message.body}</p>
+                {reactions.filter(reaction => reaction.message_id === message.id).length > 0 && (
+                  <div className="chat-reaction-list" aria-label="Message reactions">
+                    {quickEmojis.map(reaction => {
+                      const count = reactions.filter(item => item.message_id === message.id && item.reaction === reaction).length
+                      return count > 0 ? <button key={reaction} className="chat-reaction-pill" onClick={() => void handleReaction(message, reaction)}>{reaction} {count}</button> : null
+                    })}
+                  </div>
+                )}
                 <time>{new Date(message.created_at).toLocaleString()}</time>
                 <button className="chat-message-menu-btn" onClick={() => setMenuMessageId(menuMessageId === message.id ? null : message.id)} aria-label="Message actions"><MoreVertical size={16} /></button>
                 {menuMessageId === message.id && (
@@ -199,6 +241,9 @@ export default function ProductChat() {
                     {canDelete && <button onClick={() => void handleDelete(message)}><Trash2 size={14} /> Delete</button>}
                     {!mine && <button onClick={() => void handleReport(message)}><Flag size={14} /> Report</button>}
                     <button onClick={() => { setReplyTo(message); setMenuMessageId(null) }}><MessageCircle size={14} /> Reply</button>
+                    <div className="chat-quick-reactions" aria-label="Add reaction">
+                      {quickEmojis.map(reaction => <button key={reaction} onClick={() => void handleReaction(message, reaction)} aria-label={`React ${reaction}`}>{reaction}</button>)}
+                    </div>
                   </div>
                 )}
               </div>
@@ -211,9 +256,11 @@ export default function ProductChat() {
         {error && <div className="chat-error">{error}</div>}
         {replyTo && <div className="chat-reply-preview">Replying to: {replyTo.body.slice(0, 90)} <button onClick={() => setReplyTo(null)}>Cancel</button></div>}
         <div className="chat-input-row">
+          <button className="chat-emoji-button" onClick={() => setShowEmojiPicker(previous => !previous)} aria-label="Choose emoji"><Smile size={20} /></button>
           <textarea value={draft} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void handleSend() } }} placeholder={user ? 'Join the public discussion' : 'Sign in to join the discussion'} rows={1} maxLength={2000} />
           <button onClick={() => void handleSend()} disabled={!draft.trim() || sending} aria-label="Send message"><Send size={20} /></button>
         </div>
+        {showEmojiPicker && <div className="chat-emoji-picker" aria-label="Emoji picker">{quickEmojis.concat(['😊', '😍', '👏', '🔥', '🙏', '💯']).map(emoji => <button key={emoji} onClick={() => insertEmoji(emoji)}>{emoji}</button>)}</div>}
         <p className="chat-compose-help">Everyone can read this product discussion. Sign in to post, reply, report, or delete your own message.</p>
         <Link to={`/product/${productId}`} className="chat-product-link">Back to product</Link>
       </footer>

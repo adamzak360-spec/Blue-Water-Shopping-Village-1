@@ -161,3 +161,69 @@
 @media (max-width: 640px) {
   .chat-quoted-message { max-width: 100%; }
 }
+
+.chat-emoji-button {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  background: #e6fffb;
+  color: #0f766e;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.chat-emoji-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 7px 0 0 2px;
+  padding: 8px;
+  max-width: 330px;
+  border: 1px solid #d8eeee;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(15, 55, 80, 0.12);
+}
+.chat-emoji-picker button,
+.chat-quick-reactions button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 5px;
+  border-radius: 8px;
+}
+.chat-emoji-picker button:hover,
+.chat-quick-reactions button:hover { background: #e6fffb; }
+.chat-quick-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: 7px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(15, 118, 110, 0.14);
+}
+.chat-quick-reactions button { font-size: 1rem; }
+.chat-reaction-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 7px;
+}
+.chat-reaction-pill {
+  border: 1px solid rgba(15, 118, 110, 0.24);
+  border-radius: 999px;
+  padding: 3px 7px;
+  background: #f0fdfa;
+  color: #0f766e;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.chat-message.mine .chat-reaction-pill { background: rgba(255, 255, 255, 0.18); color: #fff; border-color: rgba(255, 255, 255, 0.3); }
+@media (max-width: 640px) {
+  .chat-emoji-button { flex-basis: 38px; width: 38px; height: 38px; }
+  .chat-emoji-picker { max-width: calc(100vw - 42px); }
+}
