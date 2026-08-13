@@ -7,7 +7,7 @@ import { IdentityVerificationForm } from '../components/IdentityVerificationForm
 import './CustomerProfile.css'
 
 export default function CustomerProfile() {
-  const { user } = useAuth()
+  const { user, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [profile, setProfile] = useState<CustomerProfileType | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -23,6 +23,7 @@ export default function CustomerProfile() {
   })
 
   useEffect(() => {
+    if (authLoading) return
     if (!user) {
       navigate('/login')
       return
@@ -52,7 +53,7 @@ export default function CustomerProfile() {
     }
 
     loadProfile()
-  }, [user, navigate])
+  }, [user, authLoading, navigate])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target

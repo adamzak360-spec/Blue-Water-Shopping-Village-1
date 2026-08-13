@@ -9,7 +9,7 @@ import { formatCurrency } from '../utils/currency'
 import './CustomerDashboard.css'
 
 export default function CustomerDashboard() {
-  const { user, signOut, isAdmin, role } = useAuth()
+  const { user, signOut, isAdmin, role, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [profile, setProfile] = useState<CustomerProfile | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
@@ -17,6 +17,7 @@ export default function CustomerDashboard() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (authLoading) return
     if (!user) {
       navigate('/login')
       return
@@ -77,7 +78,7 @@ export default function CustomerDashboard() {
         supabase!.removeChannel(subscription)
       }
     }
-  }, [user, navigate])
+  }, [user, authLoading, navigate])
 
   const handleLogout = async () => {
     const { error } = await signOut()

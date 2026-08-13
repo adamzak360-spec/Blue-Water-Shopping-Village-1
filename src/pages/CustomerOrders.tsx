@@ -8,7 +8,7 @@ import { formatCurrency } from '../utils/currency'
 import './CustomerOrders.css'
 
 export default function CustomerOrders() {
-  const { user } = useAuth()
+  const { user, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -17,6 +17,7 @@ export default function CustomerOrders() {
   const [filterStatus, setFilterStatus] = useState<string>('all')
 
   useEffect(() => {
+    if (authLoading) return
     if (!user) {
       navigate('/login')
       return
@@ -71,7 +72,7 @@ export default function CustomerOrders() {
         supabase!.removeChannel(subscription)
       }
     }
-  }, [user, navigate])
+  }, [user, authLoading, navigate])
 
   const filteredOrders = orders.filter(order => {
     if (filterStatus === 'all') return true
