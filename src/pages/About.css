@@ -102,7 +102,8 @@
 .about-goal {
   background: #F8F9FA;
   padding: 3.5rem 1.5rem;
-  margin: 0 -1.5rem;
+  margin: 0;
+  border-radius: 12px;
 }
 
 .section-header {
@@ -514,8 +515,8 @@
   }
 
   .about-goal {
-    padding: 2.5rem 1rem;
-    margin: 0 -1rem;
+    padding: 2.5rem 1.5rem;
+    margin: 0;
   }
 
   .section-header h2 {
