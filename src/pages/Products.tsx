@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { getAllProducts } from '../services/productService'
 import { getMarketplaceProductCountVisibility } from '../services/businessService'
 import { shuffle } from '../utils/shuffle'
-import { getActivePromotedProductIds } from '../services/promotionService'
+import { getActivePromotedProducts, type ActivePromotedProduct } from '../services/promotionService'
 import type { Product } from '../types'
 import ProductCard from '../components/ProductCard'
 import { ArrowRight, Search, X } from 'lucide-react'
@@ -26,7 +26,7 @@ export default function Products() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isSticky, setIsSticky] = useState(false)
   const [showProductCount, setShowProductCount] = useState(false)
-  const [promotedProductIds, setPromotedProductIds] = useState<string[]>([])
+  const [activePromotions, setActivePromotions] = useState<ActivePromotedProduct[]>([])
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -51,10 +51,10 @@ export default function Products() {
         const [data, shouldShowProductCount, activePromotionIds] = await Promise.all([
           getAllProducts(),
           getMarketplaceProductCountVisibility(),
-          getActivePromotedProductIds(),
+          getActivePromotedProducts(),
         ])
         setShowProductCount(shouldShowProductCount)
-        setPromotedProductIds(activePromotionIds)
+        setActivePromotions(activePromotionIds)
         const rotatedProducts = shuffle(data)
         setProducts(rotatedProducts)
         setFilteredProducts(rotatedProducts.filter(p => p.status === 'active'))
@@ -88,7 +88,8 @@ export default function Products() {
 
   const categories = [...new Set(products.map(p => p.category))].sort()
   const activeCount = products.filter(p => p.status === 'active').length
-  const promotedProductIdSet = new Set(promotedProductIds)
+  const promotedProductIdSet = new Set(activePromotions.map(promotion => promotion.productId))
+  const promotionIdByProductId = new Map(activePromotions.map(promotion => [promotion.productId, promotion.promotionId]))
   const promotedProducts = filteredProducts.filter(product => promotedProductIdSet.has(product.id))
   const organicFilteredProducts = filteredProducts.filter(product => !promotedProductIdSet.has(product.id))
 
@@ -316,7 +317,7 @@ export default function Products() {
                 </div>
                 <div className="products-grid sponsored-products-grid">
                   {promotedProducts.map(product => (
-                    <ProductCard key={product.id} product={product} isSponsored />
+                    <ProductCard key={product.id} product={product} isSponsored promotionId={promotionIdByProductId.get(product.id)} />
                   ))}
                 </div>
               </section>

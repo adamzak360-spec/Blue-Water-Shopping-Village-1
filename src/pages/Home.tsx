@@ -3,7 +3,7 @@ import { supabase, isSupabaseConfigured } from '../supabaseClient'
 import { validateEmail } from '../utils/validation'
 import { getAllProducts } from '../services/productService'
 import { shuffle } from '../utils/shuffle'
-import { getActivePromotedProductIds } from '../services/promotionService'
+import { getActivePromotedProducts, type ActivePromotedProduct } from '../services/promotionService'
 import type { Product } from '../types'
 import { Link } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
@@ -81,7 +81,7 @@ export default function Home() {
   const [newsUpdates, setNewsUpdates] = useState<NewsUpdate[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [currentBanner, setCurrentBanner] = useState(0)
-  const [promotedProductIds, setPromotedProductIds] = useState<string[]>([])
+  const [activePromotions, setActivePromotions] = useState<ActivePromotedProduct[]>([])
   
   const scrollRefs = {
     trending: useRef<HTMLDivElement>(null),
@@ -94,12 +94,12 @@ export default function Home() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [data, activePromotionIds] = await Promise.all([
+        const [data, activePromotionData] = await Promise.all([
           getAllProducts(),
-          getActivePromotedProductIds(),
+          getActivePromotedProducts(),
         ])
         setAllProducts(shuffle(data))
-        setPromotedProductIds(activePromotionIds)
+        setActivePromotions(activePromotionData)
         if (isSupabaseConfigured && supabase) {
           const { data: updates, error: updatesError } = await supabase
             .from('news_updates')
@@ -127,7 +127,8 @@ export default function Home() {
   }, [])
 
   const activeProducts = allProducts.filter(p => p.status === 'active')
-  const promotedProductIdSet = new Set(promotedProductIds)
+  const promotedProductIdSet = new Set(activePromotions.map(promotion => promotion.productId))
+  const promotionIdByProductId = new Map(activePromotions.map(promotion => [promotion.productId, promotion.promotionId]))
   const promotedProducts = shuffle(activeProducts.filter(product => promotedProductIdSet.has(product.id)))
   const organicProducts = activeProducts.filter(product => !promotedProductIdSet.has(product.id))
   
@@ -286,6 +287,7 @@ export default function Home() {
           onScroll={(dir) => scroll(scrollRefs.sponsored, dir)}
           isLoading={isLoading}
           isSponsored
+          promotionIdByProductId={promotionIdByProductId}
           className="sponsored-products-section"
         />
       )}
@@ -428,9 +430,10 @@ interface ProductSectionProps {
   isLoading: boolean
   className?: string
   isSponsored?: boolean
+  promotionIdByProductId?: Map<string, string>
 }
 
-function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading, className = '', isSponsored = false }: ProductSectionProps) {
+function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading, className = '', isSponsored = false, promotionIdByProductId }: ProductSectionProps) {
   if (!isLoading && products.length === 0) return null
 
   return (
@@ -453,7 +456,11 @@ function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading,
           ) : (
               products.map(product => (
                 <div key={product.id} className="horizontal-product-wrapper">
-                  <ProductCard product={product} isSponsored={isSponsored} />
+                  <ProductCard
+                    product={product}
+                    isSponsored={isSponsored}
+                    promotionId={isSponsored ? promotionIdByProductId?.get(product.id) : undefined}
+                  />
               </div>
             ))
           )}

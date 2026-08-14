@@ -7,3 +7,94 @@
 .seller-promotion-note { color: #475569; margin-bottom: 0; }
 .seller-promotion-message { color: #0f766e; font-weight: 700; }
 @media (max-width: 620px) { .seller-promotions { padding: .75rem .4rem; } .seller-promotion-grid { grid-template-columns: 1fr; } }
+
+.seller-promotion-report {
+  max-width: 900px;
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  border: 1px solid #dbe4ee;
+  border-radius: 1rem;
+  background: #f8fafc;
+}
+
+.seller-promotion-report-heading h3 {
+  margin: 0 0 .25rem;
+  color: #0f172a;
+}
+
+.seller-promotion-report-heading p,
+.seller-promotion-empty,
+.seller-promotion-report-item > p {
+  margin: 0;
+  color: #64748b;
+  font-size: .9rem;
+}
+
+.seller-promotion-report-list {
+  display: grid;
+  gap: .8rem;
+  margin-top: 1rem;
+}
+
+.seller-promotion-report-item {
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: .75rem;
+  background: #fff;
+}
+
+.seller-promotion-report-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: .85rem;
+}
+
+.seller-promotion-status {
+  padding: .2rem .55rem;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: .72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.seller-promotion-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .65rem;
+}
+
+.seller-promotion-metrics > div {
+  padding: .75rem;
+  border-radius: .6rem;
+  background: #f1f5f9;
+}
+
+.seller-promotion-metrics strong,
+.seller-promotion-metrics span {
+  display: block;
+}
+
+.seller-promotion-metrics strong {
+  color: #0f172a;
+  font-size: 1.25rem;
+}
+
+.seller-promotion-metrics span {
+  margin-top: .2rem;
+  color: #64748b;
+  font-size: .78rem;
+}
+
+.seller-promotion-report-item > p {
+  margin-top: .75rem;
+}
+
+@media (max-width: 620px) {
+  .seller-promotion-metrics {
+    grid-template-columns: 1fr;
+  }
+}

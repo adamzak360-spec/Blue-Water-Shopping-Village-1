@@ -1,19 +1,26 @@
 import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
 import { Heart } from 'lucide-react'
 import type { Product } from '../types'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import { formatCurrency } from '../utils/currency'
 import StockStatus from './StockStatus'
+import { recordPromotionClick, recordPromotionImpression } from '../services/promotionService'
 
 interface ProductCardProps {
   product: Product
   showStock?: boolean
   isSponsored?: boolean
+  promotionId?: string
 }
 
-export default function ProductCard({ product, showStock = true, isSponsored = false }: ProductCardProps) {
+export default function ProductCard({ product, showStock = true, isSponsored = false, promotionId }: ProductCardProps) {
   const { addToCart } = useCart()
+
+  useEffect(() => {
+    if (isSponsored && promotionId) void recordPromotionImpression(promotionId)
+  }, [isSponsored, promotionId])
   const { isWishlisted, toggleWishlist } = useWishlist()
   const saved = isWishlisted(product.id)
 
@@ -58,7 +65,13 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
       <div className="product-info">
         {isSponsored && <span className="product-sponsored-badge">Sponsored</span>}
         <span className="product-category">{product.category}</span>
-        <Link to={`/product/${product.id}`} className="product-name-link">
+        <Link
+          to={`/product/${product.id}`}
+          className="product-name-link"
+          onClick={() => {
+            if (isSponsored && promotionId) void recordPromotionClick(promotionId)
+          }}
+        >
           <h4 className="product-name">{product.name}</h4>
         </Link>
         <p className="product-description">{product.description}</p>
