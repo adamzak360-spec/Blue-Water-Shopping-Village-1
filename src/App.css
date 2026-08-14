@@ -393,7 +393,7 @@
   inset: 0;
   display: grid;
   place-items: center;
-  background: #032D61;
+  background: var(--brand-background, #000000);
   z-index: 9999;
 }
 

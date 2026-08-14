@@ -80,6 +80,33 @@ const addCacheBuster = (url: string) => {
   return `${url}${separator}v=${Date.now()}`
 }
 
+const getImageBackgroundColor = (url: string) => new Promise<string>((resolve) => {
+  const image = new Image()
+  image.crossOrigin = 'anonymous'
+  image.onload = () => {
+    try {
+      const canvas = document.createElement('canvas')
+      canvas.width = 2
+      canvas.height = 2
+      const context = canvas.getContext('2d')
+      if (!context) return resolve('#000000')
+      context.drawImage(image, 0, 0, 2, 2)
+      const pixels = context.getImageData(0, 0, 2, 2).data
+      const rgb = [0, 0, 0]
+      for (let index = 0; index < pixels.length; index += 4) {
+        rgb[0] += pixels[index]
+        rgb[1] += pixels[index + 1]
+        rgb[2] += pixels[index + 2]
+      }
+      resolve(`#${rgb.map((channel) => Math.round(channel / 4).toString(16).padStart(2, '0')).join('')}`)
+    } catch {
+      resolve('#000000')
+    }
+  }
+  image.onerror = () => resolve('#000000')
+  image.src = url
+})
+
 function App() {
   return <AppShell />
 }
@@ -133,14 +160,25 @@ function AppShell() {
   }, [])
 
   useEffect(() => {
+    let cancelled = false
     const links = Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"], link[rel="apple-touch-icon"]'))
     links.forEach((link) => {
       link.href = marketplaceFaviconUrl
     })
 
-    const manifestLink = document.querySelector<HTMLLinkElement>('link[rel="manifest"]')
-    if (manifestLink) {
-      manifestLink.href = `/api/manifest?v=${Date.now()}`
+    getImageBackgroundColor(marketplaceFaviconUrl).then((backgroundColor) => {
+      if (cancelled) return
+      document.documentElement.style.setProperty('--brand-background', backgroundColor)
+      const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+      if (themeColor) themeColor.content = backgroundColor
+      const manifestLink = document.querySelector<HTMLLinkElement>('link[rel="manifest"]')
+      if (manifestLink) {
+        manifestLink.href = `/api/manifest?bg=${encodeURIComponent(backgroundColor)}&v=${Date.now()}`
+      }
+    })
+
+    return () => {
+      cancelled = true
     }
   }, [marketplaceFaviconUrl])
 

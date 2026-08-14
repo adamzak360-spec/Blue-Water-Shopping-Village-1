@@ -9,8 +9,10 @@ function getSupabase() {
   return url && key ? createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } }) : null
 }
 
-module.exports = async function handler(_req, res) {
+module.exports = async function handler(req, res) {
   let icon = DEFAULT_ICON
+  const requestedBackground = typeof req?.query?.bg === 'string' ? req.query.bg : ''
+  const backgroundColor = /^#[0-9a-fA-F]{6}$/.test(requestedBackground) ? requestedBackground : '#000000'
 
   try {
     const supabase = getSupabase()
@@ -37,8 +39,8 @@ module.exports = async function handler(_req, res) {
     scope: '/',
     display: 'standalone',
     orientation: 'portrait-primary',
-    theme_color: '#032D61',
-    background_color: '#032D61',
+    theme_color: backgroundColor,
+    background_color: backgroundColor,
     icons: [
       { src: icon, sizes: '192x192', type: 'image/png', purpose: 'any' },
       { src: icon, sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
