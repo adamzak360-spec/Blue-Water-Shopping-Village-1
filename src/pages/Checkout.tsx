@@ -201,6 +201,9 @@ export default function Checkout() {
           delivery_area: selectedDeliveryMethod?.coverage_area || undefined,
           delivery_currency: selectedDeliveryMethod?.currency_code || currency,
           paystack_public_key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+          payment_provider: 'paystack',
+          payment_country: 'GH',
+          payment_currency: currency,
         }
       })
 
@@ -271,6 +274,13 @@ export default function Checkout() {
           payment_status: 'paid' as const,
           payment_method: 'paystack',
           paystack_reference: paymentReference,
+          payment_provider: 'paystack',
+          provider_reference: paymentReference,
+          provider_transaction_id: verification.data.id.toString(),
+          payment_metadata: {
+            international_payments_enabled: true,
+            settlement_currency: String(verification.data.currency || cart[0]?.currency || 'GHS').toUpperCase(),
+          },
           business_id: checkoutBusinessId,
           source: 'ONLINE',
           amount_paid: verification.data.amount / 100, // Convert from kobo
@@ -348,6 +358,12 @@ export default function Checkout() {
             payment_status: 'failed' as const,
             payment_method: 'paystack',
             paystack_reference: paymentReference,
+            payment_provider: 'paystack',
+            provider_reference: paymentReference,
+            payment_metadata: {
+              payment_attempt_status: 'failed',
+              international_payments_enabled: true,
+            },
             business_id: checkoutBusinessId,
             source: 'ONLINE',
           }

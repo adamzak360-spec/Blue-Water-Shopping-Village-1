@@ -223,6 +223,10 @@ export interface Order {
   payment_status: 'pending' | 'paid' | 'failed'
   payment_method?: string
   paystack_reference?: string
+  payment_provider?: 'paystack' | 'flutterwave' | 'stripe' | 'paypal' | string
+  provider_reference?: string
+  provider_transaction_id?: string
+  payment_metadata?: Record<string, unknown>
   amount_paid?: number
   payment_date?: string
   paid_at?: string
