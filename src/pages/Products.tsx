@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getAllProducts } from '../services/productService'
 import { getMarketplaceProductCountVisibility } from '../services/businessService'
+import { shuffle } from '../utils/shuffle'
 import type { Product } from '../types'
 import ProductCard from '../components/ProductCard'
 import { ArrowRight, Search, X } from 'lucide-react'
@@ -50,8 +51,9 @@ export default function Products() {
           getMarketplaceProductCountVisibility(),
         ])
         setShowProductCount(shouldShowProductCount)
-        setProducts(data)
-        setFilteredProducts(data.filter(p => p.status === 'active'))
+        const rotatedProducts = shuffle(data)
+        setProducts(rotatedProducts)
+        setFilteredProducts(rotatedProducts.filter(p => p.status === 'active'))
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load products')
       } finally {

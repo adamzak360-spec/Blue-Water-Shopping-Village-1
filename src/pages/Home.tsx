@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase, isSupabaseConfigured } from '../supabaseClient'
 import { validateEmail } from '../utils/validation'
 import { getAllProducts } from '../services/productService'
+import { shuffle } from '../utils/shuffle'
 import type { Product } from '../types'
 import { Link } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
@@ -91,7 +92,7 @@ export default function Home() {
     const load = async () => {
       try {
         const data = await getAllProducts()
-        setAllProducts(data)
+        setAllProducts(shuffle(data))
         if (isSupabaseConfigured && supabase) {
           const { data: updates, error: updatesError } = await supabase
             .from('news_updates')
