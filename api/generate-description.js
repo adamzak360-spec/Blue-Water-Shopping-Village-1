@@ -94,17 +94,19 @@ module.exports = async (req, res) => {
 
     if (!input.name || !input.category) return res.status(400).json({ error: 'Product name and category are required.' });
 
-    const forgeUrl = process.env.BUILT_IN_FORGE_API_URL;
-    const forgeKey = process.env.BUILT_IN_FORGE_API_KEY;
-    if (!forgeUrl || !forgeKey) {
+    // Keep the provider credential server-side. Vercel injects OPENAI_API_KEY
+    // into this function; it must never be exposed through VITE_* variables.
+    const apiKey = process.env.OPENAI_API_KEY || process.env.BUILT_IN_FORGE_API_KEY;
+    const apiBaseUrl = (process.env.OPENAI_BASE_URL || process.env.BUILT_IN_FORGE_API_URL || 'https://api.openai.com/v1').replace(/\/$/, '');
+    if (!apiKey) {
       return res.status(503).json({ error: 'Reliable AI is not configured on this deployment yet.' });
     }
 
-    const completion = await fetch(`${forgeUrl.replace(/\/$/, '')}/v1/chat/completions`, {
+    const completion = await fetch(`${apiBaseUrl}/chat/completions`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${forgeKey}`, 'Content-Type': 'application/json' },
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: process.env.RELIABLE_AI_MODEL || 'gpt-5-mini',
+        model: process.env.RELIABLE_AI_MODEL || 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
