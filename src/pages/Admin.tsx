@@ -204,6 +204,7 @@ export default function Admin() {
     show_contact_phone_public: false,
     show_location_public: false,
     show_delivery_info_public: false,
+    show_product_count: false,
   })
   const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([])
   const [subscriptionPlansLoading, setSubscriptionPlansLoading] = useState(false)
@@ -263,6 +264,7 @@ export default function Admin() {
             show_contact_phone_public: Boolean(b.show_contact_phone_public),
             show_location_public: Boolean(b.show_location_public),
             show_delivery_info_public: Boolean(b.show_delivery_info_public),
+            show_product_count: Boolean(b.show_product_count),
           })
         }
       } catch (err) {
@@ -1265,7 +1267,13 @@ export default function Admin() {
                       <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}><input type="checkbox" checked={storeSettings.show_contact_email_public} onChange={e => setStoreSettings({...storeSettings, show_contact_email_public: e.target.checked})} /> Show contact email publicly</label>
                       <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}><input type="checkbox" checked={storeSettings.show_contact_phone_public} onChange={e => setStoreSettings({...storeSettings, show_contact_phone_public: e.target.checked})} /> Show contact phone publicly</label>
                       <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}><input type="checkbox" checked={storeSettings.show_location_public} onChange={e => setStoreSettings({...storeSettings, show_location_public: e.target.checked})} /> Show location publicly</label>
-                      <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}><input type="checkbox" checked={storeSettings.show_delivery_info_public} onChange={e => setStoreSettings({...storeSettings, show_delivery_info_public: e.target.checked})} /> Show delivery and pickup information publicly</label>
+                      <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}><input type="checkbox" checked={storeSettings.show_delivery_info_public} onChange={e => setStoreSettings({...storeSettings, show_delivery_info_public: e.target.checked})} /> Show delivery and pickup information publicly</label>
+                      {role === 'admin' && (
+                        <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <input type="checkbox" checked={storeSettings.show_product_count} onChange={e => setStoreSettings({...storeSettings, show_product_count: e.target.checked})} />
+                          Show product count on the public Products page
+                        </label>
+                      )}
                     </div>
                   </div>
                   <div id="social-media-settings" className="social-settings-section" style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid #e5e7eb', scrollMarginTop: '1rem' }}>

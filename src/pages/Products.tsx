@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getAllProducts } from '../services/productService'
+import { getMarketplaceProductCountVisibility } from '../services/businessService'
 import type { Product } from '../types'
 import ProductCard from '../components/ProductCard'
 import { ArrowRight, Search, X } from 'lucide-react'
@@ -22,6 +23,7 @@ export default function Products() {
   const [recentSearches, setRecentSearches] = useState<string[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isSticky, setIsSticky] = useState(false)
+  const [showProductCount, setShowProductCount] = useState(false)
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -43,7 +45,11 @@ export default function Products() {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const data = await getAllProducts()
+        const [data, shouldShowProductCount] = await Promise.all([
+          getAllProducts(),
+          getMarketplaceProductCountVisibility(),
+        ])
+        setShowProductCount(shouldShowProductCount)
         setProducts(data)
         setFilteredProducts(data.filter(p => p.status === 'active'))
       } catch (err) {
@@ -185,10 +191,12 @@ export default function Products() {
           {/* Page Header */}
           <div className="products-header">
             <h1>Our Products</h1>
-            <p className="products-subtitle">
-              {activeCount} product{activeCount !== 1 ? 's' : ''} available
-              {showAll && ` (showing ${products.length} total, including inactive)`}
-            </p>
+            {showProductCount && (
+              <p className="products-subtitle">
+                {activeCount} product{activeCount !== 1 ? 's' : ''} available
+                {showAll && ` (showing ${products.length} total, including inactive)`}
+              </p>
+            )}
           </div>
 
         {/* Search & Filter */}
@@ -283,9 +291,11 @@ export default function Products() {
           </div>
         ) : (
           <>
-            <div className="results-info">
-              Showing {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
-            </div>
+            {showProductCount && (
+              <div className="results-info">
+                Showing {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
+              </div>
+            )}
             <div className="products-browse-sections">
               {productSections.map((section, sectionIndex) => (
                 section.type === 'grid' ? (
@@ -298,11 +308,12 @@ export default function Products() {
                   <section className="products-horizontal-section" key={`horizontal-${sectionIndex}`} aria-label="More products">
                     <div className="products-horizontal-header">
                       <span className="products-horizontal-label">More products</span>
-                      <span className="products-horizontal-hint" aria-hidden="true">
-                        Swipe to explore <ArrowRight size={16} strokeWidth={2.25} />
+                      <span className="products-horizontal-hint" role="note">
+                        <span className="products-horizontal-hint-label">Swipe left to see more</span>
+                        <ArrowRight size={18} strokeWidth={2.5} aria-hidden="true" />
                       </span>
                     </div>
-                    <div className="products-horizontal-scroll">
+                    <div className="products-horizontal-scroll" tabIndex={0} aria-label="More products. Swipe left or scroll horizontally to see more products.">
                       {section.products.map(product => (
                         <div className="products-horizontal-item" key={product.id}>
                           <ProductCard product={product} />

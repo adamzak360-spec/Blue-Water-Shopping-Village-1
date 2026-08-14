@@ -42,6 +42,7 @@ export interface Business {
   show_contact_phone_public?: boolean
   show_location_public?: boolean
   show_delivery_info_public?: boolean
+  show_product_count?: boolean
   created_at: string
   updated_at: string
 }
@@ -120,6 +121,25 @@ export async function getBusinessByOwner(userId: string): Promise<Business | nul
   }
 
   return data[0] as Business
+}
+
+const DEFAULT_MARKETPLACE_ID = '00000000-0000-0000-0000-000000000001'
+
+export async function getMarketplaceProductCountVisibility(): Promise<boolean> {
+  if (!isSupabaseConfigured || !supabase) return false
+
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('show_product_count')
+    .eq('id', DEFAULT_MARKETPLACE_ID)
+    .maybeSingle()
+
+  if (error) {
+    console.error('Error fetching marketplace product-count visibility:', error)
+    return false
+  }
+
+  return Boolean(data?.show_product_count)
 }
 
 export async function getPublicBusinesses(searchTerm = '', category = ''): Promise<Business[]> {
