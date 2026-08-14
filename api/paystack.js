@@ -104,6 +104,12 @@ module.exports = async (req, res) => {
         const productId = metadata.product_id ? String(metadata.product_id) : null;
         const planId = String(metadata.plan_id || '');
         const promotionType = String(metadata.promotion_type || '');
+        const targetCategories = Array.isArray(metadata.target_categories)
+          ? metadata.target_categories.map(value => String(value).trim()).filter(Boolean).slice(0, 20)
+          : [];
+        const targetRegions = Array.isArray(metadata.target_regions)
+          ? metadata.target_regions.map(value => String(value).trim().toUpperCase()).filter(Boolean).slice(0, 20)
+          : [];
         const token = getBearerToken(req);
         if (!token || !businessId || !planId || !promotionType) {
           return res.status(401).json({ error: 'Authenticated seller and promotion details are required' });
@@ -144,12 +150,21 @@ module.exports = async (req, res) => {
         paymentEmail = authData.user.email || paymentEmail;
         paymentAmount = Number(plan.price_minor);
         paymentCurrency = String(plan.currency || '').toUpperCase();
-        paymentMetadata = { type: 'seller_promotion', promotion_type: promotionType, plan_id: planId, business_id: businessId, product_id: productId };
+        paymentMetadata = {
+          type: 'seller_promotion',
+          promotion_type: promotionType,
+          plan_id: planId,
+          business_id: businessId,
+          product_id: productId,
+          target_categories: targetCategories,
+          target_regions: targetRegions,
+        };
 
         const { data: createdPromotion, error: promotionError } = await supabaseAdmin.from('seller_promotions').insert({
           seller_id: authData.user.id, store_id: businessId, product_id: productId, plan_id: planId,
           promotion_type: promotionType, amount_minor: paymentAmount, currency: paymentCurrency,
-          payment_reference: reference, status: 'PENDING_PAYMENT',
+          target_categories: targetCategories, target_regions: targetRegions,
+          payment_reference: reference, status: 'PENDING_PAYMENT', review_status: 'PENDING_REVIEW',
         }).select('id').single();
         if (promotionError) throw promotionError;
         createdPromotionId = createdPromotion?.id || null;
@@ -248,7 +263,7 @@ module.exports = async (req, res) => {
       if (authError || !authData?.user) return res.status(401).json({ error: 'Authentication expired. Please sign in again.' });
 
       const { data: promotion, error: promotionError } = await supabaseAdmin.from('seller_promotions')
-        .select('id, seller_id, store_id, product_id, plan_id, promotion_type, amount_minor, currency, status, payment_reference')
+        .select('id, seller_id, store_id, product_id, plan_id, promotion_type, amount_minor, currency, status, payment_reference, target_categories, target_regions, review_status')
         .eq('id', promotionId).maybeSingle();
       if (promotionError) throw promotionError;
       if (!promotion || promotion.seller_id !== authData.user.id) return res.status(403).json({ error: 'You are not allowed to confirm this promotion.' });
@@ -277,7 +292,7 @@ module.exports = async (req, res) => {
 
       const start = new Date();
       const end = new Date(start.getTime() + Number(plan.duration_days) * 86400000);
-      const { data: activated, error: activationError } = await supabaseAdmin.from('seller_promotions').update({ status: 'ACTIVE', starts_at: start.toISOString(), ends_at: end.toISOString(), payment_paid_at: transaction?.paid_at || start.toISOString(), updated_at: new Date().toISOString() }).eq('id', promotionId).eq('seller_id', authData.user.id).eq('status', 'PENDING_PAYMENT').select('id, status, starts_at, ends_at, payment_reference').maybeSingle();
+      const { data: activated, error: activationError } = await supabaseAdmin.from('seller_promotions').update({ status: 'ACTIVE', review_status: 'PENDING_REVIEW', starts_at: start.toISOString(), ends_at: end.toISOString(), payment_paid_at: transaction?.paid_at || start.toISOString(), updated_at: new Date().toISOString() }).eq('id', promotionId).eq('seller_id', authData.user.id).eq('status', 'PENDING_PAYMENT').select('id, status, review_status, starts_at, ends_at, payment_reference').maybeSingle();
       if (activationError) throw activationError;
       return res.status(200).json({ status: true, message: 'Seller promotion confirmed', data: activated || { id: promotionId, status: 'ACTIVE', starts_at: start.toISOString(), ends_at: end.toISOString(), payment_reference: promotionReference } });
     }

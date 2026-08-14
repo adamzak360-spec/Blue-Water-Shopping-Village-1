@@ -14,3 +14,108 @@
 .promotion-table-wrap th { color: #475569; background: #f8fafc; }
 @media (max-width: 760px) { .promotion-form-grid { grid-template-columns: 1fr 1fr; } .promotion-plan-row { grid-template-columns: 1fr; gap: .25rem; } }
 @media (max-width: 460px) { .admin-promotions { padding: .75rem .4rem; } .promotion-form-grid { grid-template-columns: 1fr; } }
+
+.admin-promotion-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .8rem;
+  margin-bottom: 1.2rem;
+}
+
+.admin-promotion-summary > div {
+  padding: 1rem;
+  border: 1px solid #dbe4ee;
+  border-radius: .8rem;
+  background: #f8fafc;
+}
+
+.admin-promotion-summary strong,
+.admin-promotion-summary span {
+  display: block;
+}
+
+.admin-promotion-summary strong {
+  color: #0f172a;
+  font-size: 1.55rem;
+}
+
+.admin-promotion-summary span {
+  margin-top: .2rem;
+  color: #64748b;
+  font-size: .82rem;
+}
+
+.admin-promotion-table-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+  margin-bottom: .9rem;
+}
+
+.admin-promotion-table-heading p {
+  margin: 0;
+  color: #64748b;
+  font-size: .9rem;
+}
+
+.admin-promotion-filters {
+  display: flex;
+  gap: .5rem;
+}
+
+.admin-promotion-filters select {
+  padding: .6rem;
+  border: 1px solid #cbd5e1;
+  border-radius: .5rem;
+  background: #fff;
+}
+
+.promotion-table-wrap td small {
+  display: block;
+  margin-top: .25rem;
+  color: #64748b;
+}
+
+.targeting-pill {
+  display: block;
+  width: fit-content;
+  max-width: 14rem;
+  margin-bottom: .25rem;
+  padding: .2rem .45rem;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: .72rem;
+}
+
+.review-badge {
+  display: inline-block;
+  padding: .25rem .5rem;
+  border-radius: 999px;
+  font-size: .7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.review-pending_review { background: #fef3c7; color: #92400e; }
+.review-approved { background: #dcfce7; color: #166534; }
+.review-rejected { background: #fee2e2; color: #991b1b; }
+
+.promotion-actions {
+  white-space: nowrap;
+}
+
+.promotion-actions button + button {
+  margin-left: .35rem;
+}
+
+.promotion-actions button:nth-child(2) {
+  background: #475569;
+}
+
+@media (max-width: 760px) {
+  .admin-promotion-summary { grid-template-columns: 1fr; }
+  .admin-promotion-table-heading { display: block; }
+  .admin-promotion-filters { margin-top: .8rem; flex-wrap: wrap; }
+}

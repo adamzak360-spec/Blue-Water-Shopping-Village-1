@@ -1,37 +1,71 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { formatCurrency } from '../utils/currency'
 import './AdminPromotions.css'
 
 type Plan = { id: string; code: 'FEATURED_PRODUCT' | 'FEATURED_STORE'; name: string; price_minor: number; currency: string; duration_days: number; placement: string; max_active_promotions: number; is_active: boolean }
-type Promotion = { id: string; seller_id: string; store_id: string; product_id: string | null; promotion_type: string; status: string; amount_minor: number; currency: string; starts_at: string | null; ends_at: string | null; payment_reference: string | null; created_at: string }
+type Promotion = { id: string; seller_id: string; store_id: string; product_id: string | null; promotion_type: string; status: string; review_status: string; review_notes: string | null; target_categories: string[]; target_regions: string[]; amount_minor: number; currency: string; starts_at: string | null; ends_at: string | null; payment_reference: string | null; impressions_count: number; clicks_count: number; created_at: string }
+type Lookup = { id: string; name: string; category?: string | null }
 
 const emptyPlan = { code: 'FEATURED_PRODUCT' as Plan['code'], name: 'Featured Product', price: '', duration_days: '7', placement: 'MARKETPLACE', max_active_promotions: '10', is_active: false }
 
 export default function AdminPromotions() {
   const [plans, setPlans] = useState<Plan[]>([])
   const [promotions, setPromotions] = useState<Promotion[]>([])
+  const [stores, setStores] = useState<Lookup[]>([])
+  const [products, setProducts] = useState<Lookup[]>([])
   const [form, setForm] = useState(emptyPlan)
+  const [statusFilter, setStatusFilter] = useState('ALL')
+  const [reviewFilter, setReviewFilter] = useState('ALL')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
+
   const load = async () => {
     if (!supabase) { setMessage('Supabase is not configured.'); return }
-    const [{ data: planData }, { data: promotionData }] = await Promise.all([
+    const [{ data: planData }, { data: promotionData }, { data: storeData }, { data: productData }] = await Promise.all([
       supabase.from('promotion_plans').select('*').order('created_at'),
-      supabase.from('seller_promotions').select('*').order('created_at', { ascending: false }).limit(100),
+      supabase.from('seller_promotions').select('id, seller_id, store_id, product_id, promotion_type, status, review_status, review_notes, target_categories, target_regions, amount_minor, currency, starts_at, ends_at, payment_reference, impressions_count, clicks_count, created_at').order('created_at', { ascending: false }).limit(100),
+      supabase.from('businesses').select('id, name'),
+      supabase.from('products').select('id, name, category'),
     ])
-    setPlans((planData || []) as Plan[]); setPromotions((promotionData || []) as Promotion[])
+    setPlans((planData || []) as Plan[])
+    setPromotions((promotionData || []) as Promotion[])
+    setStores((storeData || []) as Lookup[])
+    setProducts((productData || []) as Lookup[])
   }
+
   useEffect(() => { void load() }, [])
+
   const savePlan = async (event: React.FormEvent) => {
     event.preventDefault(); setBusy(true); setMessage('')
     if (!supabase) { setBusy(false); setMessage('Supabase is not configured.'); return }
     const { error } = await supabase.from('promotion_plans').upsert({ code: form.code, name: form.name, price_minor: Math.round(Number(form.price) * 100), currency: 'GHS', duration_days: Number(form.duration_days), placement: form.placement, max_active_promotions: Number(form.max_active_promotions), is_active: form.is_active }, { onConflict: 'code' })
     setBusy(false); setMessage(error ? error.message : 'Promotion plan saved.'); if (!error) { setForm(emptyPlan); await load() }
   }
-  const setStatus = async (id: string, status: 'CANCELLED' | 'SUSPENDED' | 'ACTIVE') => { setBusy(true); if (!supabase) { setBusy(false); setMessage('Supabase is not configured.'); return } const { error } = await supabase.from('seller_promotions').update({ status, updated_at: new Date().toISOString() }).eq('id', id); setBusy(false); setMessage(error ? error.message : 'Promotion status updated.'); if (!error) await load() }
+
+  const setReview = async (id: string, reviewStatus: 'APPROVED' | 'REJECTED') => {
+    if (!supabase) return
+    setBusy(true)
+    const status = reviewStatus === 'REJECTED' ? 'SUSPENDED' : 'ACTIVE'
+    const { error } = await supabase.from('seller_promotions').update({ review_status: reviewStatus, status, review_notes: reviewStatus === 'REJECTED' ? 'Rejected by administrator.' : null, reviewed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', id)
+    setBusy(false); setMessage(error ? error.message : `Promotion ${reviewStatus.toLowerCase()}.`); if (!error) await load()
+  }
+
+  const setStatus = async (id: string, status: 'CANCELLED' | 'SUSPENDED' | 'ACTIVE') => {
+    setBusy(true); if (!supabase) { setBusy(false); setMessage('Supabase is not configured.'); return }
+    const { error } = await supabase.from('seller_promotions').update({ status, updated_at: new Date().toISOString() }).eq('id', id)
+    setBusy(false); setMessage(error ? error.message : 'Promotion status updated.'); if (!error) await load()
+  }
+
+  const storeNameById = useMemo(() => new Map(stores.map(store => [store.id, store.name])), [stores])
+  const productById = useMemo(() => new Map(products.map(product => [product.id, product])), [products])
+  const filteredPromotions = promotions.filter(promotion => (statusFilter === 'ALL' || promotion.status === statusFilter) && (reviewFilter === 'ALL' || promotion.review_status === reviewFilter))
+  const pendingReviewCount = promotions.filter(promotion => promotion.status === 'ACTIVE' && promotion.review_status === 'PENDING_REVIEW').length
+  const activeApprovedCount = promotions.filter(promotion => promotion.status === 'ACTIVE' && promotion.review_status === 'APPROVED').length
+
   return <section className="admin-promotions animate-fade-in">
-    <div className="section-title-wrapper"><h2 className="section-title">Advertising & Promotions</h2><p>Configure paid placements and monitor promotion history. Payment activation remains server-verified.</p></div>
+    <div className="section-title-wrapper"><h2 className="section-title">Advertising & Promotions</h2><p>Review targeting, approve paid placements, and monitor promotion performance. Payment activation remains server-verified.</p></div>
+    <div className="admin-promotion-summary"><div><strong>{pendingReviewCount}</strong><span>Awaiting approval</span></div><div><strong>{activeApprovedCount}</strong><span>Approved active</span></div><div><strong>{promotions.length}</strong><span>Total campaigns</span></div></div>
     <form className="promotion-plan-form" onSubmit={savePlan}><h3>Promotion plan settings</h3><div className="promotion-form-grid">
       <select value={form.code} onChange={e => setForm({ ...form, code: e.target.value as Plan['code'], name: e.target.value === 'FEATURED_PRODUCT' ? 'Featured Product' : 'Featured Store', placement: e.target.value === 'FEATURED_PRODUCT' ? 'MARKETPLACE' : 'STORES' })}><option value="FEATURED_PRODUCT">Featured Product</option><option value="FEATURED_STORE">Featured Store</option></select>
       <input required type="number" min="0.01" step="0.01" placeholder="Price (GHS)" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
@@ -41,6 +75,6 @@ export default function AdminPromotions() {
     </div></form>
     {message && <p className="admin-promotion-message">{message}</p>}
     <div className="promotion-plan-list"><h3>Configured plans</h3>{plans.length === 0 ? <p>No plans configured yet.</p> : plans.map(plan => <div className="promotion-plan-row" key={plan.id}><strong>{plan.name}</strong><span>{formatCurrency(Number(plan.price_minor) / 100, plan.currency)} / {plan.duration_days} days</span><span>{plan.is_active ? 'Available' : 'Inactive'}</span></div>)}</div>
-    <div className="promotion-history"><h3>Promotion history</h3>{promotions.length === 0 ? <p>No seller promotions yet.</p> : <div className="promotion-table-wrap"><table><thead><tr><th>Type</th><th>Seller</th><th>Amount</th><th>Status</th><th>Period</th><th>Action</th></tr></thead><tbody>{promotions.map(p => <tr key={p.id}><td>{p.promotion_type}</td><td>{p.seller_id.slice(0, 8)}…</td><td>{formatCurrency(Number(p.amount_minor) / 100, p.currency)}</td><td>{p.status}</td><td>{p.starts_at ? new Date(p.starts_at).toLocaleDateString() : '—'} – {p.ends_at ? new Date(p.ends_at).toLocaleDateString() : '—'}</td><td>{(p.status === 'ACTIVE' || p.status === 'PENDING_PAYMENT') && <button disabled={busy} onClick={() => void setStatus(p.id, 'CANCELLED')}>Cancel</button>}{p.status === 'SUSPENDED' && <button disabled={busy} onClick={() => void setStatus(p.id, 'ACTIVE')}>Restore</button>}</td></tr>)}</tbody></table></div>}</div>
+    <div className="promotion-history"><div className="admin-promotion-table-heading"><div><h3>Campaign review queue</h3><p>Approve paid campaigns before they become visible in sponsored placements.</p></div><div className="admin-promotion-filters"><select value={reviewFilter} onChange={e => setReviewFilter(e.target.value)}><option value="ALL">All review states</option><option value="PENDING_REVIEW">Awaiting approval</option><option value="APPROVED">Approved</option><option value="REJECTED">Rejected</option></select><select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}><option value="ALL">All campaign statuses</option><option value="ACTIVE">Active</option><option value="SUSPENDED">Suspended</option><option value="CANCELLED">Cancelled</option><option value="EXPIRED">Expired</option></select></div></div>{filteredPromotions.length === 0 ? <p>No promotions match the selected filters.</p> : <div className="promotion-table-wrap"><table><thead><tr><th>Campaign</th><th>Targeting</th><th>Review</th><th>Performance</th><th>Period</th><th>Action</th></tr></thead><tbody>{filteredPromotions.map(promotion => { const product = promotion.product_id ? productById.get(promotion.product_id) : null; const impressions = Number(promotion.impressions_count || 0); const clicks = Number(promotion.clicks_count || 0); const ctr = impressions ? ((clicks / impressions) * 100).toFixed(1) : '0.0'; return <tr key={promotion.id}><td><strong>{product?.name || 'Store promotion'}</strong><small>{storeNameById.get(promotion.store_id) || 'Unknown store'} · {formatCurrency(Number(promotion.amount_minor) / 100, promotion.currency)}</small></td><td><span className="targeting-pill">{promotion.target_categories?.length ? promotion.target_categories.join(', ') : 'All categories'}</span><span className="targeting-pill">{promotion.target_regions?.length ? promotion.target_regions.join(', ') : 'All regions'}</span></td><td><span className={`review-badge review-${promotion.review_status.toLowerCase()}`}>{promotion.review_status.replace('_', ' ')}</span></td><td>{impressions.toLocaleString()} views<br />{clicks.toLocaleString()} clicks · {ctr}% CTR</td><td>{promotion.starts_at ? new Date(promotion.starts_at).toLocaleDateString() : '—'} – {promotion.ends_at ? new Date(promotion.ends_at).toLocaleDateString() : '—'}</td><td className="promotion-actions">{promotion.status === 'ACTIVE' && promotion.review_status === 'PENDING_REVIEW' && <><button disabled={busy} onClick={() => void setReview(promotion.id, 'APPROVED')}>Approve</button><button disabled={busy} onClick={() => void setReview(promotion.id, 'REJECTED')}>Reject</button></>}{promotion.review_status === 'APPROVED' && promotion.status === 'ACTIVE' && <button disabled={busy} onClick={() => void setStatus(promotion.id, 'SUSPENDED')}>Suspend</button>}{promotion.status === 'SUSPENDED' && <button disabled={busy} onClick={() => void setStatus(promotion.id, 'ACTIVE')}>Restore</button>}</td></tr> })}</tbody></table></div>}</div>
   </section>
 }

@@ -18,7 +18,7 @@ type Plan = {
 }
 
 type Promotion = {
-  id: string
+  id: string;
   product_id: string | null
   promotion_type: Plan['code']
   status: string
@@ -30,6 +30,8 @@ type Promotion = {
   currency: string
 }
 
+const REGION_OPTIONS = ['GH', 'Greater Accra', 'Ashanti', 'Eastern', 'Western', 'Central', 'Northern', 'Volta', 'Bono', 'Bono East', 'Ahafo', 'Savannah', 'North East', 'Upper East', 'Upper West', 'Oti', 'Western North']
+
 export default function SellerPromotions({ businessIds }: { businessIds: string[] }) {
   const { user, session } = useAuth()
   const [plans, setPlans] = useState<Plan[]>([])
@@ -39,6 +41,8 @@ export default function SellerPromotions({ businessIds }: { businessIds: string[
   const [productId, setProductId] = useState('')
   const [planId, setPlanId] = useState('')
   const [message, setMessage] = useState('')
+  const [targetCategories, setTargetCategories] = useState<string[]>([])
+  const [targetRegions, setTargetRegions] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const businessId = businessIds[0]
 
@@ -96,6 +100,7 @@ export default function SellerPromotions({ businessIds }: { businessIds: string[
     promotion => promotion.status === 'ACTIVE' && promotion.ends_at && new Date(promotion.ends_at) > new Date(),
   )
   const selectedPlan = plans.find(plan => plan.id === planId)
+  const availableCategories = [...new Set(products.map(product => product.category).filter(Boolean))].sort()
 
   const startPayment = async () => {
     if (!user?.email || !session?.access_token || !businessId || !selectedPlan) {
@@ -123,6 +128,8 @@ export default function SellerPromotions({ businessIds }: { businessIds: string[
           product_id: type === 'FEATURED_PRODUCT' ? productId : null,
           plan_id: selectedPlan.id,
           promotion_type: type,
+          target_categories: type === 'FEATURED_PRODUCT' ? targetCategories : [],
+          target_regions: type === 'FEATURED_PRODUCT' ? targetRegions : [],
         },
       }, session.access_token)
       const promotionId = (result.data as typeof result.data & { promotion_id: string }).promotion_id
@@ -166,6 +173,30 @@ export default function SellerPromotions({ businessIds }: { businessIds: string[
             {busy ? 'Processing…' : 'Pay with Paystack'}
           </button>
         </div>
+        {type === 'FEATURED_PRODUCT' && (
+          <div className="seller-promotion-targeting">
+            <div>
+              <h4>Audience targeting <span>(optional)</span></h4>
+              <p>Leave both sections empty to reach everyone. Targeting is reviewed by the administrator before the promotion is displayed.</p>
+            </div>
+            <fieldset>
+              <legend>Product categories</legend>
+              <div className="seller-promotion-options">
+                {availableCategories.length === 0 ? <span>No product categories available yet.</span> : availableCategories.map(category => (
+                  <label key={category}><input type="checkbox" checked={targetCategories.includes(category)} onChange={event => setTargetCategories(current => event.target.checked ? [...current, category] : current.filter(value => value !== category))} /> {category}</label>
+                ))}
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Store regions</legend>
+              <div className="seller-promotion-options">
+                {REGION_OPTIONS.map(region => (
+                  <label key={region}><input type="checkbox" checked={targetRegions.includes(region)} onChange={event => setTargetRegions(current => event.target.checked ? [...current, region] : current.filter(value => value !== region))} /> {region}</label>
+                ))}
+              </div>
+            </fieldset>
+          </div>
+        )}
         {selectedPlan && <p className="seller-promotion-note">This placement runs for {selectedPlan.duration_days} days and expires automatically.</p>}
         {message && <p className="seller-promotion-message">{message}</p>}
       </div>
