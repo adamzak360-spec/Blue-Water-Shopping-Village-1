@@ -34,7 +34,7 @@ export async function getDeliveryMethodsForBusiness(
 ): Promise<DeliveryMethod[]> {
   const client = requireSupabase()
 
-  const buildQuery = (scope: 'global' | 'business') => {
+  const buildQuery = (scope: 'global' | 'business', filterCurrency = true) => {
     let query = client
       .from('delivery_methods')
       .select('*')
@@ -47,13 +47,15 @@ export async function getDeliveryMethodsForBusiness(
       : query.eq('business_id', businessId as string)
 
     if (countryCode) query = query.or(`country_code.eq.${countryCode},country_code.is.null`)
-    if (currencyCode) query = query.eq('currency_code', currencyCode)
+    // Seller-configured methods are authoritative for that store. Do not hide them
+    // merely because an older cart item has a missing or stale currency value.
+    if (currencyCode && filterCurrency) query = query.eq('currency_code', currencyCode)
     return query
   }
 
   const [businessResult, globalResult] = await Promise.all([
-    businessId ? buildQuery('business') : Promise.resolve({ data: [], error: null }),
-    buildQuery('global'),
+    businessId ? buildQuery('business', false) : Promise.resolve({ data: [], error: null }),
+    buildQuery('global', true),
   ])
 
   if (businessResult.error) throw new Error(businessResult.error.message)

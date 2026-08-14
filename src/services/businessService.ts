@@ -19,6 +19,7 @@ export interface Business {
   category?: string | null
   country_code?: string | null
   currency_code?: string | null
+  commission_bps?: number | null
   verification_status?: VerificationStatus
   registration_number?: string
   tax_id?: string

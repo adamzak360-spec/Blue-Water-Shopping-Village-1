@@ -149,7 +149,10 @@ const defaultFormState = {
 export default function Admin() {
   const { user, signOut, role } = useAuth()
   const navigate = useNavigate()
-  const canManageNews = ['admin', 'general_admin', 'general-admin'].includes(String(role || '').toLowerCase())
+  const normalizedRole = String(role || '').toLowerCase().replace(/-/g, '_')
+  const isAdminRole = ['admin', 'general_admin'].includes(normalizedRole)
+  const isSellerRole = normalizedRole === 'seller'
+  const canManageNews = isAdminRole
   const [business, setBusiness] = useState<Business | null>(null)
   const [view, setView] = useState<AdminView>('dashboard')
   const [products, setProducts] = useState<Product[]>([])
@@ -216,6 +219,8 @@ export default function Admin() {
   const [subscriptionPlansLoading, setSubscriptionPlansLoading] = useState(false)
   const [subscriptionPlansSaving, setSubscriptionPlansSaving] = useState<string | null>(null)
   const [subscriptionPlansError, setSubscriptionPlansError] = useState('')
+  const [commissionBps, setCommissionBps] = useState('500')
+  const [commissionSaving, setCommissionSaving] = useState(false)
 
   // Suppress unused variable warnings for build
   console.log('Loading states:', { productsLoading, ordersLoading, reviewsLoading })
@@ -225,6 +230,32 @@ export default function Admin() {
     setNotification({ message, type })
     setTimeout(() => setNotification(null), 3000)
   }, [])
+
+  const handleCommissionSave = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!isAdminRole || !business) {
+      showNotification('Marketplace settings are not available for this account.', 'error')
+      return
+    }
+
+    const basisPoints = Number(commissionBps)
+    if (!Number.isInteger(basisPoints) || basisPoints < 0 || basisPoints > 10000) {
+      showNotification('Enter a whole-number commission between 0 and 10000 BPS.', 'error')
+      return
+    }
+
+    setCommissionSaving(true)
+    try {
+      const updated = await updateBusinessProfile(business.id, { commission_bps: basisPoints })
+      setBusiness(updated)
+      setCommissionBps(String(updated.commission_bps ?? basisPoints))
+      showNotification('Platform commission updated successfully.')
+    } catch (err) {
+      showNotification(err instanceof Error ? err.message : 'Could not update platform commission.', 'error')
+    } finally {
+      setCommissionSaving(false)
+    }
+  }
 
   const loadData = useCallback(async () => {
     if (!user) return
@@ -236,9 +267,9 @@ export default function Admin() {
     if (!currentBusiness) {
       try {
         let b: Business | null = null;
-        if (role === 'seller') {
+        if (isSellerRole) {
           b = await getBusinessByOwner(user.id)
-        } else if (role === 'admin') {
+        } else if (isAdminRole) {
           // Admins manage the default marketplace business
           const { data } = await supabase!.from('businesses').select('*').eq('id', '00000000-0000-0000-0000-000000000001').single();
           b = data as Business;
@@ -248,6 +279,9 @@ export default function Admin() {
           setBusiness(b)
           setBusinesses([b])
           currentBusiness = b
+          if (isAdminRole && b.commission_bps !== undefined && b.commission_bps !== null) {
+            setCommissionBps(String(b.commission_bps))
+          }
           setStoreSettings({
             name: b.name || '',
             description: b.description || '',
@@ -280,7 +314,7 @@ export default function Admin() {
 
     // Sellers can own multiple businesses: aggregate orders (and stats)
     // across every store they own so nothing is hidden from them.
-    if (role === 'seller') {
+    if (isSellerRole) {
       try {
         const owned = await getAllBusinessesByOwner(user.id)
         setSellerBusinessIds(owned.map((b) => b.id))
@@ -297,7 +331,7 @@ export default function Admin() {
       }
     }
 
-    const businessId = role === 'admin' ? undefined : currentBusiness?.id
+    const businessId = isAdminRole ? undefined : currentBusiness?.id
     
     // Load profile for onboarding status
     try {
@@ -316,7 +350,7 @@ export default function Admin() {
     setProductsLoading(true)
     setProductsError('')
     try {
-      if (role === 'seller' && !businessId) {
+      if (isSellerRole && !businessId) {
         setProducts([])
         setStats({ total: 0, active: 0, outOfStock: 0 })
       } else {
@@ -341,7 +375,7 @@ export default function Admin() {
     setOrdersLoading(true)
     setOrdersError('')
     try {
-      const ordersData = await getAllOrders(businessId, role === 'seller' && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined)
+      const ordersData = await getAllOrders(businessId, isSellerRole && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined)
       setOrders(ordersData)
       setOrdersError('')
     } catch (err) {
@@ -565,11 +599,11 @@ export default function Admin() {
     }
   }, [])
 
-  const businessId = role === 'admin' ? undefined : business?.id
+  const businessId = isAdminRole ? undefined : business?.id
 
   const filteredReviewsByStore = reviews.filter(review => {
     // Seller activity cards stay at zero until at least one seller-owned order exists.
-    if (role === 'seller' && orders.length === 0) return false
+    if (isSellerRole && orders.length === 0) return false
     if (!businessId) return true
     const businessProductIds = new Set(products.map(p => p.id))
     return businessProductIds.has(review.product_id)
@@ -949,9 +983,9 @@ export default function Admin() {
       {/* Header */}
       <div className="admin-header animate-fade-in">
         <div className="header-title-group">
-          <h2>{role === 'seller' ? 'Seller Dashboard' : 'Admin Dashboard'}</h2>
+          <h2>{isSellerRole ? 'Seller Dashboard' : 'Admin Dashboard'}</h2>
           <p className="admin-subtitle">
-            {role === 'seller'
+            {isSellerRole
               ? (business ? `Manage your store: ${business.name}` : 'Manage your store')
               : 'Manage your marketplace operations'}
           </p>
@@ -959,12 +993,12 @@ export default function Admin() {
         <div className="admin-user-info">
           <div className="user-badge">
             <span className="user-email">{user?.email}</span>
-            <span className="badge badge-primary">{role === 'seller' ? 'Seller' : 'Admin'}</span>
+            <span className="badge badge-primary">{isSellerRole ? 'Seller' : 'Admin'}</span>
           </div>
           <button onClick={() => navigate('/advertise')} className="btn-secondary btn-sm">
             Advertise on Reliable
           </button>
-          {role === 'seller' && business && (
+          {isSellerRole && business && (
             <a href={`/store/${business.slug}`} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm">
               Visit Public Store
             </a>
@@ -1070,7 +1104,7 @@ export default function Admin() {
             </button>
           </>
         )}
-        {role === 'seller' && (
+        {isSellerRole && (
           <button
             className={`tab ${view === 'promotions' ? 'active' : ''}`}
             onClick={() => setView('promotions')}
@@ -1097,7 +1131,7 @@ export default function Admin() {
           className={`tab ${view === 'settings' ? 'active' : ''}`}
           onClick={() => setView('settings')}
         >
-          {role === 'seller' ? '🔗 Store & Social Settings' : '⚙️ Store Settings'}
+          {isSellerRole ? '🔗 Store & Social Settings' : '⚙️ Store Settings'}
         </button>
         <button
           className={`tab ${view === 'delivery' ? 'active' : ''}`}
@@ -1109,31 +1143,31 @@ export default function Admin() {
 
       <Suspense fallback={<div className="admin-loading">Loading view...</div>}>
         {/* Analytics View */}
-        {view === 'analytics' && <AdminAnalytics businessIds={role === 'seller' ? sellerBusinessIds : undefined} />}
+        {view === 'analytics' && <AdminAnalytics businessIds={isSellerRole ? sellerBusinessIds : undefined} />}
 
         {/* Inventory Management View */}
-        {view === 'inventory' && <InventoryManagement businessIds={role === 'seller' && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}
+        {view === 'inventory' && <InventoryManagement businessIds={isSellerRole && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}
 
         {/* Financial Reports View */}
-        {view === 'reports' && <FinancialReports businessIds={role === 'seller' && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}
+        {view === 'reports' && <FinancialReports businessIds={isSellerRole && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}
 
         {/* Supplier Management View */}
         {view === 'suppliers' && (
           <SupplierManagement
-            productIds={role === 'seller'
+            productIds={isSellerRole
               ? (orders.length > 0 ? products.map((product) => product.id) : [])
               : undefined}
           />
         )}
 
         {/* Registered Sellers Management View */}
-        {view === 'registered-sellers' && role === 'admin' && <RegisteredSellerManagement />}
+        {view === 'registered-sellers' && isAdminRole && <RegisteredSellerManagement />}
 
         {/* Seller Payouts View */}
-        {view === 'payouts' && <SellerPayouts isAdmin={role === 'admin'} businessIds={role === 'seller' && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}
+        {view === 'payouts' && <SellerPayouts isAdmin={isAdminRole} businessIds={isSellerRole && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}
 
         {/* POS View */}
-        {view === 'pos' && <POS businessIds={role === 'seller' ? sellerBusinessIds : undefined} />}
+        {view === 'pos' && <POS businessIds={isSellerRole ? sellerBusinessIds : undefined} />}
 
         {/* General Admin News and Newsletter View */}
         {view === 'news' && canManageNews && <AdminNewsUpdates />}
@@ -1141,9 +1175,9 @@ export default function Admin() {
         {view === 'promotions' && canManageNews && <AdminPromotions />}
         {/* Standalone Reliable Ads management. */}
         {view === 'ads' && canManageNews && <AdminAds />}
-        {view === 'promotions' && role === 'seller' && <SellerPromotions businessIds={sellerBusinessIds} />}
+        {view === 'promotions' && isSellerRole && <SellerPromotions businessIds={sellerBusinessIds} />}
         {/* Marketplace Settings View */}
-        {view === 'marketplace' && role === 'admin' && (
+        {view === 'marketplace' && isAdminRole && (
           <div className="marketplace-settings-content animate-fade-in">
             <div className="section-title-wrapper">
               <h2 className="section-title">Global Marketplace Settings</h2>
@@ -1303,13 +1337,25 @@ export default function Admin() {
               </div>
               <div className="settings-card">
                 <h3>Platform Commissions</h3>
-                <form className="admin-form" onSubmit={(e) => e.preventDefault()}>
+                <p>Set the default marketplace commission applied to eligible seller orders.</p>
+                <form className="admin-form" onSubmit={handleCommissionSave}>
                   <div className="form-group">
-                    <label>Default Commission (BPS)</label>
-                    <input type="number" defaultValue="500" />
-                    <small>500 BPS = 5%</small>
+                    <label htmlFor="platform-commission-bps">Default Commission (BPS)</label>
+                    <input
+                      id="platform-commission-bps"
+                      type="number"
+                      min="0"
+                      max="10000"
+                      step="1"
+                      value={commissionBps}
+                      onChange={(event) => setCommissionBps(event.target.value)}
+                      required
+                    />
+                    <small>{(Number(commissionBps || 0) / 100).toFixed(2)}% · 500 BPS = 5%</small>
                   </div>
-                  <button className="btn-primary">Update Commission</button>
+                  <button type="submit" className="btn-primary" disabled={commissionSaving || !business}>
+                    {commissionSaving ? 'Updating...' : 'Update Commission'}
+                  </button>
                 </form>
               </div>
             </div>
@@ -1317,23 +1363,23 @@ export default function Admin() {
         )}
 
         {/* Delivery Settings View */}
-        {view === 'delivery' && (business || role === 'admin') && (
+        {view === 'delivery' && (business || isAdminRole) && (
           <DeliverySettings
-            businessId={business?.id}
-            isAdmin={role === 'admin'}
+            businessId={isAdminRole ? undefined : business?.id}
+            isAdmin={isAdminRole}
             countryCode={business?.country_code}
             currencyCode={business?.currency_code}
           />
         )}
 
         {/* Store Settings View */}
-        {view === 'settings' && (business || role === 'admin') && (
+        {view === 'settings' && (business || isAdminRole) && (
           <div className="store-settings-content animate-fade-in">
             <div className="section-title-wrapper">
               <h2 className="section-title">Store Settings</h2>
                             <p>Customize your storefront, contact information, and customer connections.</p>
             </div>
-            {role === 'seller' && (
+            {isSellerRole && (
               <div style={{ marginBottom: '1.25rem', padding: '1rem 1.15rem', borderLeft: '4px solid #dc2626', borderRadius: '10px', background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
                 <div>
                   <strong style={{ color: '#991b1b', display: 'block', marginBottom: '0.25rem' }}>Connect your social media pages</strong>
@@ -1450,7 +1496,7 @@ export default function Admin() {
                       <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}><input type="checkbox" checked={storeSettings.show_contact_phone_public} onChange={e => setStoreSettings({...storeSettings, show_contact_phone_public: e.target.checked})} /> Show contact phone publicly</label>
                       <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}><input type="checkbox" checked={storeSettings.show_location_public} onChange={e => setStoreSettings({...storeSettings, show_location_public: e.target.checked})} /> Show location publicly</label>
                       <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}><input type="checkbox" checked={storeSettings.show_delivery_info_public} onChange={e => setStoreSettings({...storeSettings, show_delivery_info_public: e.target.checked})} /> Show delivery and pickup information publicly</label>
-                      {role === 'admin' && (
+                      {isAdminRole && (
                         <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                           <input type="checkbox" checked={storeSettings.show_product_count} onChange={e => setStoreSettings({...storeSettings, show_product_count: e.target.checked})} />
                           Show product count on the public Products page
@@ -1699,7 +1745,7 @@ export default function Admin() {
       {/* Dashboard Overview */}
       {view === 'dashboard' && (
         <div className="dashboard-content">
-          {role === 'seller' && (
+          {isSellerRole && (
             <div className="onboarding-checklist animate-fade-in">
               <h3>🚀 Welcome to Reliable! Let's get you ready to sell.</h3>
               <div className="checklist-items">
