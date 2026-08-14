@@ -121,11 +121,27 @@ export default function Home() {
 
   const activeProducts = allProducts.filter(p => p.status === 'active')
   
-  // Categorized products for horizontal sections
+  // Use disjoint pools so homepage sections do not repeatedly show the same products.
+  // The shuffled catalog still changes the products shown after each fresh page load.
   const trendingProducts = activeProducts.slice(0, 8)
-  const bestSellers = activeProducts.slice(4, 12)
-  const newArrivals = activeProducts.slice(0, 6)
-  const flashDeals = activeProducts.filter(p => p.price < 50).slice(0, 8)
+  const usedAfterTrending = new Set(trendingProducts.map(product => product.id))
+  const newArrivals = activeProducts
+    .filter(product => !usedAfterTrending.has(product.id))
+    .slice(0, 6)
+  const usedAfterNewArrivals = new Set([
+    ...usedAfterTrending,
+    ...newArrivals.map(product => product.id),
+  ])
+  const bestSellers = activeProducts
+    .filter(product => !usedAfterNewArrivals.has(product.id))
+    .slice(0, 8)
+  const usedBeforeFlashDeals = new Set([
+    ...usedAfterNewArrivals,
+    ...bestSellers.map(product => product.id),
+  ])
+  const flashDeals = activeProducts
+    .filter(product => product.price < 50 && !usedBeforeFlashDeals.has(product.id))
+    .slice(0, 8)
 
   const scroll = (ref: React.RefObject<HTMLDivElement | null>, direction: 'left' | 'right') => {
     if (ref.current) {
