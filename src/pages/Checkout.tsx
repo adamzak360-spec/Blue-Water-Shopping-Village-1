@@ -12,6 +12,7 @@ import {
 } from '../services/paystackService'
 import { formatCurrency } from '../utils/currency'
 import { getDeliveryMethodsForBusiness, type DeliveryMethod } from '../services/deliveryService'
+import { getProductById } from '../services/productService'
 import './Checkout.css'
 
 const GUEST_CHECKOUT_ENABLED = true
@@ -39,15 +40,42 @@ export default function Checkout() {
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryMethod[]>([])
   const [deliveryLoading, setDeliveryLoading] = useState(false)
   const [deliveryError, setDeliveryError] = useState('')
+  const [resolvedBusinessIds, setResolvedBusinessIds] = useState<Record<string, string>>({})
 
+  useEffect(() => {
+    let isMounted = true
+    const missingProductIds = cart
+      .filter(item => !item.business_id && !resolvedBusinessIds[item.id])
+      .map(item => item.id)
+
+    if (missingProductIds.length === 0) return () => { isMounted = false }
+
+    Promise.all(missingProductIds.map(async productId => {
+      try {
+        const product = await getProductById(productId)
+        return [productId, product?.business_id || DEFAULT_BUSINESS_ID] as const
+      } catch {
+        return [productId, DEFAULT_BUSINESS_ID] as const
+      }
+    })).then(entries => {
+      if (!isMounted) return
+      setResolvedBusinessIds(previous => ({
+        ...previous,
+        ...Object.fromEntries(entries),
+      }))
+    })
+
+    return () => { isMounted = false }
+  }, [cart, resolvedBusinessIds])
+
+  const getCartBusinessId = (item: typeof cart[number]) =>
+    item.business_id || resolvedBusinessIds[item.id] || DEFAULT_BUSINESS_ID
   const totalItemQuantity = cart.reduce((sum, item) => sum + item.quantity, 0)
-  const cartBusinessIds = Array.from(new Set(
-    cart.map(item => item.business_id || DEFAULT_BUSINESS_ID)
-  ))
+  const cartBusinessIds = Array.from(new Set(cart.map(getCartBusinessId)))
   const checkoutBusinessId = cartBusinessIds.length === 1 ? cartBusinessIds[0] : undefined
   const cartStoreGroups = Array.from(
     cart.reduce((groups, item) => {
-      const storeKey = item.business_id || DEFAULT_BUSINESS_ID
+      const storeKey = getCartBusinessId(item)
       const group = groups.get(storeKey) || []
       group.push(item)
       groups.set(storeKey, group)
@@ -74,7 +102,7 @@ export default function Checkout() {
       setDeliveryError('')
       try {
         const options = await getDeliveryMethodsForBusiness(
-          cart[0]?.business_id || undefined,
+          checkoutBusinessId,
           undefined,
           cart[0]?.currency || 'GHS',
         )
@@ -97,7 +125,7 @@ export default function Checkout() {
 
     loadDeliveryOptions()
     return () => { isMounted = false }
-  }, [cart[0]?.business_id, cart[0]?.currency, cart.length])
+  }, [checkoutBusinessId, cart[0]?.currency, cart.length])
 
   // Load Paystack script
   useEffect(() => {
