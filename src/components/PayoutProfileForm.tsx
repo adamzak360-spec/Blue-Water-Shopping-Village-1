@@ -75,6 +75,8 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
         currency: formData.currency,
         country_code: formData.country_code,
         is_active: true,
+        payout_profile_confirmed_at: new Date().toISOString(),
+        payout_profile_confirmation_note: 'Seller confirmed payout details in seller settings.',
         updated_at: new Date().toISOString(),
       }
 
@@ -99,7 +101,7 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
     <div className="verification-container">
       <div className="verification-header">
         <h3>Payout Method</h3>
-        <p>Configure how you receive your earnings from Reliable.</p>
+          <p>Configure how you receive your earnings from Reliable. Saving this form confirms that the displayed payout details are current for manual settlement.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="verification-form">
