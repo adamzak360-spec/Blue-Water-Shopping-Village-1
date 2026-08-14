@@ -44,19 +44,20 @@ export class AppErrorBoundary extends Component<Props, State> {
           <div style={{
             maxWidth: '500px',
             padding: '2rem',
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '12px',
+            background: '#f0fbfa',
+            border: '1px solid #9ee8df',
+            borderRadius: '16px',
+            boxShadow: '0 8px 24px rgba(10, 46, 92, 0.08)',
           }}>
-            <h2 style={{ color: '#dc2626', marginBottom: '0.5rem' }}>Something went wrong</h2>
-            <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
-              {this.state.error?.message || 'An unexpected error occurred.'}
+            <h2 style={{ color: '#0a2e5c', marginBottom: '0.75rem' }}>We’re having trouble loading this page</h2>
+            <p style={{ color: '#4b5563', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+              Please check your internet connection, then refresh the page and try again. If the problem continues, wait a moment and reload once more.
             </p>
             <button
               onClick={this.handleRetry}
               style={{
                 padding: '0.625rem 1.5rem',
-                background: '#dc2626',
+                background: '#0a8f8a',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
