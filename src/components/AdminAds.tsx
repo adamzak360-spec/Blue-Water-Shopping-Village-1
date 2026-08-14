@@ -6,6 +6,7 @@ import type { AdPlacement, Advertisement, AdStatus } from '../services/adService
 import './AdminAds.css'
 
 type Advertiser = { id: string; name: string; advertiser_type: string }
+type PricingPlan = { id: string; name: string; description: string | null; price_minor: number; duration_days: number; is_active: boolean; sort_order: number }
 type FormState = {
   advertiser_id: string
   campaign_name: string
@@ -38,6 +39,8 @@ export default function AdminAds() {
   const [ads, setAds] = useState<Advertisement[]>([])
   const [advertisers, setAdvertisers] = useState<Advertiser[]>([])
   const [settings, setSettings] = useState({ advertising_enabled: false, seller_advertising_enabled: false, external_advertising_enabled: false, approval_required: true })
+  const [plans, setPlans] = useState<PricingPlan[]>([])
+  const [planForm, setPlanForm] = useState({ name: '', description: '', priceGhs: '', durationDays: '1' })
   const [form, setForm] = useState(emptyForm)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
@@ -54,14 +57,16 @@ export default function AdminAds() {
 
   const load = async () => {
     if (!supabase) { setMessage('Supabase is not configured.'); return }
-    const [{ data: adData }, { data: advertiserData }, { data: settingsData }] = await Promise.all([
+    const [{ data: adData }, { data: advertiserData }, { data: settingsData }, { data: planData }] = await Promise.all([
       supabase.from('advertisements').select('*').order('created_at', { ascending: false }).limit(200),
       supabase.from('advertisers').select('id, name, advertiser_type').order('name'),
       supabase.from('advertising_settings').select('advertising_enabled, seller_advertising_enabled, external_advertising_enabled, approval_required').eq('id', true).maybeSingle(),
+      supabase.from('ad_pricing_plans').select('id, name, description, price_minor, duration_days, is_active, sort_order').order('sort_order').order('price_minor'),
     ])
     setAds((adData || []) as Advertisement[])
     setAdvertisers((advertiserData || []) as Advertiser[])
     if (settingsData) setSettings(settingsData)
+    setPlans((planData || []) as PricingPlan[])
   }
 
   useEffect(() => { void load() }, [])
@@ -73,6 +78,31 @@ export default function AdminAds() {
     setBusy(false)
     setMessage(error ? error.message : 'Advertising settings updated.')
     if (!error) setSettings((current) => ({ ...current, ...patch }))
+  }
+
+  const savePlan = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!supabase || !user?.id) return
+    const priceMinor = Math.round(Number(planForm.priceGhs) * 100)
+    const durationDays = Number(planForm.durationDays)
+    if (!planForm.name.trim() || !Number.isInteger(priceMinor) || priceMinor <= 0 || !Number.isInteger(durationDays) || durationDays <= 0) {
+      setMessage('Enter a package name, a positive GHS price, and a duration of at least 1 day.')
+      return
+    }
+    setBusy(true)
+    const { error } = await supabase.from('ad_pricing_plans').insert({ name: planForm.name.trim(), description: planForm.description.trim() || null, price_minor: priceMinor, duration_days: durationDays, created_by: user.id, sort_order: (plans.length + 1) * 10 })
+    setBusy(false)
+    setMessage(error ? error.message : 'Advertising package created.')
+    if (!error) { setPlanForm({ name: '', description: '', priceGhs: '', durationDays: '1' }); await load() }
+  }
+
+  const togglePlan = async (plan: PricingPlan) => {
+    if (!supabase) return
+    setBusy(true)
+    const { error } = await supabase.from('ad_pricing_plans').update({ is_active: !plan.is_active, updated_at: new Date().toISOString() }).eq('id', plan.id)
+    setBusy(false)
+    setMessage(error ? error.message : `Package ${plan.is_active ? 'deactivated' : 'activated'}.`)
+    if (!error) await load()
   }
 
   const saveAd = async (event: React.FormEvent) => {
@@ -116,7 +146,7 @@ export default function AdminAds() {
   return <section className="admin-ads animate-fade-in">
     <div className="section-title-wrapper"><h2 className="section-title">Ads / Advertising</h2><p>Manage Reliable’s standalone advertising system. Seller promotions remain a separate feature.</p></div>
     <div className="ads-global-control"><div><strong>Advertising is {settings.advertising_enabled ? 'ON' : 'OFF'}</strong><span>{settings.advertising_enabled ? 'Eligible approved ads may appear in approved placements.' : 'No public ads are visible while this switch is off.'}</span></div><button type="button" disabled={busy} onClick={() => void updateSettings({ advertising_enabled: !settings.advertising_enabled })}>{settings.advertising_enabled ? 'Disable Advertising' : 'Enable Advertising'}</button></div>
-    <div className="ads-summary"><div><strong>{summary.impressions.toLocaleString()}</strong><span>Total impressions</span></div><div><strong>{summary.clicks.toLocaleString()}</strong><span>Total clicks</span></div><div><strong>{summary.impressions ? ((summary.clicks / summary.impressions) * 100).toFixed(1) : '0.0'}%</strong><span>CTR</span></div><div><strong>{summary.active}</strong><span>Active campaigns</span></div><div><strong>{summary.paused}</strong><span>Paused</span></div><div><strong>{formatCurrency(summary.revenue / 100, 'GHS')}</strong><span>Ad revenue</span></div></div>
+    <div className="ads-pricing-panel"><div className="section-title-wrapper"><h3>Advertising packages</h3><p>Set the fixed prices and durations advertisers can purchase through Paystack.</p></div><form className="ads-form-grid" onSubmit={savePlan}><input required placeholder="Package name, e.g. Starter - 1 Day" value={planForm.name} onChange={(e) => setPlanForm({ ...planForm, name: e.target.value })} /><input placeholder="Description" value={planForm.description} onChange={(e) => setPlanForm({ ...planForm, description: e.target.value })} /><input required type="number" min="0.01" step="0.01" placeholder="Price (GHS)" value={planForm.priceGhs} onChange={(e) => setPlanForm({ ...planForm, priceGhs: e.target.value })} /><input required type="number" min="1" step="1" placeholder="Duration (days)" value={planForm.durationDays} onChange={(e) => setPlanForm({ ...planForm, durationDays: e.target.value })} /><button type="submit" disabled={busy}>Add Package</button></form><div className="ads-plan-list">{plans.length ? plans.map((plan) => <div className="ads-plan-row" key={plan.id}><div><strong>{plan.name}</strong><span>{formatCurrency(Number(plan.price_minor) / 100, 'GHS')} · {plan.duration_days} day{plan.duration_days === 1 ? '' : 's'}{plan.description ? ` · ${plan.description}` : ''}</span></div><button type="button" disabled={busy} onClick={() => void togglePlan(plan)}>{plan.is_active ? 'Deactivate' : 'Activate'}</button></div>) : <p>No packages configured yet.</p>}</div></div><div className="ads-summary"><div><strong>{summary.impressions.toLocaleString()}</strong><span>Total impressions</span></div><div><strong>{summary.clicks.toLocaleString()}</strong><span>Total clicks</span></div><div><strong>{summary.impressions ? ((summary.clicks / summary.impressions) * 100).toFixed(1) : '0.0'}%</strong><span>CTR</span></div><div><strong>{summary.active}</strong><span>Active campaigns</span></div><div><strong>{summary.paused}</strong><span>Paused</span></div><div><strong>{formatCurrency(summary.revenue / 100, 'GHS')}</strong><span>Ad revenue</span></div></div>
     <form className="ads-form" noValidate onSubmit={saveAd}><h3>Create advertisement</h3><div className="ads-form-grid">
       <select name="advertiser_id" value={selectedAdvertiserId} disabled={!advertisers.length || busy} onChange={(e) => setForm({ ...form, advertiser_id: e.target.value })}>{advertisers.length ? advertisers.map((advertiser) => <option key={advertiser.id} value={advertiser.id}>{advertiser.name} ({advertiser.advertiser_type})</option>) : <option value="">No advertisers available</option>}</select>
       <input name="campaign_name" placeholder="Campaign name" value={form.campaign_name} onChange={(e) => setForm({ ...form, campaign_name: e.target.value })} />

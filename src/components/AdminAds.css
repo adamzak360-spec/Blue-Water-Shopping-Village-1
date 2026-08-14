@@ -31,3 +31,17 @@
 .ads-preview-devices { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 1rem; margin-top: 1rem; }.ads-preview-device { min-height: 180px; padding: 1rem; background: #e2e8f0; border-radius: .8rem; }.ads-preview-device > span { display: block; margin-bottom: .65rem; color: #475569; font-size: .75rem; font-weight: 700; text-transform: uppercase; }.ads-preview-mobile { max-width: 320px; }
 .ads-preview-card { display: grid; gap: .35rem; padding: .8rem; background: #fff; border: 1px solid #e5e7eb; border-radius: .75rem; }.ads-preview-card img { width: 100%; max-height: 150px; object-fit: cover; border-radius: .5rem; }.ads-preview-card span { color: #64748b; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }.ads-preview-card strong { color: #12233f; }.ads-preview-card p { margin: 0; color: #64748b; font-size: .82rem; }
 @media (max-width: 720px) { .ads-global-control { align-items: flex-start; flex-direction: column; }.ads-form-grid { grid-template-columns: 1fr; }.ads-preview-devices { grid-template-columns: 1fr; }.ads-preview-mobile { max-width: none; } }
+.ads-pricing-panel { padding: 1.25rem; background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 1rem; }
+.ads-pricing-panel .section-title-wrapper { margin-bottom: 1rem; }
+.ads-pricing-panel h3 { margin: 0; color: #12233f; }
+.ads-pricing-panel p { color: #475569; }
+.ads-pricing-panel .ads-form-grid { align-items: end; }
+.ads-pricing-panel .ads-form-grid button, .ads-plan-row button { border: 0; border-radius: .55rem; padding: .65rem .85rem; color: #fff; background: #0f766e; cursor: pointer; font-weight: 700; }
+.ads-plan-list { display: grid; gap: .55rem; margin-top: 1rem; }
+.ads-plan-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .75rem; background: #fff; border: 1px solid #ccfbf1; border-radius: .65rem; }
+.ads-plan-row strong, .ads-plan-row span { display: block; }
+.ads-plan-row strong { color: #12233f; }
+.ads-plan-row span { margin-top: .2rem; color: #64748b; font-size: .82rem; }
+.ads-plan-row button { background: #64748b; white-space: nowrap; }
+.advertiser-package-note { margin: -.25rem 0 .5rem; color: #0f766e; font-size: .85rem; font-weight: 600; }
+@media (max-width: 720px) { .ads-plan-row { align-items: flex-start; flex-direction: column; }.ads-plan-row button { width: 100%; } }

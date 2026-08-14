@@ -86,6 +86,7 @@ module.exports = async (req, res) => {
       const advertiserName = String(body.advertiser_name || '').trim();
       const advertiserType = ['SELLER', 'EXTERNAL', 'INTERNAL'].includes(String(body.advertiser_type)) ? String(body.advertiser_type) : 'EXTERNAL';
       const campaign = body.campaign || {};
+      const pricingPlanId = String(campaign.pricing_plan_id || '').trim();
       const campaignName = String(campaign.campaign_name || '').trim();
       const adType = String(campaign.ad_type || 'BANNER');
       const placement = String(campaign.placement || 'HOME_TOP');
@@ -95,18 +96,28 @@ module.exports = async (req, res) => {
       const destinationUrl = String(campaign.destination_url || '').trim();
       const startsAt = new Date(String(campaign.starts_at || ''));
       const endsAt = new Date(String(campaign.ends_at || ''));
-      const requestedAmount = Number(campaign.budget_minor);
+      let requestedAmount = Number(campaign.budget_minor);
       const allowedAdTypes = ['BANNER', 'PRODUCT', 'STORE', 'SPONSORED_PRODUCT', 'SPONSORED_STORE', 'HOMEPAGE_PROMOTION'];
       const allowedPlacements = ['HOME_TOP', 'HOME_MIDDLE', 'HOME_BOTTOM', 'PRODUCT_LIST_TOP', 'PRODUCT_LIST_MIDDLE', 'PRODUCT_DETAILS', 'STORE_PAGE', 'CATEGORY_PAGE', 'SEARCH_RESULTS', 'SIDEBAR_DESKTOP', 'MOBILE_BANNER'];
 
-      if (!token || !advertiserName || !campaignName || !headline || !destinationUrl || !Number.isInteger(requestedAmount) || requestedAmount <= 0) {
-        return res.status(400).json({ error: 'Authenticated advertiser, campaign, secure destination, and a positive budget are required.' });
+      if (!token || !advertiserName || !campaignName || !headline || !destinationUrl || !pricingPlanId) {
+        return res.status(400).json({ error: 'Authenticated advertiser, campaign, secure destination, and an advertising package are required.' });
       }
       if (!allowedAdTypes.includes(adType) || !allowedPlacements.includes(placement)) return res.status(400).json({ error: 'Invalid advertising type or placement.' });
       if (!/^https:\/\//i.test(destinationUrl) || (imageUrl && !/^https:\/\//i.test(imageUrl))) return res.status(400).json({ error: 'Advertisement and image URLs must use HTTPS.' });
       if (!Number.isFinite(startsAt.getTime()) || !Number.isFinite(endsAt.getTime()) || endsAt <= startsAt) return res.status(400).json({ error: 'The advertising schedule is invalid.' });
 
       const supabaseAdmin = getSupabaseAdmin();
+      const { data: pricingPlan, error: pricingPlanError } = await supabaseAdmin.from('ad_pricing_plans')
+        .select('id, name, price_minor, duration_days, is_active').eq('id', pricingPlanId).maybeSingle();
+      if (pricingPlanError) throw pricingPlanError;
+      if (!pricingPlan || !pricingPlan.is_active) return res.status(400).json({ error: 'The selected advertising package is not available.' });
+      requestedAmount = Number(pricingPlan.price_minor);
+      if (!Number.isInteger(requestedAmount) || requestedAmount <= 0) return res.status(400).json({ error: 'The selected advertising package has an invalid price.' });
+      const requestedDurationDays = (endsAt.getTime() - startsAt.getTime()) / 86400000;
+      if (!Number.isFinite(requestedDurationDays) || Math.abs(requestedDurationDays - Number(pricingPlan.duration_days)) > 0.01) {
+        return res.status(400).json({ error: `The selected package runs for ${pricingPlan.duration_days} day(s).` });
+      }
       const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(token);
       if (authError || !authData?.user) return res.status(401).json({ error: 'Authentication expired. Please sign in again.' });
 
@@ -141,6 +152,7 @@ module.exports = async (req, res) => {
         starts_at: startsAt.toISOString(),
         ends_at: endsAt.toISOString(),
         budget_minor: requestedAmount,
+        pricing_plan_id: pricingPlan.id,
         created_by: authData.user.id,
       }).select('id').single();
       if (advertisementError) throw advertisementError;
@@ -149,6 +161,7 @@ module.exports = async (req, res) => {
         advertiser_id: advertiser.id,
         advertisement_id: advertisement.id,
         amount_minor: requestedAmount,
+        pricing_plan_id: pricingPlan.id,
         currency: 'GHS',
         purpose: 'ADVERTISING_PAYMENT',
         status: 'PENDING',
