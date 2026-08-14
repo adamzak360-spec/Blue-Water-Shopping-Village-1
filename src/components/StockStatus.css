@@ -12,6 +12,7 @@
 }
 
 /* Decorative stock beacon: positioned outside the pill so the card layout does not shift. */
+.stock-status::before,
 .stock-status::after {
   content: '';
   position: absolute;
@@ -21,30 +22,50 @@
   height: 0.42rem;
   border-radius: 50%;
   transform: translateY(-50%);
-  animation: stock-beacon-pulse 1.6s ease-in-out infinite;
 }
 
-.stock-status.in-stock::after {
-  background-color: #16a34a;
-  box-shadow: 0 0 0 0.12rem rgba(22, 163, 74, 0.18);
+/* The ring radiates outward while the solid center dot stays visible. */
+.stock-status::before {
+  background: var(--stock-beacon-fill);
+  box-shadow: 0 0 0 0 var(--stock-beacon-ring);
+  animation: stock-beacon-ripple 1.6s ease-out infinite;
 }
 
-.stock-status.low-stock::after {
-  background: linear-gradient(135deg, #dc2626 0 50%, #16a34a 50% 100%);
-  box-shadow: 0 0 0 0.12rem rgba(220, 38, 38, 0.18);
+.stock-status::after {
+  z-index: 1;
+  background: var(--stock-beacon-fill);
 }
 
+.stock-status.in-stock {
+  --stock-beacon-fill: #16a34a;
+  --stock-beacon-ring: rgba(22, 163, 74, 0.45);
+}
+
+.stock-status.low-stock {
+  --stock-beacon-fill: linear-gradient(135deg, #dc2626 0 50%, #16a34a 50% 100%);
+  --stock-beacon-ring: rgba(220, 38, 38, 0.42);
+}
+
+.stock-status.out-of-stock::before,
 .stock-status.out-of-stock::after {
   display: none;
 }
 
-@keyframes stock-beacon-pulse {
-  0%, 100% { opacity: 0.55; transform: translateY(-50%) scale(0.85); }
-  50% { opacity: 1; transform: translateY(-50%) scale(1.15); }
+@keyframes stock-beacon-ripple {
+  0% {
+    opacity: 0.75;
+    transform: translateY(-50%) scale(0.8);
+    box-shadow: 0 0 0 0 var(--stock-beacon-ring);
+  }
+  70%, 100% {
+    opacity: 0;
+    transform: translateY(-50%) scale(1.15);
+    box-shadow: 0 0 0 0.38rem transparent;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stock-status::after { animation: none; }
+  .stock-status::before { animation: none; opacity: 0.35; }
 }
 
 .stock-status.in-stock {
