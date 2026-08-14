@@ -1,4 +1,4 @@
-const CACHE_NAME = 'reliable-shell-v1'
+const CACHE_NAME = 'reliable-shell-v2'
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -39,7 +39,20 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  if (request.destination === 'image' || request.destination === 'style' || request.destination === 'script' || request.destination === 'font') {
+  if (request.destination === 'style' || request.destination === 'script') {
+    event.respondWith(
+      fetch(request).then((response) => {
+        if (response.ok) {
+          const copy = response.clone()
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy))
+        }
+        return response
+      }).catch(() => caches.match(request)),
+    )
+    return
+  }
+
+  if (request.destination === 'image' || request.destination === 'font') {
     event.respondWith(
       caches.match(request).then((cached) => {
         const networkRequest = fetch(request).then((response) => {
