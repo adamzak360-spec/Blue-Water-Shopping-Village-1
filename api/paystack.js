@@ -1,4 +1,5 @@
 const axios = require('axios');
+const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
@@ -32,6 +33,18 @@ function paystackHeaders(secret) {
     Authorization: `Bearer ${secret}`,
     'Content-Type': 'application/json',
   };
+}
+
+function timingSafeEqualHex(expected, received) {
+  if (!expected || !received || expected.length !== received.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(expected, 'utf8'), Buffer.from(received, 'utf8'));
+}
+
+function verifyPaystackSignature(req, secret) {
+  const received = req.headers?.['x-paystack-signature'] || req.headers?.['X-Paystack-Signature'];
+  const rawBody = req.rawBody ? Buffer.from(req.rawBody) : Buffer.from(JSON.stringify(req.body || {}));
+  const expected = crypto.createHmac('sha512', secret).update(rawBody).digest('hex');
+  return timingSafeEqualHex(expected, received);
 }
 
 async function verifyPaystackTransaction(reference, secret) {
@@ -81,6 +94,76 @@ module.exports = async (req, res) => {
   }
 
   try {
+    // Paystack's charge.success webhook is the authoritative recovery path
+    // when a customer's browser loses connectivity after payment. It is
+    // deliberately signature-protected and idempotent: repeated deliveries
+    // only rewrite the same paid state.
+    if (body.event === 'charge.success') {
+      if (!verifyPaystackSignature(req, PAYSTACK_SECRET_KEY)) {
+        return res.status(401).json({ error: 'Invalid Paystack webhook signature' });
+      }
+
+      const transaction = body.data || {};
+      const referenceValue = String(transaction.reference || '').trim();
+      const amountMinor = Number(transaction.amount);
+      if (!referenceValue || !Number.isFinite(amountMinor)) {
+        return res.status(400).json({ error: 'Paystack webhook is missing transaction reference or amount' });
+      }
+
+      const supabaseAdmin = getSupabaseAdmin();
+      const { data: byPaystackReference, error: paystackReferenceError } = await supabaseAdmin
+        .from('orders')
+        .select('id, total, status, payment_status, payment_metadata')
+        .eq('paystack_reference', referenceValue);
+      if (paystackReferenceError) throw paystackReferenceError;
+
+      let orders = byPaystackReference || [];
+      if (orders.length === 0) {
+        const { data: byProviderReference, error: providerReferenceError } = await supabaseAdmin
+          .from('orders')
+          .select('id, total, status, payment_status, payment_metadata')
+          .eq('provider_reference', referenceValue);
+        if (providerReferenceError) throw providerReferenceError;
+        orders = byProviderReference || [];
+      }
+
+      let updated = 0;
+      for (const order of orders) {
+        const expectedAmountMinor = Math.round(Number(order.total) * 100);
+        if (!Number.isFinite(expectedAmountMinor) || expectedAmountMinor !== amountMinor) continue;
+
+        const existingMetadata = order.payment_metadata && typeof order.payment_metadata === 'object'
+          ? order.payment_metadata
+          : {};
+        const nextStatus = order.status === 'cancelled' || order.status === 'pending'
+          ? 'pending'
+          : order.status;
+        const { error: updateError } = await supabaseAdmin
+          .from('orders')
+          .update({
+            status: nextStatus,
+            payment_status: 'paid',
+            amount_paid: amountMinor / 100,
+            payment_date: transaction.paid_at || new Date().toISOString(),
+            paid_at: transaction.paid_at || new Date().toISOString(),
+            provider_transaction_id: transaction.id ? String(transaction.id) : null,
+            payment_metadata: {
+              ...existingMetadata,
+              payment_attempt_status: 'paid',
+              verification_source: 'paystack_webhook',
+              paystack_transaction_status: String(transaction.status || 'success'),
+              webhook_event: 'charge.success',
+              webhook_received_at: new Date().toISOString(),
+            },
+          })
+          .eq('id', order.id);
+        if (updateError) throw updateError;
+        updated += 1;
+      }
+
+      return res.status(200).json({ received: true, event: body.event, reference: referenceValue, updated });
+    }
+
     if (action === 'initialize_advertising_payment') {
       const token = getBearerToken(req);
       const advertiserName = String(body.advertiser_name || '').trim();

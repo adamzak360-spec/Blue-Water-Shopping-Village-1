@@ -266,9 +266,13 @@ export default function Checkout() {
 
     try {
       console.log('[Checkout] Verifying payment with reference:', paymentReference)
-
-      // Verify payment with Paystack
+      
+      // Verify payment with Paystack. A successful API response does not
+      // necessarily mean the transaction itself succeeded; Paystack keeps
+      // the transaction state in verification.data.status.
       const verification = await verifyPayment(paymentReference)
+      const transactionStatus = String(verification.data?.status || '').toLowerCase()
+      const explicitFailureStatuses = new Set(['failed', 'abandoned', 'reversed'])
 
       const expectedAmountInKobo = Math.round(total * 100)
       const verifiedReference = verification.data?.reference
@@ -361,13 +365,29 @@ export default function Checkout() {
         throw new Error('Payment reference mismatch. Please contact support before retrying.')
       } else if ((verification.data?.amount || 0) < expectedAmountInKobo) {
         throw new Error('The verified payment amount does not cover this order total.')
+      } else if (explicitFailureStatuses.has(transactionStatus)) {
+        throw new Error(`PAYMENT_EXPLICIT_FAILURE:${transactionStatus}`)
       } else {
-        throw new Error('Payment was not successful. Please try again.')
+        // `pending`, `ongoing`, `processing`, `queued`, API/reference errors,
+        // and amount mismatches must remain recoverable. A customer may have
+        // been debited even when the browser could not complete verification.
+        throw new Error(`PAYMENT_PENDING:${transactionStatus || 'verification_unavailable'}`)
       }
     } catch (error: any) {
       console.error('[Checkout] Payment verification failed:', error)
+
+      const rawMessage = String(error?.message || '')
+      const isExplicitPaymentFailure = rawMessage.startsWith('PAYMENT_EXPLICIT_FAILURE:')
+      const paymentFailureReason = rawMessage.replace(/^PAYMENT_(?:EXPLICIT_FAILURE|PENDING):?/, '').trim()
+      const orderStatus = isExplicitPaymentFailure ? 'cancelled' as const : 'pending' as const
+      const paymentStatus = isExplicitPaymentFailure ? 'failed' as const : 'pending' as const
+      const customerMessage = isExplicitPaymentFailure
+        ? 'Paystack reported that this payment failed. No successful order was created.'
+        : 'Payment verification is still pending. Your order was saved for verification; please do not pay again until the status is checked.'
       
-      // If payment failed, try to mark it as failed
+      // Record the attempt without treating an unavailable or in-progress
+      // verification as a failed payment. This prevents a real debit from
+      // being shown as cancelled while Paystack is still settling it.
       if (paymentReference && formData.email) {
         try {
           const failedPayload = {
@@ -382,14 +402,16 @@ export default function Checkout() {
             subtotal: cartSubtotal,
             delivery_fee: deliveryFee,
             total: total,
-            status: 'cancelled' as const,
-            payment_status: 'failed' as const,
+            status: orderStatus,
+            payment_status: paymentStatus,
             payment_method: 'paystack',
             paystack_reference: paymentReference,
             payment_provider: 'paystack',
             provider_reference: paymentReference,
             payment_metadata: {
-              payment_attempt_status: 'failed',
+              payment_attempt_status: isExplicitPaymentFailure ? 'failed' : 'pending_verification',
+              paystack_transaction_status: paymentFailureReason || null,
+              verification_required: !isExplicitPaymentFailure,
               international_payments_enabled: true,
             },
             business_id: checkoutBusinessId,
@@ -406,7 +428,7 @@ export default function Checkout() {
         }
       }
       
-      alert(`Payment verification failed: ${error.message}`)
+      alert(customerMessage)
       setPaymentStep('form')
     } finally {
       setIsSubmitting(false)
