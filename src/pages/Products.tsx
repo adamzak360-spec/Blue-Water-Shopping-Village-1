@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { getAllProducts } from '../services/productService'
 import { getMarketplaceProductCountVisibility } from '../services/businessService'
 import { shuffle } from '../utils/shuffle'
+import { getActivePromotedProductIds } from '../services/promotionService'
 import type { Product } from '../types'
 import ProductCard from '../components/ProductCard'
 import { ArrowRight, Search, X } from 'lucide-react'
@@ -25,6 +26,7 @@ export default function Products() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isSticky, setIsSticky] = useState(false)
   const [showProductCount, setShowProductCount] = useState(false)
+  const [promotedProductIds, setPromotedProductIds] = useState<string[]>([])
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -46,11 +48,13 @@ export default function Products() {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const [data, shouldShowProductCount] = await Promise.all([
+        const [data, shouldShowProductCount, activePromotionIds] = await Promise.all([
           getAllProducts(),
           getMarketplaceProductCountVisibility(),
+          getActivePromotedProductIds(),
         ])
         setShowProductCount(shouldShowProductCount)
+        setPromotedProductIds(activePromotionIds)
         const rotatedProducts = shuffle(data)
         setProducts(rotatedProducts)
         setFilteredProducts(rotatedProducts.filter(p => p.status === 'active'))
@@ -84,18 +88,21 @@ export default function Products() {
 
   const categories = [...new Set(products.map(p => p.category))].sort()
   const activeCount = products.filter(p => p.status === 'active').length
+  const promotedProductIdSet = new Set(promotedProductIds)
+  const promotedProducts = filteredProducts.filter(product => promotedProductIdSet.has(product.id))
+  const organicFilteredProducts = filteredProducts.filter(product => !promotedProductIdSet.has(product.id))
 
-  // Keep every product unique while alternating four vertical pairs (8 cards)
+  // Keep every organic product unique while alternating four vertical pairs (8 cards)
   // with three pairs in a horizontal scroller (6 cards).
   const productSections: Array<{ type: 'grid' | 'horizontal'; products: Product[] }> = []
-  for (let start = 0; start < filteredProducts.length;) {
-    const verticalProducts = filteredProducts.slice(start, start + 8)
+  for (let start = 0; start < organicFilteredProducts.length;) {
+      const verticalProducts = organicFilteredProducts.slice(start, start + 8)
     if (verticalProducts.length > 0) {
       productSections.push({ type: 'grid', products: verticalProducts })
       start += verticalProducts.length
     }
 
-    const horizontalProducts = filteredProducts.slice(start, start + 6)
+      const horizontalProducts = organicFilteredProducts.slice(start, start + 6)
     if (horizontalProducts.length > 0) {
       productSections.push({ type: 'horizontal', products: horizontalProducts })
       start += horizontalProducts.length
@@ -297,6 +304,22 @@ export default function Products() {
               <div className="results-info">
                 Showing {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
               </div>
+            )}
+            {promotedProducts.length > 0 && (
+              <section className="products-sponsored-section" aria-labelledby="sponsored-products-title">
+                <div className="products-sponsored-header">
+                  <div>
+                    <span className="products-sponsored-kicker">Paid placement</span>
+                    <h2 id="sponsored-products-title">Sponsored Products</h2>
+                  </div>
+                  <p>Promoted by participating sellers</p>
+                </div>
+                <div className="products-grid sponsored-products-grid">
+                  {promotedProducts.map(product => (
+                    <ProductCard key={product.id} product={product} isSponsored />
+                  ))}
+                </div>
+              </section>
             )}
             <div className="products-browse-sections">
               {productSections.map((section, sectionIndex) => (

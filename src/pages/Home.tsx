@@ -3,6 +3,7 @@ import { supabase, isSupabaseConfigured } from '../supabaseClient'
 import { validateEmail } from '../utils/validation'
 import { getAllProducts } from '../services/productService'
 import { shuffle } from '../utils/shuffle'
+import { getActivePromotedProductIds } from '../services/promotionService'
 import type { Product } from '../types'
 import { Link } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
@@ -80,19 +81,25 @@ export default function Home() {
   const [newsUpdates, setNewsUpdates] = useState<NewsUpdate[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [currentBanner, setCurrentBanner] = useState(0)
+  const [promotedProductIds, setPromotedProductIds] = useState<string[]>([])
   
   const scrollRefs = {
     trending: useRef<HTMLDivElement>(null),
     bestSellers: useRef<HTMLDivElement>(null),
     newArrivals: useRef<HTMLDivElement>(null),
+    sponsored: useRef<HTMLDivElement>(null),
     flashDeals: useRef<HTMLDivElement>(null)
   } as const
 
   useEffect(() => {
     const load = async () => {
       try {
-        const data = await getAllProducts()
+        const [data, activePromotionIds] = await Promise.all([
+          getAllProducts(),
+          getActivePromotedProductIds(),
+        ])
         setAllProducts(shuffle(data))
+        setPromotedProductIds(activePromotionIds)
         if (isSupabaseConfigured && supabase) {
           const { data: updates, error: updatesError } = await supabase
             .from('news_updates')
@@ -120,26 +127,29 @@ export default function Home() {
   }, [])
 
   const activeProducts = allProducts.filter(p => p.status === 'active')
+  const promotedProductIdSet = new Set(promotedProductIds)
+  const promotedProducts = shuffle(activeProducts.filter(product => promotedProductIdSet.has(product.id)))
+  const organicProducts = activeProducts.filter(product => !promotedProductIdSet.has(product.id))
   
-  // Use disjoint pools so homepage sections do not repeatedly show the same products.
+  // Use disjoint organic pools so homepage sections do not repeatedly show the same products.
   // The shuffled catalog still changes the products shown after each fresh page load.
-  const trendingProducts = activeProducts.slice(0, 8)
+  const trendingProducts = organicProducts.slice(0, 8)
   const usedAfterTrending = new Set(trendingProducts.map(product => product.id))
-  const newArrivals = activeProducts
+  const newArrivals = organicProducts
     .filter(product => !usedAfterTrending.has(product.id))
     .slice(0, 6)
   const usedAfterNewArrivals = new Set([
     ...usedAfterTrending,
     ...newArrivals.map(product => product.id),
   ])
-  const bestSellers = activeProducts
+  const bestSellers = organicProducts
     .filter(product => !usedAfterNewArrivals.has(product.id))
     .slice(0, 8)
   const usedBeforeFlashDeals = new Set([
     ...usedAfterNewArrivals,
     ...bestSellers.map(product => product.id),
   ])
-  const flashDeals = activeProducts
+  const flashDeals = organicProducts
     .filter(product => product.price < 50 && !usedBeforeFlashDeals.has(product.id))
     .slice(0, 8)
 
@@ -267,6 +277,18 @@ export default function Home() {
       </section>
 
       {/* --- Horizontal Product Sections --- */}
+      {promotedProducts.length > 0 && (
+        <ProductSection
+          title="Sponsored Products"
+          icon={<Star size={20} color="#b7791f" />}
+          products={promotedProducts.slice(0, 8)}
+          scrollRef={scrollRefs.sponsored}
+          onScroll={(dir) => scroll(scrollRefs.sponsored, dir)}
+          isLoading={isLoading}
+          isSponsored
+          className="sponsored-products-section"
+        />
+      )}
       
       {/* Trending */}
       <ProductSection 
@@ -405,9 +427,10 @@ interface ProductSectionProps {
   onScroll: (dir: 'left' | 'right') => void
   isLoading: boolean
   className?: string
+  isSponsored?: boolean
 }
 
-function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading, className = '' }: ProductSectionProps) {
+function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading, className = '', isSponsored = false }: ProductSectionProps) {
   if (!isLoading && products.length === 0) return null
 
   return (
@@ -428,9 +451,9 @@ function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading,
           {isLoading ? (
             [...Array(6)].map((_, i) => <div key={i} className="product-card-skeleton horizontal" />)
           ) : (
-            products.map(product => (
-              <div key={product.id} className="horizontal-product-wrapper">
-                <ProductCard product={product} />
+              products.map(product => (
+                <div key={product.id} className="horizontal-product-wrapper">
+                  <ProductCard product={product} isSponsored={isSponsored} />
               </div>
             ))
           )}

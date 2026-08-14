@@ -107,6 +107,21 @@
 }
 
 /* Product Info */
+.product-sponsored-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-bottom: var(--space-xs);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+  background: #fff7d6;
+  color: #8a5a00;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .product-info {
   padding: var(--space-md);
   display: flex;

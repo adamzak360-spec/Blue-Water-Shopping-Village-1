@@ -9,9 +9,10 @@ import StockStatus from './StockStatus'
 interface ProductCardProps {
   product: Product
   showStock?: boolean
+  isSponsored?: boolean
 }
 
-export default function ProductCard({ product, showStock = true }: ProductCardProps) {
+export default function ProductCard({ product, showStock = true, isSponsored = false }: ProductCardProps) {
   const { addToCart } = useCart()
   const { isWishlisted, toggleWishlist } = useWishlist()
   const saved = isWishlisted(product.id)
@@ -55,6 +56,7 @@ export default function ProductCard({ product, showStock = true }: ProductCardPr
       </Link>
 
       <div className="product-info">
+        {isSponsored && <span className="product-sponsored-badge">Sponsored</span>}
         <span className="product-category">{product.category}</span>
         <Link to={`/product/${product.id}`} className="product-name-link">
           <h4 className="product-name">{product.name}</h4>
