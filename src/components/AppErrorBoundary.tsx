@@ -51,7 +51,7 @@ export class AppErrorBoundary extends Component<Props, State> {
           }}>
             <h2 style={{ color: '#0a2e5c', marginBottom: '0.75rem' }}>We’re having trouble loading this page</h2>
             <p style={{ color: '#4b5563', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-              Please check your internet connection, then refresh the page and try again. If the problem continues, wait a moment and reload once more.
+              It looks like your internet connection may be unavailable or unstable. Please turn on your mobile data or connect to Wi‑Fi, then tap Refresh Page to try again. If you already have internet, wait a moment and reload once more.
             </p>
             <button
               onClick={this.handleRetry}
