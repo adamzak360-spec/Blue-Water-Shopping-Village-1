@@ -588,7 +588,7 @@ export default function ProductDetails() {
           {/* Call to Order Button */}
           <button className="call-to-order-btn" onClick={handleCallOrder}>
             <Phone size={20} />
-            Call to Order: +233 538 557 781
+            Call to Order: +233 59 560 9966
           </button>
         </div>
       </div>
