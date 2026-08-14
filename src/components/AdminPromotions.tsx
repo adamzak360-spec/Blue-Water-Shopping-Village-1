@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { useAuth } from '../context/AuthContext'
 import { formatCurrency } from '../utils/currency'
 import './AdminPromotions.css'
 
@@ -10,6 +11,7 @@ type Lookup = { id: string; name: string; category?: string | null }
 const emptyPlan = { code: 'FEATURED_PRODUCT' as Plan['code'], name: 'Featured Product', price: '', duration_days: '7', placement: 'MARKETPLACE', max_active_promotions: '10', is_active: false }
 
 export default function AdminPromotions() {
+  const { session } = useAuth()
   const [plans, setPlans] = useState<Plan[]>([])
   const [promotions, setPromotions] = useState<Promotion[]>([])
   const [stores, setStores] = useState<Lookup[]>([])
@@ -44,11 +46,19 @@ export default function AdminPromotions() {
   }
 
   const setReview = async (id: string, reviewStatus: 'APPROVED' | 'REJECTED') => {
-    if (!supabase) return
+    if (!session?.access_token) { setMessage('Administrator authentication is required.'); return }
     setBusy(true)
-    const status = reviewStatus === 'REJECTED' ? 'SUSPENDED' : 'ACTIVE'
-    const { error } = await supabase.from('seller_promotions').update({ review_status: reviewStatus, status, review_notes: reviewStatus === 'REJECTED' ? 'Rejected by administrator.' : null, reviewed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', id)
-    setBusy(false); setMessage(error ? error.message : `Promotion ${reviewStatus.toLowerCase()}.`); if (!error) await load()
+    try {
+      const response = await fetch('/api/notify-promotion-review', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify({ promotion_id: id, decision: reviewStatus }) })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Could not review promotion.')
+      setMessage(result.email_sent ? `Promotion ${reviewStatus.toLowerCase()}; seller notification sent.` : `Promotion ${reviewStatus.toLowerCase()}; seller email could not be sent.`)
+      await load()
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Could not review promotion.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   const setStatus = async (id: string, status: 'CANCELLED' | 'SUSPENDED' | 'ACTIVE') => {
