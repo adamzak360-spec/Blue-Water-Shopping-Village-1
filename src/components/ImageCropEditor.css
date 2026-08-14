@@ -1,0 +1,132 @@
+.image-editor-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(3, 45, 97, 0.68);
+  backdrop-filter: blur(5px);
+}
+
+.image-editor-panel {
+  width: min(100%, 560px);
+  max-height: min(92vh, 760px);
+  overflow-y: auto;
+  padding: clamp(1rem, 4vw, 1.75rem);
+  background: #ffffff;
+  border: 1px solid #d9f2ee;
+  border-radius: 20px;
+  box-shadow: 0 24px 70px rgba(3, 45, 97, 0.26);
+}
+
+.image-editor-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.image-editor-header h3 {
+  margin: 0 0 0.45rem;
+  color: #032d61;
+  font-size: 1.2rem;
+}
+
+.image-editor-header p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.image-editor-close {
+  display: grid;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  color: #032d61;
+  background: #effbf9;
+  border: 1px solid #cdeee9;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.image-editor-preview {
+  width: min(100%, 360px);
+  aspect-ratio: 1;
+  margin: 1.35rem auto;
+  background-color: #e6fffb;
+  background-repeat: no-repeat;
+  border: 6px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 10px 24px rgba(3, 45, 97, 0.18);
+}
+
+.image-editor-controls {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8fbfd;
+  border: 1px solid #e5eef5;
+  border-radius: 14px;
+}
+
+.image-editor-controls label {
+  display: grid;
+  gap: 0.45rem;
+  color: #334155;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.image-editor-controls label span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.image-editor-controls input[type='range'] {
+  width: 100%;
+  accent-color: #0a8f8a;
+}
+
+.image-editor-controls select {
+  min-height: 42px;
+  padding: 0.6rem 0.7rem;
+  color: #0f172a;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}
+
+.image-editor-error {
+  margin: 1rem 0 0;
+  color: #b42318;
+  font-size: 0.9rem;
+}
+
+.image-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 480px) {
+  .image-editor-overlay {
+    padding: 0.55rem;
+  }
+
+  .image-editor-panel {
+    border-radius: 16px;
+  }
+
+  .image-editor-actions {
+    flex-direction: column-reverse;
+  }
+
+  .image-editor-actions button {
+    width: 100%;
+  }
+}

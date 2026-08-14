@@ -1217,3 +1217,54 @@ tr:hover td {
   }
 }
 
+
+.favicon-card {
+  background: #ffffff;
+}
+
+.favicon-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xl);
+}
+
+.favicon-heading h3 {
+  margin-bottom: 0.5rem;
+}
+
+.favicon-heading p {
+  max-width: 560px;
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.favicon-preview-frame {
+  display: grid;
+  flex: 0 0 auto;
+  width: 76px;
+  height: 76px;
+  place-items: center;
+  background: #f8fafc;
+  border: 1px solid #dbe7ef;
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.favicon-preview-frame img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+@media (max-width: 640px) {
+  .favicon-heading {
+    align-items: flex-start;
+    flex-direction: column-reverse;
+  }
+
+  .favicon-preview-frame {
+    align-self: center;
+  }
+}

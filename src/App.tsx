@@ -73,7 +73,7 @@ const prefetchLogin = () => import('./pages/Login')
 import TermsPopup from './components/TermsPopup'
 import WhatsAppButton from './components/WhatsAppButton'
 import InstallAppPrompt from './components/InstallAppPrompt'
-import { getMarketplaceLogoUrl } from './services/businessService'
+import { getMarketplaceFaviconUrl, getMarketplaceLogoUrl } from './services/businessService'
 
 function App() {
   return <AppShell />
@@ -88,6 +88,7 @@ function AppShell() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [marketplaceLogoUrl, setMarketplaceLogoUrl] = useState('/logo-square.png')
+  const [marketplaceFaviconUrl, setMarketplaceFaviconUrl] = useState('/favicon.ico')
 
   const isAdminRoute = location.pathname.startsWith('/admin')
   const isCustomerRoute = location.pathname.startsWith('/customer')
@@ -105,17 +106,33 @@ function AppShell() {
     getMarketplaceLogoUrl().then((logoUrl) => {
       if (!cancelled && logoUrl) setMarketplaceLogoUrl(logoUrl)
     })
+    getMarketplaceFaviconUrl().then((faviconUrl) => {
+      if (!cancelled && faviconUrl) setMarketplaceFaviconUrl(faviconUrl)
+    })
 
     const handleLogoUpdate = (event: Event) => {
       const nextUrl = (event as CustomEvent<string | null>).detail
       setMarketplaceLogoUrl(nextUrl || '/logo-square.png')
     }
+    const handleFaviconUpdate = (event: Event) => {
+      const nextUrl = (event as CustomEvent<string | null>).detail
+      setMarketplaceFaviconUrl(nextUrl || '/favicon.ico')
+    }
     window.addEventListener('marketplace-logo-updated', handleLogoUpdate)
+    window.addEventListener('marketplace-favicon-updated', handleFaviconUpdate)
     return () => {
       cancelled = true
       window.removeEventListener('marketplace-logo-updated', handleLogoUpdate)
+      window.removeEventListener('marketplace-favicon-updated', handleFaviconUpdate)
     }
   }, [])
+
+  useEffect(() => {
+    const links = Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"], link[rel="apple-touch-icon"]'))
+    links.forEach((link) => {
+      link.href = marketplaceFaviconUrl
+    })
+  }, [marketplaceFaviconUrl])
 
   // Reset the page position whenever navigation changes, including filter/query changes.
   // The frame delay lets the new route render before the browser is moved to its top.

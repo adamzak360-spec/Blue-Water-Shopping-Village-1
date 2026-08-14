@@ -38,6 +38,7 @@ import { BusinessVerificationForm } from '../components/BusinessVerificationForm
 import { PayoutProfileForm } from '../components/PayoutProfileForm'
 import DeliverySettings from '../components/DeliverySettings'
 import AdminNewsUpdates from '../components/AdminNewsUpdates'
+import ImageCropEditor from '../components/ImageCropEditor'
 import './Admin.css'
 
   // Lazy load admin sub-components for better performance
@@ -184,6 +185,8 @@ export default function Admin() {
   const [isUpdatingStore, setIsUpdatingStore] = useState(false)
   const [assetActionLoading, setAssetActionLoading] = useState<'logo' | 'banner' | null>(null)
   const [marketplaceLogoActionLoading, setMarketplaceLogoActionLoading] = useState(false)
+  const [faviconActionLoading, setFaviconActionLoading] = useState(false)
+  const [brandingEditor, setBrandingEditor] = useState<{ kind: 'logo' | 'favicon'; file: File } | null>(null)
   const [showEmailPreview, setShowEmailPreview] = useState(false)
   const [storeSettings, setStoreSettings] = useState({
     name: '',
@@ -386,26 +389,6 @@ export default function Admin() {
     }
   }
 
-  const handleMarketplaceLogoUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file || role !== 'admin' || !business) return
-
-    setMarketplaceLogoActionLoading(true)
-    setError('')
-    try {
-      const url = await uploadBusinessAsset(file, business.id, 'logo')
-      const updatedBusiness = await updateBusinessProfile(business.id, { logo_url: url })
-      setBusiness(updatedBusiness)
-      window.dispatchEvent(new CustomEvent('marketplace-logo-updated', { detail: url }))
-      showNotification('Marketplace logo updated!')
-    } catch (err: any) {
-      setError(err.message || 'Failed to update the marketplace logo')
-    } finally {
-      setMarketplaceLogoActionLoading(false)
-      event.target.value = ''
-    }
-  }
-
   const handleMarketplaceLogoDelete = async () => {
     if (role !== 'admin' || !business?.logo_url) return
     if (!window.confirm('Delete the marketplace logo? The site will use the default logo until you upload another one.')) return
@@ -422,6 +405,62 @@ export default function Admin() {
       setError(err.message || 'Failed to delete the marketplace logo')
     } finally {
       setMarketplaceLogoActionLoading(false)
+    }
+  }
+
+  const handleBrandingEditorSave = async (editedFile: File) => {
+    if (!brandingEditor || role !== 'admin' || !business) return
+
+    const { kind } = brandingEditor
+    setBrandingEditor(null)
+    setError('')
+    if (kind === 'logo') setMarketplaceLogoActionLoading(true)
+    if (kind === 'favicon') setFaviconActionLoading(true)
+
+    try {
+      const url = await uploadBusinessAsset(editedFile, business.id, kind)
+      const updatedBusiness = await updateBusinessProfile(business.id, kind === 'logo' ? { logo_url: url } : { favicon_url: url })
+      setBusiness(updatedBusiness)
+      window.dispatchEvent(new CustomEvent(kind === 'logo' ? 'marketplace-logo-updated' : 'marketplace-favicon-updated', { detail: url }))
+      showNotification(`${kind === 'logo' ? 'Marketplace logo' : 'Favicon'} updated!`)
+    } catch (err: any) {
+      setError(err.message || `Failed to update the ${kind}`)
+    } finally {
+      if (kind === 'logo') setMarketplaceLogoActionLoading(false)
+      if (kind === 'favicon') setFaviconActionLoading(false)
+    }
+  }
+
+  const handleMarketplaceLogoFileSelected = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file || role !== 'admin') return
+    setBrandingEditor({ kind: 'logo', file })
+  }
+
+  const handleFaviconFileSelected = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file || role !== 'admin') return
+    setBrandingEditor({ kind: 'favicon', file })
+  }
+
+  const handleFaviconDelete = async () => {
+    if (role !== 'admin' || !business?.favicon_url) return
+    if (!window.confirm('Delete the favicon? The browser tab will use the default icon until you upload another one.')) return
+
+    setFaviconActionLoading(true)
+    setError('')
+    try {
+      await deleteBusinessAsset(business.favicon_url)
+      const updatedBusiness = await updateBusinessProfile(business.id, { favicon_url: null })
+      setBusiness(updatedBusiness)
+      window.dispatchEvent(new CustomEvent('marketplace-favicon-updated', { detail: null }))
+      showNotification('Favicon deleted. The default icon is now active.')
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete the favicon')
+    } finally {
+      setFaviconActionLoading(false)
     }
   }
 
@@ -1131,7 +1170,7 @@ export default function Admin() {
                   <button
                     type="button"
                     className="btn-primary btn-sm"
-                    onClick={() => document.getElementById('marketplace-logo-upload')?.click()}
+                        onClick={() => document.getElementById('marketplace-logo-upload')?.click()}
                     disabled={marketplaceLogoActionLoading}
                   >
                     <Pencil size={16} />
@@ -1153,10 +1192,52 @@ export default function Admin() {
                     className="asset-file-input"
                     type="file"
                     accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                    onChange={handleMarketplaceLogoUpload}
+                    onChange={handleMarketplaceLogoFileSelected}
                   />
                 </div>
                 <small className="marketplace-logo-help">Use a square PNG, JPG, WebP, or SVG image up to 5 MB. Deleting restores the default Reliable logo.</small>
+              </div>
+
+              <div className="settings-card favicon-card">
+                <div className="favicon-heading">
+                  <div>
+                    <h3>Browser Favicon</h3>
+                    <p>Choose the icon customers see in their browser tab and when the site is saved to a phone home screen.</p>
+                  </div>
+                  <div className="favicon-preview-frame" aria-label="Current favicon preview">
+                    <img src={business?.favicon_url || '/favicon-32x32.png'} alt="Current browser favicon" />
+                  </div>
+                </div>
+                <div className="marketplace-logo-actions">
+                  <button
+                    type="button"
+                    className="btn-primary btn-sm"
+                    onClick={() => document.getElementById('marketplace-favicon-upload')?.click()}
+                    disabled={faviconActionLoading}
+                  >
+                    <Pencil size={16} />
+                    {faviconActionLoading ? 'Working...' : business?.favicon_url ? 'Change Favicon' : 'Upload Favicon'}
+                  </button>
+                  {business?.favicon_url && (
+                    <button
+                      type="button"
+                      className="btn-delete btn-sm"
+                      onClick={handleFaviconDelete}
+                      disabled={faviconActionLoading}
+                    >
+                      <Trash2 size={16} />
+                      Delete Favicon
+                    </button>
+                  )}
+                  <input
+                    id="marketplace-favicon-upload"
+                    className="asset-file-input"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon"
+                    onChange={handleFaviconFileSelected}
+                  />
+                </div>
+                <small className="marketplace-logo-help">The image is cropped square and resized for you before it is saved. PNG, JPG, WebP, SVG, and ICO images up to 5 MB are supported.</small>
               </div>
 
               <div className="settings-card subscription-pricing-card">
@@ -2702,6 +2783,15 @@ export default function Admin() {
         </div>
       )}
 
+      {brandingEditor && (
+        <ImageCropEditor
+          file={brandingEditor.file}
+          title={brandingEditor.kind === 'logo' ? 'Prepare Marketplace Logo' : 'Prepare Browser Favicon'}
+          outputSize={brandingEditor.kind === 'logo' ? 512 : 256}
+          onCancel={() => setBrandingEditor(null)}
+          onSave={handleBrandingEditorSave}
+        />
+      )}
       {showEmailPreview && (
         <div role="dialog" aria-modal="true" aria-label="Customer email preview" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(15, 23, 42, 0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
           <div style={{ width: 'min(720px, 100%)', height: 'min(88vh, 860px)', background: '#fff', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,.3)', display: 'flex', flexDirection: 'column' }}>

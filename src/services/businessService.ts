@@ -8,6 +8,7 @@ export interface Business {
   slug: string
   owner_id?: string
   logo_url?: string | null
+  favicon_url?: string | null
   banner_url?: string | null
   description?: string
   contact_email?: string
@@ -124,6 +125,23 @@ export async function getBusinessByOwner(userId: string): Promise<Business | nul
 }
 
 export const DEFAULT_MARKETPLACE_ID = '00000000-0000-0000-0000-000000000001'
+
+export async function getMarketplaceFaviconUrl(): Promise<string | null> {
+  if (!isSupabaseConfigured || !supabase) return null
+
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('favicon_url')
+    .eq('id', DEFAULT_MARKETPLACE_ID)
+    .maybeSingle()
+
+  if (error) {
+    console.error('Error fetching marketplace favicon:', error)
+    return null
+  }
+
+  return data?.favicon_url || null
+}
 
 export async function getMarketplaceLogoUrl(): Promise<string | null> {
   if (!isSupabaseConfigured || !supabase) return null
@@ -283,7 +301,7 @@ export async function submitBusinessVerification(
   return updated as Business
 }
 
-export async function uploadBusinessAsset(file: File, businessId: string, type: 'logo' | 'banner'): Promise<string> {
+export async function uploadBusinessAsset(file: File, businessId: string, type: 'logo' | 'banner' | 'favicon'): Promise<string> {
   if (!isSupabaseConfigured || !supabase) {
     throw new Error('Supabase not configured')
   }
