@@ -81,6 +81,136 @@ module.exports = async (req, res) => {
   }
 
   try {
+    if (action === 'initialize_advertising_payment') {
+      const token = getBearerToken(req);
+      const advertiserName = String(body.advertiser_name || '').trim();
+      const advertiserType = ['SELLER', 'EXTERNAL', 'INTERNAL'].includes(String(body.advertiser_type)) ? String(body.advertiser_type) : 'EXTERNAL';
+      const campaign = body.campaign || {};
+      const campaignName = String(campaign.campaign_name || '').trim();
+      const adType = String(campaign.ad_type || 'BANNER');
+      const placement = String(campaign.placement || 'HOME_TOP');
+      const headline = String(campaign.headline || '').trim();
+      const description = campaign.description ? String(campaign.description).trim() : null;
+      const imageUrl = campaign.image_url ? String(campaign.image_url).trim() : null;
+      const destinationUrl = String(campaign.destination_url || '').trim();
+      const startsAt = new Date(String(campaign.starts_at || ''));
+      const endsAt = new Date(String(campaign.ends_at || ''));
+      const requestedAmount = Number(campaign.budget_minor);
+      const allowedAdTypes = ['BANNER', 'PRODUCT', 'STORE', 'SPONSORED_PRODUCT', 'SPONSORED_STORE', 'HOMEPAGE_PROMOTION'];
+      const allowedPlacements = ['HOME_TOP', 'HOME_MIDDLE', 'HOME_BOTTOM', 'PRODUCT_LIST_TOP', 'PRODUCT_LIST_MIDDLE', 'PRODUCT_DETAILS', 'STORE_PAGE', 'CATEGORY_PAGE', 'SEARCH_RESULTS', 'SIDEBAR_DESKTOP', 'MOBILE_BANNER'];
+
+      if (!token || !advertiserName || !campaignName || !headline || !destinationUrl || !Number.isInteger(requestedAmount) || requestedAmount <= 0) {
+        return res.status(400).json({ error: 'Authenticated advertiser, campaign, secure destination, and a positive budget are required.' });
+      }
+      if (!allowedAdTypes.includes(adType) || !allowedPlacements.includes(placement)) return res.status(400).json({ error: 'Invalid advertising type or placement.' });
+      if (!/^https:\/\//i.test(destinationUrl) || (imageUrl && !/^https:\/\//i.test(imageUrl))) return res.status(400).json({ error: 'Advertisement and image URLs must use HTTPS.' });
+      if (!Number.isFinite(startsAt.getTime()) || !Number.isFinite(endsAt.getTime()) || endsAt <= startsAt) return res.status(400).json({ error: 'The advertising schedule is invalid.' });
+
+      const supabaseAdmin = getSupabaseAdmin();
+      const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(token);
+      if (authError || !authData?.user) return res.status(401).json({ error: 'Authentication expired. Please sign in again.' });
+
+      const { data: settings, error: settingsError } = await supabaseAdmin.from('advertising_settings')
+        .select('minimum_budget_minor, maximum_duration_days, approval_required').eq('id', true).maybeSingle();
+      if (settingsError) throw settingsError;
+      const minimumBudget = Number(settings?.minimum_budget_minor || 0);
+      const durationDays = (endsAt.getTime() - startsAt.getTime()) / 86400000;
+      if (requestedAmount < minimumBudget) return res.status(400).json({ error: `The minimum advertising budget is ${minimumBudget} in the smallest currency unit.` });
+      if (durationDays > Number(settings?.maximum_duration_days || 365)) return res.status(400).json({ error: 'The advertising duration is longer than the configured maximum.' });
+
+      const paymentReference = String(reference || `rlbl-ad-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
+      const { data: advertiser, error: advertiserError } = await supabaseAdmin.from('advertisers').insert({
+        owner_user_id: authData.user.id,
+        name: advertiserName,
+        contact_email: authData.user.email || String(email || ''),
+        advertiser_type: advertiserType,
+      }).select('id').single();
+      if (advertiserError) throw advertiserError;
+
+      const { data: advertisement, error: advertisementError } = await supabaseAdmin.from('advertisements').insert({
+        advertiser_id: advertiser.id,
+        campaign_name: campaignName,
+        ad_type: adType,
+        placement,
+        status: 'DRAFT',
+        priority: Math.max(1, Math.min(100, Number(campaign.priority) || 10)),
+        headline,
+        description,
+        image_url: imageUrl,
+        destination_url: destinationUrl,
+        starts_at: startsAt.toISOString(),
+        ends_at: endsAt.toISOString(),
+        budget_minor: requestedAmount,
+        created_by: authData.user.id,
+      }).select('id').single();
+      if (advertisementError) throw advertisementError;
+
+      const { data: payment, error: paymentError } = await supabaseAdmin.from('ad_payments').insert({
+        advertiser_id: advertiser.id,
+        advertisement_id: advertisement.id,
+        amount_minor: requestedAmount,
+        currency: 'GHS',
+        purpose: 'ADVERTISING_PAYMENT',
+        status: 'PENDING',
+        payment_reference: paymentReference,
+        metadata: { type: 'reliable_advertising', advertiser_id: advertiser.id, advertisement_id: advertisement.id },
+      }).select('id').single();
+      if (paymentError) throw paymentError;
+
+      try {
+        const response = await axios.post(`${PAYSTACK_BASE_URL}/transaction/initialize`, {
+          email: authData.user.email || String(email),
+          amount: requestedAmount,
+          currency: 'GHS',
+          reference: paymentReference,
+          callback_url,
+          metadata: { type: 'reliable_advertising', advertiser_id: advertiser.id, advertisement_id: advertisement.id, ad_payment_id: payment.id },
+        }, { headers: paystackHeaders(PAYSTACK_SECRET_KEY) });
+        return res.status(200).json({ ...response.data, data: { ...response.data.data, advertiser_id: advertiser.id, advertisement_id: advertisement.id, ad_payment_id: payment.id } });
+      } catch (paymentInitError) {
+        await supabaseAdmin.from('ad_payments').update({ status: 'FAILED', metadata: { type: 'reliable_advertising', error: 'initialization_failed' } }).eq('id', payment.id);
+        await supabaseAdmin.from('advertisements').update({ status: 'ARCHIVED', updated_at: new Date().toISOString() }).eq('id', advertisement.id);
+        throw paymentInitError;
+      }
+    }
+
+    if (action === 'confirm_advertising_payment') {
+      const token = getBearerToken(req);
+      const paymentId = String(body.ad_payment_id || '');
+      const paymentReference = String(reference || '');
+      if (!token || !paymentId || !paymentReference) return res.status(400).json({ error: 'Authenticated advertising payment and reference are required.' });
+
+      const supabaseAdmin = getSupabaseAdmin();
+      const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(token);
+      if (authError || !authData?.user) return res.status(401).json({ error: 'Authentication expired. Please sign in again.' });
+      const { data: payment, error: paymentError } = await supabaseAdmin.from('ad_payments')
+        .select('id, advertiser_id, advertisement_id, amount_minor, currency, status, payment_reference').eq('id', paymentId).maybeSingle();
+      if (paymentError) throw paymentError;
+      if (!payment || payment.payment_reference !== paymentReference) return res.status(404).json({ error: 'Advertising payment was not found.' });
+      const { data: advertiser, error: advertiserError } = await supabaseAdmin.from('advertisers').select('id, owner_user_id').eq('id', payment.advertiser_id).maybeSingle();
+      if (advertiserError) throw advertiserError;
+      if (!advertiser || advertiser.owner_user_id !== authData.user.id) return res.status(403).json({ error: 'You are not allowed to confirm this advertising payment.' });
+      if (payment.status === 'SUCCESS') return res.status(200).json({ status: true, message: 'Advertising payment already confirmed.', data: payment });
+
+      const verified = await verifyPaystackTransaction(paymentReference, PAYSTACK_SECRET_KEY);
+      const transaction = verified?.data;
+      const transactionMetadata = transaction?.metadata || {};
+      const valid = verified?.status && transaction?.status === 'success' && String(transaction?.reference) === paymentReference && Number(transaction?.amount) === Number(payment.amount_minor) && String(transaction?.currency || '').toUpperCase() === 'GHS' && transactionMetadata.type === 'reliable_advertising';
+      if (!valid) {
+        await supabaseAdmin.from('ad_payments').update({ status: 'FAILED', metadata: transactionMetadata }).eq('id', payment.id).eq('status', 'PENDING');
+        return res.status(400).json({ error: 'Paystack payment could not be verified for this advertising campaign.' });
+      }
+
+      const { data: settings, error: settingsError } = await supabaseAdmin.from('advertising_settings').select('approval_required').eq('id', true).maybeSingle();
+      if (settingsError) throw settingsError;
+      const { error: ledgerError } = await supabaseAdmin.from('ad_payments').update({ status: 'SUCCESS', paid_at: transaction?.paid_at || new Date().toISOString(), metadata: transactionMetadata }).eq('id', payment.id).eq('status', 'PENDING');
+      if (ledgerError) throw ledgerError;
+      const nextStatus = settings?.approval_required === false ? 'SCHEDULED' : 'PENDING_APPROVAL';
+      const { data: advertisement, error: activationError } = await supabaseAdmin.from('advertisements').update({ status: nextStatus, revenue_minor: payment.amount_minor, updated_at: new Date().toISOString() }).eq('id', payment.advertisement_id).select('id, status, starts_at, ends_at').single();
+      if (activationError) throw activationError;
+      return res.status(200).json({ status: true, message: 'Advertising payment confirmed. Campaign submitted for approval.', data: { ...advertisement, payment_reference: paymentReference } });
+    }
+
     if (action === 'initialize') {
       if (!email || !amount) {
         return res.status(400).json({ error: 'Email and amount are required for initialization' });
@@ -422,7 +552,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    return res.status(400).json({ error: 'Invalid action. Use "initialize", "verify", "confirm_pos_subscription", or "confirm_seller_promotion"' });
+    return res.status(400).json({ error: 'Invalid payment action.' });
   } catch (error) {
     const errorData = error.response?.data || error.message;
     console.error(`[PAYSTACK API] ${action} failed:`, errorData);

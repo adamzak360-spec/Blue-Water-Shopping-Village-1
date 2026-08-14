@@ -53,6 +53,45 @@ export interface SellerPromotionConfirmationResponse {
   data: { id: string; status: string; starts_at: string; ends_at: string; payment_reference: string }
 }
 
+export interface AdvertisingPaymentConfirmationPayload {
+  ad_payment_id: string
+  reference: string
+}
+
+export interface AdvertisingPaymentConfirmationResponse {
+  status: boolean
+  message: string
+  data: { id: string; status: string; starts_at: string; ends_at: string; payment_reference: string }
+}
+
+export const initializeAdvertisingPayment = async (
+  payload: { advertiser_name: string; advertiser_type?: string; campaign: Record<string, unknown>; email?: string; reference?: string; callback_url?: string },
+  accessToken: string,
+): Promise<PaystackInitializePaymentResponse & { data: PaystackInitializePaymentResponse['data'] & { advertiser_id: string; advertisement_id: string; ad_payment_id: string } }> => {
+  const response = await fetch('/api/paystack', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ action: 'initialize_advertising_payment', ...payload }),
+  })
+  const data = await response.json()
+  if (!response.ok || !data.status) throw new Error(data.error || data.message || 'Failed to initialize advertising payment')
+  return data
+}
+
+export const confirmAdvertisingPayment = async (
+  payload: AdvertisingPaymentConfirmationPayload,
+  accessToken: string,
+): Promise<AdvertisingPaymentConfirmationResponse> => {
+  const response = await fetch('/api/paystack', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ action: 'confirm_advertising_payment', ...payload }),
+  })
+  const data = await response.json()
+  if (!response.ok || !data.status) throw new Error(data.error || data.message || 'Failed to confirm advertising payment')
+  return data
+}
+
 export interface PaystackVerifyPaymentResponse {
   status: boolean
   message: string
