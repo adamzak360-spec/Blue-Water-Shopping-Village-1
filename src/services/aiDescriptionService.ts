@@ -6,6 +6,8 @@ export interface ProductDescriptionDraft {
   highlights: string[]
   seoTitle: string
   keywords: string[]
+  fallback?: boolean
+  provider?: string
 }
 
 export interface ProductDescriptionInput {

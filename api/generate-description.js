@@ -65,6 +65,18 @@ function buildPrompt(input) {
   return fields.map(([label, value]) => `${label}: ${value}`).join('\n');
 }
 
+function buildFallbackDraft(input) {
+  const facts = [input.name, input.category, input.keyFeatures, input.material, input.condition].filter(Boolean);
+  const description = `${input.name} is a ${input.category} product${input.keyFeatures ? ` featuring ${input.keyFeatures}` : ''}${input.material ? `, made with ${input.material}` : ''}. ${input.condition ? `Condition: ${input.condition}. ` : ''}Please review the seller-provided details and update this draft before publishing.`;
+  return {
+    description: text(description, 1_500),
+    shortDescription: text(`${input.name} — ${input.category}${input.condition ? `, ${input.condition}` : ''}.`, 150),
+    highlights: facts.slice(0, 5).map(item => text(item, 180)).filter(Boolean),
+    seoTitle: text(`${input.name} | ${input.category}`, 60),
+    keywords: [input.name, input.category].filter(Boolean).map(item => text(item, 60)),
+  };
+}
+
 module.exports = async (req, res) => {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(204).end();
@@ -94,19 +106,22 @@ module.exports = async (req, res) => {
 
     if (!input.name || !input.category) return res.status(400).json({ error: 'Product name and category are required.' });
 
-    // Keep the provider credential server-side. Vercel injects OPENAI_API_KEY
-    // into this function; it must never be exposed through VITE_* variables.
-    const apiKey = process.env.OPENAI_API_KEY || process.env.BUILT_IN_FORGE_API_KEY;
-    const apiBaseUrl = (process.env.OPENAI_BASE_URL || process.env.BUILT_IN_FORGE_API_URL || 'https://api.openai.com/v1').replace(/\/$/, '');
+    // Keep provider credentials server-side. Prefer Groq for low-cost, fast drafts;
+    // fall back to OpenAI or the legacy compatible provider when configured.
+    const provider = process.env.GROQ_API_KEY ? 'groq' : process.env.OPENAI_API_KEY ? 'openai' : process.env.BUILT_IN_FORGE_API_KEY ? 'legacy' : 'fallback';
+    const apiKey = process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || process.env.BUILT_IN_FORGE_API_KEY;
+    const apiBaseUrl = (provider === 'groq'
+      ? 'https://api.groq.com/openai/v1'
+      : process.env.OPENAI_BASE_URL || process.env.BUILT_IN_FORGE_API_URL || 'https://api.openai.com/v1').replace(/\/$/, '');
     if (!apiKey) {
-      return res.status(503).json({ error: 'Reliable AI is not configured on this deployment yet.' });
+      return res.status(200).json({ success: true, draft: buildFallbackDraft(input), draftOnly: true, fallback: true, provider: 'offline-template' });
     }
 
     const completion = await fetch(`${apiBaseUrl}/chat/completions`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: process.env.RELIABLE_AI_MODEL || 'gpt-4o-mini',
+        model: process.env.RELIABLE_AI_MODEL || (provider === 'groq' ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini'),
         messages: [
           {
             role: 'system',
@@ -114,33 +129,15 @@ module.exports = async (req, res) => {
           },
           { role: 'user', content: buildPrompt(input) },
         ],
-        response_format: {
-          type: 'json_schema',
-          json_schema: {
-            name: 'reliable_product_draft',
-            strict: true,
-            schema: {
-              type: 'object',
-              properties: {
-                description: { type: 'string' },
-                shortDescription: { type: 'string' },
-                highlights: { type: 'array', items: { type: 'string' } },
-                seoTitle: { type: 'string' },
-                keywords: { type: 'array', items: { type: 'string' } },
-              },
-              required: ['description', 'shortDescription', 'highlights', 'seoTitle', 'keywords'],
-              additionalProperties: false,
-            },
-          },
-        },
-        max_completion_tokens: 900,
+        response_format: { type: 'json_object' },
+        max_tokens: 900,
       }),
     });
 
     if (!completion.ok) {
       const providerText = await completion.text();
       console.error('[RELIABLE_AI] Provider error', completion.status, providerText.slice(0, 500));
-      return res.status(502).json({ error: 'Reliable AI could not generate a draft right now.' });
+      return res.status(200).json({ success: true, draft: buildFallbackDraft(input), draftOnly: true, fallback: true, provider: 'offline-template' });
     }
 
     const payload = await completion.json();
@@ -159,7 +156,7 @@ module.exports = async (req, res) => {
       keywords: Array.isArray(draft.keywords) ? draft.keywords.slice(0, 10).map(item => text(item, 60)).filter(Boolean) : [],
     };
 
-    return res.status(200).json({ success: true, draft: safeDraft, draftOnly: true, requestId: crypto.randomUUID() });
+    return res.status(200).json({ success: true, draft: safeDraft, draftOnly: true, fallback: false, provider, requestId: crypto.randomUUID() });
   } catch (error) {
     console.error('[RELIABLE_AI] Request failed', error?.message || error);
     return res.status(500).json({ error: 'Reliable AI is temporarily unavailable.' });

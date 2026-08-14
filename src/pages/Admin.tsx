@@ -521,7 +521,7 @@ export default function Admin() {
       })
       setFormData(current => ({ ...current, description: draft.description }))
       setFormErrors(current => ({ ...current, description: undefined }))
-      showNotification('Draft generated. Review and edit it before saving the product.')
+      showNotification(draft.fallback ? 'Template draft generated without AI. Review and edit it before saving the product.' : 'AI draft generated. Review and edit it before saving the product.')
     } catch (generationError: any) {
       showNotification(generationError?.message || 'Reliable AI could not generate a draft.', 'error')
     } finally {
