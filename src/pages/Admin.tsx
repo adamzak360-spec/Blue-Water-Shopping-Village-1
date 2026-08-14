@@ -31,6 +31,7 @@ import {
 } from '../services/adminAnalyticsService'
 import type { Product, DashboardStats, Order, Review, ProductVariant } from '../types'
 import { formatCurrency } from '../utils/currency'
+import { generateProductDescriptionDraft } from '../services/aiDescriptionService'
 import { lazy, Suspense, type ChangeEvent } from 'react'
 import { Pencil, Trash2, Printer, Share2 } from 'lucide-react'
 import { BusinessVerificationForm } from '../components/BusinessVerificationForm'
@@ -164,6 +165,7 @@ export default function Admin() {
   const [formData, setFormData] = useState(defaultFormState)
   const [formErrors, setFormErrors] = useState<ProductFormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false)
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [editProduct, setEditProduct] = useState<Product | null>(null)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
@@ -499,6 +501,32 @@ export default function Admin() {
     if (!formData.stock_quantity || parseInt(formData.stock_quantity) < 0) errors.stock_quantity = 'Valid stock quantity is required'
     setFormErrors(errors)
     return Object.keys(errors).length === 0
+  }
+
+  const handleGenerateDescription = async () => {
+    if (!formData.name.trim() || !formData.category.trim()) {
+      showNotification('Enter a product name and category before generating a draft.', 'error')
+      return
+    }
+
+    setIsGeneratingDescription(true)
+    try {
+      const draft = await generateProductDescriptionDraft({
+        name: formData.name,
+        category: formData.category,
+        price: formData.price,
+        sizes: formData.has_sizes ? formData.variants.map(variant => variant.variant_value).filter(Boolean).join(', ') : '',
+        keyFeatures: formData.specifications.map(spec => `${spec.label}: ${spec.value}`).filter(Boolean).join('; '),
+        notes: [formData.pickup_instructions, formData.delivery_instructions, formData.return_policy].filter(Boolean).join(' '),
+      })
+      setFormData(current => ({ ...current, description: draft.description }))
+      setFormErrors(current => ({ ...current, description: undefined }))
+      showNotification('Draft generated. Review and edit it before saving the product.')
+    } catch (generationError: any) {
+      showNotification(generationError?.message || 'Reliable AI could not generate a draft.', 'error')
+    } finally {
+      setIsGeneratingDescription(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -2246,7 +2274,18 @@ export default function Admin() {
               </div>
 
               <div className="form-group full-width">
-                <label>Description</label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
+                  <label style={{ marginBottom: 0 }}>Description</label>
+                  <button
+                    type="button"
+                    onClick={handleGenerateDescription}
+                    disabled={isGeneratingDescription || isSubmitting}
+                    style={{ border: '1px solid #1d4ed8', color: '#1d4ed8', background: '#eff6ff', borderRadius: '8px', padding: '0.5rem 0.75rem', fontWeight: 700, cursor: isGeneratingDescription ? 'wait' : 'pointer' }}
+                  >
+                    {isGeneratingDescription ? 'Generating draft…' : 'Generate with Reliable AI'}
+                  </button>
+                </div>
+                <p style={{ margin: '0 0 0.55rem', color: '#64748b', fontSize: '0.82rem' }}>Reliable AI creates a draft from the facts you provide. Review and edit it before saving.</p>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
