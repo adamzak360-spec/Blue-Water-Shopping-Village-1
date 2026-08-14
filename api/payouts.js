@@ -82,6 +82,7 @@ async function processQueue(admin, limit) {
       continue;
     }
 
+    let transferInitiated = false;
     try {
       const initiated = await axios.post(`${PAYSTACK_BASE_URL}/transfer`, {
         source: 'balance',
@@ -91,6 +92,7 @@ async function processQueue(admin, limit) {
         reason: `Reliable seller payout for order ${payout.order_id}`,
         currency: payout.currency,
       }, { headers });
+      transferInitiated = true;
 
       const transfer = initiated.data?.data || {};
       const verified = await axios.get(`${PAYSTACK_BASE_URL}/transfer/${encodeURIComponent(reference)}`, { headers });
@@ -101,11 +103,22 @@ async function processQueue(admin, limit) {
         await recordTransferEvent(admin, `verified:${reference}:success`, 'transfer.success', reference, verifiedTransfer);
         processed += 1;
       } else {
+        // Paystack may report a queued/pending transfer. Leave it PROCESSING;
+        // the webhook or a later reconciliation must decide the final state.
         pending += 1;
       }
     } catch (error) {
       console.error('[PAYOUT] Transfer attempt failed:', payout.payout_id, error.response?.data || error.message);
       const message = error.response?.data?.message || error.message || 'Transfer attempt failed';
+
+      if (transferInitiated) {
+        // The transfer may already exist even if status verification failed.
+        // Do not mark it FAILED or retry it with the same recipient payout
+        // reference, because that could create a duplicate transfer.
+        pending += 1;
+        continue;
+      }
+
       await admin.rpc('record_payout_transfer_event', {
         p_event_key: `worker-failure:${reference}:${Date.now()}`,
         p_event_name: 'transfer.failed',
