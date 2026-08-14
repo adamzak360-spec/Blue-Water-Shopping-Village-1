@@ -16,7 +16,7 @@ export default function Delivery() {
             <p>
               Reliable supports delivery in Ghana and other supported markets, subject to the product,
               seller, destination, courier availability, and the delivery options shown at checkout. Our
-              primary operations are based in Tamale, Northern Region, and sellers or logistics partners
+              primary operations are based in Malshegu, Tamale, Ghana, and sellers or logistics partners
               may serve other local or international locations where configured and available.
             </p>
             <p>

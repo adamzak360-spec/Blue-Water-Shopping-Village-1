@@ -219,7 +219,7 @@ export default function PrivacyPolicy() {
             <p>
               <strong>Email:</strong> support@reliable.com<br />
               <strong>Phone:</strong> +233 59 560 9966<br />
-              <strong>Address:</strong> Reliable Marketplace, Tamale, Northern Region, Ghana
+              <strong>Address:</strong> Reliable Marketplace, Malshegu, Tamale, Ghana
             </p>
           </section>
         </div>
