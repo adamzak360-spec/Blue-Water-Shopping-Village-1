@@ -194,6 +194,11 @@ function AppShell() {
                   <Settings size={20} /> {isAdmin ? 'Admin Dashboard' : 'Seller Dashboard'}
                 </Link>
               )}
+              {(isAdmin || role === 'seller') && (
+                <Link to="/advertise" className="drawer-item" style={{ color: '#059669', fontWeight: 'bold' }}>
+                  <Tag size={20} /> Advertise on Reliable
+                </Link>
+              )}
               <Link to="/customer/orders" className="drawer-item"><Package size={20} /> Orders</Link>
               <Link to="/stores" className="drawer-item"><StoreIcon size={20} /> Stores</Link>
               <Link to="/customer/wishlist" className="drawer-item"><Heart size={20} /> Wishlist {wishlistCount > 0 && <span className="drawer-count">{wishlistCount}</span>}</Link>

@@ -882,6 +882,9 @@ export default function Admin() {
             <span className="user-email">{user?.email}</span>
             <span className="badge badge-primary">{role === 'seller' ? 'Seller' : 'Admin'}</span>
           </div>
+          <button onClick={() => navigate('/advertise')} className="btn-secondary btn-sm">
+            Advertise on Reliable
+          </button>
           {role === 'seller' && business && (
             <a href={`/store/${business.slug}`} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm">
               Visit Public Store
