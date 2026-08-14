@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
+import { configurePaystackRecipient } from '../services/paystackRecipientService'
 import './IdentityVerificationForm.css' // Reuse verification styles
 
 interface Props {
@@ -63,10 +64,30 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
     setError(null)
 
     try {
+      const isPaystackAutomatedRoute = formData.country_code === 'GH' && formData.currency === 'GHS'
+      let recipientData: { recipient_code: string; recipient_type: string; provider_onboarding_status: 'ACTIVE' } | null = null
+
+      if (isPaystackAutomatedRoute) {
+        const { data: sessionData, error: sessionError } = await supabase!.auth.getSession()
+        if (sessionError || !sessionData.session?.access_token) throw new Error('Please sign in again before configuring automated payouts.')
+        const recipientType = formData.recipient_type === 'mobile_money' ? 'mobile_money' : 'ghipss'
+        const recipient = await configurePaystackRecipient({
+          store_id: storeId,
+          recipient_type: recipientType,
+          account_name: formData.account_name,
+          account_number: formData.account_number,
+          bank_code: formData.bank_code,
+          currency: formData.currency,
+          country_code: formData.country_code,
+        }, sessionData.session.access_token)
+        recipientData = recipient.data
+      }
+
       const payload = {
         seller_id: sellerId,
         store_id: storeId,
-        recipient_type: formData.recipient_type,
+        recipient_type: recipientData?.recipient_type || formData.recipient_type,
+        recipient_code: recipientData?.recipient_code || null,
         account_name: formData.account_name,
         account_number_last4: formData.account_number.slice(-4),
         bank_code: formData.bank_code,
@@ -74,16 +95,16 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
         iban: formData.iban,
         currency: formData.currency,
         country_code: formData.country_code,
+        payment_provider: recipientData ? 'paystack' : null,
+        provider_account_reference: recipientData?.recipient_code || null,
+        provider_onboarding_status: recipientData ? 'ACTIVE' : 'NOT_STARTED',
         is_active: true,
         payout_profile_confirmed_at: new Date().toISOString(),
-        payout_profile_confirmation_note: 'Seller confirmed payout details in seller settings.',
+        payout_profile_confirmation_note: recipientData ? 'Paystack recipient verified and activated.' : 'Seller confirmed payout details for manual settlement.',
         updated_at: new Date().toISOString(),
       }
 
-      const { error: saveError } = await supabase!
-        .from('seller_payout_profiles')
-        .upsert(payload)
-
+      const { error: saveError } = await supabase!.from('seller_payout_profiles').upsert(payload)
       if (saveError) throw saveError
       
       if (onSuccess) onSuccess()
@@ -101,7 +122,7 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
     <div className="verification-container">
       <div className="verification-header">
         <h3>Payout Method</h3>
-          <p>Configure how you receive your earnings from Reliable. Saving this form confirms that the displayed payout details are current for manual settlement.</p>
+          <p>Configure how you receive your earnings from Reliable. Ghana/GHS sellers can be verified for automated Paystack payouts; other countries remain eligible for manual settlement until an approved payout route is enabled.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="verification-form">
