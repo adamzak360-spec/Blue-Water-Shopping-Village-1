@@ -1,4 +1,4 @@
-const CACHE_NAME = 'reliable-shell-v4'
+const CACHE_NAME = 'reliable-shell-v5'
 const APP_SHELL = [
   '/',
   '/index.html',
