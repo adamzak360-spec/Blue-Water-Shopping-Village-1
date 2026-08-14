@@ -1,0 +1,33 @@
+.admin-ads { display: grid; gap: 1.25rem; }
+.ads-global-control, .ads-summary, .ads-form, .ads-list { padding: 1.25rem; background: #fff; border: 1px solid #e5e7eb; border-radius: 1rem; box-shadow: 0 6px 20px rgba(15, 35, 65, 0.05); }
+.ads-global-control { display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: linear-gradient(135deg, #eff6ff, #fff); }
+.ads-global-control div { display: grid; gap: .25rem; }
+.ads-global-control strong { color: #12233f; font-size: 1.05rem; }
+.ads-global-control span, .ads-list small { display: block; color: #64748b; font-size: .82rem; }
+.ads-global-control button, .ads-form-actions button, .ads-actions button, .ads-preview-header button { border: 0; border-radius: .55rem; padding: .65rem .85rem; color: #fff; background: #123c66; cursor: pointer; font-weight: 700; }
+.ads-global-control button:hover, .ads-form-actions button:hover, .ads-actions button:hover { background: #0c2e4f; }
+.ads-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: .75rem; }
+.ads-summary div { display: grid; gap: .2rem; padding: .7rem; border-radius: .65rem; background: #f8fafc; }
+.ads-summary strong { color: #12233f; font-size: 1.25rem; }
+.ads-summary span { color: #64748b; font-size: .75rem; }
+.ads-form h3, .ads-list h3 { margin-top: 0; color: #12233f; }
+.ads-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+.ads-form-grid input, .ads-form-grid select { width: 100%; min-height: 2.5rem; padding: .55rem .65rem; border: 1px solid #cbd5e1; border-radius: .5rem; background: #fff; }
+.ads-form-grid label { display: grid; gap: .3rem; color: #475569; font-size: .8rem; font-weight: 600; }
+.ads-form-actions { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1rem; }
+.ads-form-actions button + button { color: #123c66; background: #e0f2fe; }
+.ads-message { margin: 0; padding: .75rem 1rem; color: #164e63; background: #ecfeff; border-radius: .6rem; }
+.ads-table-wrap { overflow-x: auto; }
+.ads-list table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.ads-list th, .ads-list td { padding: .75rem .5rem; text-align: left; vertical-align: top; border-bottom: 1px solid #e5e7eb; }
+.ads-list th { color: #475569; font-size: .73rem; text-transform: uppercase; letter-spacing: .05em; }
+.ads-list td strong { display: block; color: #12233f; }
+.ads-status { display: inline-block; padding: .25rem .45rem; border-radius: 999px; color: #fff; font-size: .7rem; font-weight: 700; }
+.ads-status-active, .ads-status-scheduled { background: #15803d; }.ads-status-paused { background: #b45309; }.ads-status-pending_approval { background: #2563eb; }.ads-status-archived, .ads-status-expired { background: #64748b; }
+.ads-actions { display: flex; flex-wrap: wrap; gap: .35rem; min-width: 170px; }.ads-actions button { padding: .4rem .55rem; font-size: .72rem; }
+.ads-preview-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 1rem; background: rgba(15, 23, 42, .55); }
+.ads-preview-modal { width: min(900px, 100%); max-height: 90vh; overflow: auto; padding: 1rem; background: #f8fafc; border-radius: 1rem; }
+.ads-preview-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }.ads-preview-header h3 { margin: 0; }.ads-preview-header button { background: #64748b; }
+.ads-preview-devices { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 1rem; margin-top: 1rem; }.ads-preview-device { min-height: 180px; padding: 1rem; background: #e2e8f0; border-radius: .8rem; }.ads-preview-device > span { display: block; margin-bottom: .65rem; color: #475569; font-size: .75rem; font-weight: 700; text-transform: uppercase; }.ads-preview-mobile { max-width: 320px; }
+.ads-preview-card { display: grid; gap: .35rem; padding: .8rem; background: #fff; border: 1px solid #e5e7eb; border-radius: .75rem; }.ads-preview-card img { width: 100%; max-height: 150px; object-fit: cover; border-radius: .5rem; }.ads-preview-card span { color: #64748b; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }.ads-preview-card strong { color: #12233f; }.ads-preview-card p { margin: 0; color: #64748b; font-size: .82rem; }
+@media (max-width: 720px) { .ads-global-control { align-items: flex-start; flex-direction: column; }.ads-form-grid { grid-template-columns: 1fr; }.ads-preview-devices { grid-template-columns: 1fr; }.ads-preview-mobile { max-width: none; } }

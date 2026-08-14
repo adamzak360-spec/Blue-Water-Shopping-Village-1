@@ -5,6 +5,7 @@ import { shuffle } from '../utils/shuffle'
 import { getActivePromotedProducts, type ActivePromotedProduct } from '../services/promotionService'
 import type { Product } from '../types'
 import ProductCard from '../components/ProductCard'
+import AdSlot from '../components/AdSlot'
 import { ArrowRight, Search, X } from 'lucide-react'
 import './Products.css'
 
@@ -288,6 +289,8 @@ export default function Products() {
             <p>{error}</p>
           </div>
         )}
+
+        <AdSlot placement="PRODUCT_LIST_TOP" />
 
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (

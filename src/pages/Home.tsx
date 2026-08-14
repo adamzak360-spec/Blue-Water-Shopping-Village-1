@@ -8,6 +8,7 @@ import type { Product } from '../types'
 import { Link } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import CallToOrderBanner from '../components/CallToOrderBanner'
+import AdSlot from '../components/AdSlot'
 import { ChevronLeft, ChevronRight, ArrowRight, Zap, TrendingUp, Star, Package, Award, Heart } from 'lucide-react'
 import './Home.css'
 
@@ -276,6 +277,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <AdSlot placement="HOME_TOP" />
 
       {/* --- Horizontal Product Sections --- */}
       {promotedProducts.length > 0 && (

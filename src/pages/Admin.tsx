@@ -49,6 +49,7 @@ import './Admin.css'
   const POS = lazy(() => import('./POS'))
   const SellerPayouts = lazy(() => import('../components/SellerPayouts'))
   const AdminPromotions = lazy(() => import('../components/AdminPromotions'))
+  const AdminAds = lazy(() => import('../components/AdminAds'))
   const SellerPromotions = lazy(() => import('../components/SellerPromotions'))
 
   // Prefetch functions for near-instant transitions
@@ -60,9 +61,10 @@ import './Admin.css'
   const prefetchPOS = () => import('./POS')
   const prefetchSellerPayouts = () => import('../components/SellerPayouts')
   const prefetchAdminPromotions = () => import('../components/AdminPromotions')
+  const prefetchAdminAds = () => import('../components/AdminAds')
   const prefetchSellerPromotions = () => import('../components/SellerPromotions')
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts' | 'promotions' | 'settings' | 'delivery' | 'marketplace' | 'news'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts' | 'promotions' | 'ads' | 'settings' | 'delivery' | 'marketplace' | 'news'
 
 interface ProductFormErrors {
   name?: string
@@ -975,7 +977,14 @@ export default function Admin() {
               onClick={() => setView('promotions')}
               onMouseEnter={prefetchAdminPromotions}
             >
-              Advertising
+              Promotions
+            </button>
+            <button
+              className={`tab ${view === 'ads' ? 'active' : ''}`}
+              onClick={() => setView('ads')}
+              onMouseEnter={prefetchAdminAds}
+            >
+              Ads / Advertising
             </button>
           </>
         )}
@@ -1046,8 +1055,10 @@ export default function Admin() {
 
         {/* General Admin News and Newsletter View */}
         {view === 'news' && canManageNews && <AdminNewsUpdates />}
-        {/* General Admin Advertising View */}
+        {/* Seller Promotions remain separate from standalone advertising. */}
         {view === 'promotions' && canManageNews && <AdminPromotions />}
+        {/* Standalone Reliable Ads management. */}
+        {view === 'ads' && canManageNews && <AdminAds />}
         {view === 'promotions' && role === 'seller' && <SellerPromotions businessIds={sellerBusinessIds} />}
         {/* Marketplace Settings View */}
         {view === 'marketplace' && role === 'admin' && (
