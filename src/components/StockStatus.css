@@ -18,8 +18,8 @@
   position: absolute;
   top: 50%;
   right: -0.8rem;
-  width: 0.42rem;
-  height: 0.42rem;
+  width: 0.48rem;
+  height: 0.48rem;
   border-radius: 50%;
   transform: translateY(-50%);
 }
@@ -28,7 +28,7 @@
 .stock-status::before {
   background: var(--stock-beacon-fill);
   box-shadow: 0 0 0 0 var(--stock-beacon-ring);
-  animation: stock-beacon-ripple 1.6s ease-out infinite;
+  animation: stock-beacon-ripple 2s ease-out infinite;
 }
 
 .stock-status::after {
@@ -53,14 +53,19 @@
 
 @keyframes stock-beacon-ripple {
   0% {
-    opacity: 0.75;
-    transform: translateY(-50%) scale(0.8);
+    opacity: 0.95;
+    transform: translateY(-50%) scale(0.75);
     box-shadow: 0 0 0 0 var(--stock-beacon-ring);
   }
-  70%, 100% {
+  55% {
+    opacity: 0.55;
+    transform: translateY(-50%) scale(1);
+    box-shadow: 0 0 0 0.35rem var(--stock-beacon-ring);
+  }
+  100% {
     opacity: 0;
-    transform: translateY(-50%) scale(1.15);
-    box-shadow: 0 0 0 0.38rem transparent;
+    transform: translateY(-50%) scale(1.2);
+    box-shadow: 0 0 0 0.72rem transparent;
   }
 }
 
