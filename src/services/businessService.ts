@@ -123,7 +123,24 @@ export async function getBusinessByOwner(userId: string): Promise<Business | nul
   return data[0] as Business
 }
 
-const DEFAULT_MARKETPLACE_ID = '00000000-0000-0000-0000-000000000001'
+export const DEFAULT_MARKETPLACE_ID = '00000000-0000-0000-0000-000000000001'
+
+export async function getMarketplaceLogoUrl(): Promise<string | null> {
+  if (!isSupabaseConfigured || !supabase) return null
+
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('logo_url')
+    .eq('id', DEFAULT_MARKETPLACE_ID)
+    .maybeSingle()
+
+  if (error) {
+    console.error('Error fetching marketplace logo:', error)
+    return null
+  }
+
+  return data?.logo_url || null
+}
 
 export async function getMarketplaceProductCountVisibility(): Promise<boolean> {
   if (!isSupabaseConfigured || !supabase) return false
@@ -273,8 +290,10 @@ export async function uploadBusinessAsset(file: File, businessId: string, type: 
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('User not authenticated')
+  if (!file.type.startsWith('image/')) throw new Error('Please choose an image file.')
+  if (file.size > 5 * 1024 * 1024) throw new Error('Please choose an image smaller than 5 MB.')
 
-  const fileExt = file.name.split('.').pop()
+  const fileExt = file.name.split('.').pop()?.toLowerCase() || 'png'
   const fileName = `${user.id}/${businessId}/${type}-${Date.now()}.${fileExt}`
 
   const { data, error } = await supabase.storage

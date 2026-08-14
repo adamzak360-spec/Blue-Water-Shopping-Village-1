@@ -73,6 +73,7 @@ const prefetchLogin = () => import('./pages/Login')
 import TermsPopup from './components/TermsPopup'
 import WhatsAppButton from './components/WhatsAppButton'
 import InstallAppPrompt from './components/InstallAppPrompt'
+import { getMarketplaceLogoUrl } from './services/businessService'
 
 function App() {
   return <AppShell />
@@ -86,6 +87,7 @@ function AppShell() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [marketplaceLogoUrl, setMarketplaceLogoUrl] = useState('/logo-square.png')
 
   const isAdminRoute = location.pathname.startsWith('/admin')
   const isCustomerRoute = location.pathname.startsWith('/customer')
@@ -96,6 +98,23 @@ function AppShell() {
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    getMarketplaceLogoUrl().then((logoUrl) => {
+      if (!cancelled && logoUrl) setMarketplaceLogoUrl(logoUrl)
+    })
+
+    const handleLogoUpdate = (event: Event) => {
+      const nextUrl = (event as CustomEvent<string | null>).detail
+      setMarketplaceLogoUrl(nextUrl || '/logo-square.png')
+    }
+    window.addEventListener('marketplace-logo-updated', handleLogoUpdate)
+    return () => {
+      cancelled = true
+      window.removeEventListener('marketplace-logo-updated', handleLogoUpdate)
+    }
   }, [])
 
   // Reset the page position whenever navigation changes, including filter/query changes.
@@ -134,7 +153,7 @@ function AppShell() {
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
             <Link to="/" className="brand-logo">
-              <img src="/logo-square.png" alt="Reliable" style={{ height: '32px', borderRadius: '4px' }} />
+              <img src={marketplaceLogoUrl} alt="Reliable" style={{ height: '32px', width: '32px', objectFit: 'cover', borderRadius: '50%' }} />
               <span className="logo-text">RELIABLE</span>
             </Link>
           </div>
@@ -175,7 +194,7 @@ function AppShell() {
       <aside className={`side-drawer ${isMenuOpen ? 'open' : ''}`}>
         <div className="drawer-header">
           <div className="drawer-logo">
-            <img src="/logo-square.png" alt="Reliable" style={{ height: '32px', marginRight: '10px', borderRadius: '4px' }} />
+            <img src={marketplaceLogoUrl} alt="Reliable" style={{ height: '32px', width: '32px', objectFit: 'cover', marginRight: '10px', borderRadius: '50%' }} />
             <span>RELIABLE</span>
           </div>
           <button onClick={toggleMenu}><X size={24} /></button>
@@ -229,7 +248,7 @@ function AppShell() {
       <main className="app-main">
         <Suspense fallback={
           <div className="loading-screen" aria-label="Loading Reliable">
-            <img src="/logo-square.png" alt="Reliable" className="loading-logo" />
+            <img src={marketplaceLogoUrl} alt="Reliable" className="loading-logo" />
           </div>
         }>
           <Routes>

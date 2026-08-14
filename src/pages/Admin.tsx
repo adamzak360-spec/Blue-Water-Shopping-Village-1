@@ -183,6 +183,7 @@ export default function Admin() {
   const [profile, setProfile] = useState<any>(null)
   const [isUpdatingStore, setIsUpdatingStore] = useState(false)
   const [assetActionLoading, setAssetActionLoading] = useState<'logo' | 'banner' | null>(null)
+  const [marketplaceLogoActionLoading, setMarketplaceLogoActionLoading] = useState(false)
   const [showEmailPreview, setShowEmailPreview] = useState(false)
   const [storeSettings, setStoreSettings] = useState({
     name: '',
@@ -382,6 +383,45 @@ export default function Admin() {
     } finally {
       setAssetActionLoading(null)
       event.target.value = ''
+    }
+  }
+
+  const handleMarketplaceLogoUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || role !== 'admin' || !business) return
+
+    setMarketplaceLogoActionLoading(true)
+    setError('')
+    try {
+      const url = await uploadBusinessAsset(file, business.id, 'logo')
+      const updatedBusiness = await updateBusinessProfile(business.id, { logo_url: url })
+      setBusiness(updatedBusiness)
+      window.dispatchEvent(new CustomEvent('marketplace-logo-updated', { detail: url }))
+      showNotification('Marketplace logo updated!')
+    } catch (err: any) {
+      setError(err.message || 'Failed to update the marketplace logo')
+    } finally {
+      setMarketplaceLogoActionLoading(false)
+      event.target.value = ''
+    }
+  }
+
+  const handleMarketplaceLogoDelete = async () => {
+    if (role !== 'admin' || !business?.logo_url) return
+    if (!window.confirm('Delete the marketplace logo? The site will use the default logo until you upload another one.')) return
+
+    setMarketplaceLogoActionLoading(true)
+    setError('')
+    try {
+      await deleteBusinessAsset(business.logo_url)
+      const updatedBusiness = await updateBusinessProfile(business.id, { logo_url: null })
+      setBusiness(updatedBusiness)
+      window.dispatchEvent(new CustomEvent('marketplace-logo-updated', { detail: null }))
+      showNotification('Marketplace logo deleted. The default logo is now active.')
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete the marketplace logo')
+    } finally {
+      setMarketplaceLogoActionLoading(false)
     }
   }
 
@@ -1072,6 +1112,53 @@ export default function Admin() {
             </div>
 
             <div className="settings-grid">
+              <div className="settings-card marketplace-logo-card">
+                <div className="marketplace-logo-heading">
+                  <div>
+                    <h3>Marketplace Logo</h3>
+                    <p>Update the circular logo shown beside RELIABLE across the header, mobile menu, and loading screen.</p>
+                  </div>
+                  <div className="marketplace-logo-lockup" aria-label="Current marketplace logo preview">
+                    {business?.logo_url ? (
+                      <img src={business.logo_url} alt="Current marketplace logo" className="marketplace-logo-preview" />
+                    ) : (
+                      <img src="/logo-square.png" alt="Default marketplace logo" className="marketplace-logo-preview" />
+                    )}
+                    <span>RELIABLE</span>
+                  </div>
+                </div>
+                <div className="marketplace-logo-actions">
+                  <button
+                    type="button"
+                    className="btn-primary btn-sm"
+                    onClick={() => document.getElementById('marketplace-logo-upload')?.click()}
+                    disabled={marketplaceLogoActionLoading}
+                  >
+                    <Pencil size={16} />
+                    {marketplaceLogoActionLoading ? 'Working...' : business?.logo_url ? 'Change Logo' : 'Upload Logo'}
+                  </button>
+                  {business?.logo_url && (
+                    <button
+                      type="button"
+                      className="btn-delete btn-sm"
+                      onClick={handleMarketplaceLogoDelete}
+                      disabled={marketplaceLogoActionLoading}
+                    >
+                      <Trash2 size={16} />
+                      Delete Logo
+                    </button>
+                  )}
+                  <input
+                    id="marketplace-logo-upload"
+                    className="asset-file-input"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                    onChange={handleMarketplaceLogoUpload}
+                  />
+                </div>
+                <small className="marketplace-logo-help">Use a square PNG, JPG, WebP, or SVG image up to 5 MB. Deleting restores the default Reliable logo.</small>
+              </div>
+
               <div className="settings-card subscription-pricing-card">
                 <h3>POS Subscription Pricing</h3>
                 <p>Set the monthly POS access price for each country. Changes apply to new checkouts; existing active subscriptions keep their current expiry.</p>
