@@ -2788,6 +2788,7 @@ export default function Admin() {
           file={brandingEditor.file}
           title={brandingEditor.kind === 'logo' ? 'Prepare Marketplace Logo' : 'Prepare Browser Favicon'}
           outputSize={brandingEditor.kind === 'logo' ? 512 : 256}
+          safePadding={brandingEditor.kind === 'favicon'}
           onCancel={() => setBrandingEditor(null)}
           onSave={handleBrandingEditorSave}
         />

@@ -6,17 +6,19 @@ interface ImageCropEditorProps {
   file: File
   title: string
   outputSize: number
+  safePadding?: boolean
   onCancel: () => void
   onSave: (file: File) => void
 }
 
-export default function ImageCropEditor({ file, title, outputSize, onCancel, onSave }: ImageCropEditorProps) {
+export default function ImageCropEditor({ file, title, outputSize, safePadding = false, onCancel, onSave }: ImageCropEditorProps) {
   const [sourceUrl, setSourceUrl] = useState('')
   const [image, setImage] = useState<HTMLImageElement | null>(null)
   const [zoom, setZoom] = useState(1)
   const [offsetX, setOffsetX] = useState(50)
   const [offsetY, setOffsetY] = useState(50)
   const [resize, setResize] = useState(outputSize)
+  const [paddingPercent, setPaddingPercent] = useState(safePadding ? 14 : 0)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -33,8 +35,10 @@ export default function ImageCropEditor({ file, title, outputSize, onCancel, onS
   const previewStyle = useMemo(() => ({
     backgroundImage: sourceUrl ? `url(${sourceUrl})` : undefined,
     backgroundPosition: `${offsetX}% ${offsetY}%`,
-    backgroundSize: `${Math.max(100, zoom * 100)}%`,
-  }), [sourceUrl, offsetX, offsetY, zoom])
+    backgroundSize: `${Math.max(100, zoom * 100) * (1 - (paddingPercent / 100) * 2)}%`,
+    backgroundRepeat: 'no-repeat',
+    backgroundColor: 'rgba(3, 45, 97, 0.08)',
+  }), [sourceUrl, offsetX, offsetY, zoom, paddingPercent])
 
   const handleSave = async () => {
     if (!image) return
@@ -57,7 +61,9 @@ export default function ImageCropEditor({ file, title, outputSize, onCancel, onS
 
       context.imageSmoothingEnabled = true
       context.imageSmoothingQuality = 'high'
-      context.drawImage(image, sx, sy, zoomedCrop, zoomedCrop, 0, 0, resize, resize)
+      const paddingPixels = Math.round(resize * (paddingPercent / 100))
+      const contentSize = resize - (paddingPixels * 2)
+      context.drawImage(image, sx, sy, zoomedCrop, zoomedCrop, paddingPixels, paddingPixels, contentSize, contentSize)
 
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png', 0.92))
       if (!blob) throw new Error('The edited image could not be prepared.')
@@ -75,7 +81,7 @@ export default function ImageCropEditor({ file, title, outputSize, onCancel, onS
         <div className="image-editor-header">
           <div>
             <h3 id="image-editor-title">{title}</h3>
-            <p>Crop the image into a clean square and resize it before saving.</p>
+            <p>{safePadding ? 'Crop and resize the favicon with built-in safe spacing so the artwork does not touch the installed icon edges.' : 'Crop the image into a clean square and resize it before saving.'}</p>
           </div>
           <button type="button" className="image-editor-close" onClick={onCancel} aria-label="Close image editor"><X size={22} /></button>
         </div>
@@ -95,6 +101,12 @@ export default function ImageCropEditor({ file, title, outputSize, onCancel, onS
             <span><MoveVertical size={16} /> Vertical position</span>
             <input type="range" min="0" max="100" value={offsetY} onChange={(event) => setOffsetY(Number(event.target.value))} />
           </label>
+          {safePadding && (
+            <label>
+              <span>Safe area padding: {paddingPercent}%</span>
+              <input type="range" min="8" max="24" step="1" value={paddingPercent} onChange={(event) => setPaddingPercent(Number(event.target.value))} />
+            </label>
+          )}
           <label>
             <span>Output size</span>
             <select value={resize} onChange={(event) => setResize(Number(event.target.value))}>
