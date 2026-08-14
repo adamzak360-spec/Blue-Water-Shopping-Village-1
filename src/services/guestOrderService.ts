@@ -24,10 +24,18 @@ interface GuestOrderPayload {
   payment_status?: string
   payment_method?: string
   paystack_reference?: string
+  payment_provider?: string
+  provider_reference?: string
+  provider_transaction_id?: string
+  payment_metadata?: Record<string, unknown>
   amount_paid?: number
   payment_date?: string
   paid_at?: string
   transaction_id?: string
+  delivery_method?: string
+  delivery_area?: string
+  currency?: string
+  country_code?: string
   business_id?: string
   source?: string
 }
@@ -145,10 +153,18 @@ export async function createGuestOrder(
     payment_status: payload.payment_status || 'pending',
     payment_method: payload.payment_method || null,
     paystack_reference: payload.paystack_reference || null,
-    amount_paid: payload.amount_paid || null,
+    payment_provider: payload.payment_provider || null,
+    provider_reference: payload.provider_reference || null,
+    provider_transaction_id: payload.provider_transaction_id || null,
+    payment_metadata: payload.payment_metadata || {},
+    amount_paid: payload.amount_paid ?? null,
     payment_date: payload.payment_date || null,
     paid_at: payload.paid_at || null,
     transaction_id: payload.transaction_id || null,
+    delivery_method: payload.delivery_method || null,
+    delivery_area: payload.delivery_area || null,
+    currency: payload.currency || null,
+    country_code: payload.country_code || null,
     business_id: payload.business_id || null,
     source: payload.source || 'ONLINE',
     user_id: null,

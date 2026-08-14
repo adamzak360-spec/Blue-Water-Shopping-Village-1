@@ -41,7 +41,8 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
           setFormData({
             recipient_type: data.recipient_type || 'bank_account',
             account_name: data.account_name || '',
-            account_number: data.account_number_last4 || '', // Note: we store last4 but for editing we might need more or just show placeholder
+            // Full account numbers are never read back from the database. The seller must re-enter the full number when changing or re-confirming a profile.
+            account_number: '',
             bank_code: data.bank_code || '',
             swift_code: data.swift_code || '',
             iban: data.iban || '',
@@ -64,6 +65,8 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
     setError(null)
 
     try {
+      if (!formData.account_number.trim()) throw new Error('For security, re-enter the full bank account number or mobile-money number before saving this payout profile.')
+
       const isPaystackAutomatedRoute = formData.country_code === 'GH' && formData.currency === 'GHS'
       let recipientData: { recipient_code: string; recipient_type: string; provider_onboarding_status: 'ACTIVE' } | null = null
 
@@ -192,7 +195,7 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
                 type="text" 
                 value={formData.account_number}
                 onChange={e => setFormData({...formData, account_number: e.target.value})}
-                placeholder="Bank account number"
+                placeholder="Enter full account number (not the masked last four)"
                 required
                 disabled={isSaving}
               />
