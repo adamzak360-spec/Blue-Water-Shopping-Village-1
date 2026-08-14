@@ -1039,7 +1039,7 @@ export default function Admin() {
         {view === 'registered-sellers' && role === 'admin' && <RegisteredSellerManagement />}
 
         {/* Seller Payouts View */}
-        {view === 'payouts' && <SellerPayouts businessIds={role === 'seller' && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}
+        {view === 'payouts' && <SellerPayouts isAdmin={role === 'admin'} businessIds={role === 'seller' && sellerBusinessIds.length > 0 ? sellerBusinessIds : undefined} />}
 
         {/* POS View */}
         {view === 'pos' && <POS businessIds={role === 'seller' ? sellerBusinessIds : undefined} />}

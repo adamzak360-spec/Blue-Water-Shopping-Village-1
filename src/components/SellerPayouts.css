@@ -34,3 +34,9 @@
 .wallet-debit { color: #b91c1c; font-weight: 800; }
 @media (max-width: 760px) { .wallet-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .wallet-heading { flex-direction: column; } }
 @media (max-width: 460px) { .wallet-summary-grid { grid-template-columns: 1fr; } }
+
+.success-banner { margin-bottom: 1rem; padding: .75rem 1rem; border: 1px solid #86efac; border-radius: .6rem; background: #f0fdf4; color: #166534; }
+.manual-payout-form { display: grid; gap: .4rem; min-width: 190px; }
+.manual-payout-form input { min-height: 2.1rem; border: 1px solid #cbd5e1; border-radius: .4rem; padding: .35rem .5rem; font-size: .78rem; }
+.manual-payout-form button { width: 100%; }
+.payout-table .payout-badge + .payout-badge { margin-left: .35rem; margin-top: .25rem; }

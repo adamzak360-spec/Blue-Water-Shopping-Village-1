@@ -35,10 +35,20 @@ type Payout = {
   currency: string
   eligibility_status: string
   payout_status: string
+  payout_mode: 'AUTOMATED' | 'MANUAL' | string
   paystack_transfer_reference: string | null
+  manual_payout_method: string | null
+  manual_payout_reference: string | null
+  manual_payout_notes: string | null
   failure_reason: string | null
   created_at: string
   paid_at: string | null
+}
+
+type ManualDraft = {
+  method: string
+  reference: string
+  notes: string
 }
 
 const statusLabel: Record<string, string> = {
@@ -51,17 +61,21 @@ const statusLabel: Record<string, string> = {
   REVERSED: 'Payout Reversed',
 }
 
-export default function SellerPayouts({ businessIds }: { businessIds?: string[] }) {
+export default function SellerPayouts({ businessIds, isAdmin = false }: { businessIds?: string[]; isAdmin?: boolean }) {
   const [payouts, setPayouts] = useState<Payout[]>([])
   const [filter, setFilter] = useState('')
   const [search, setSearch] = useState('')
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [wallet, setWallet] = useState<WalletSummary | null>(null)
   const [ledger, setLedger] = useState<WalletLedgerEntry[]>([])
+  const [manualDrafts, setManualDrafts] = useState<Record<string, ManualDraft>>({})
+  const [savingPayoutId, setSavingPayoutId] = useState<string | null>(null)
 
   const load = async () => {
     if (!supabase) return
-    let query = supabase!.from('seller_payouts').select('*').order('created_at', { ascending: false })
+    setError('')
+    let query = supabase.from('seller_payouts').select('*').order('created_at', { ascending: false })
     if (businessIds && businessIds.length > 0) query = query.in('store_id', businessIds)
     const { data, error: queryError } = await query
     if (queryError) setError(queryError.message)
@@ -80,10 +94,53 @@ export default function SellerPayouts({ businessIds }: { businessIds?: string[] 
 
   useEffect(() => { load() }, [businessIds?.join(',')])
 
+  const updateDraft = (payoutId: string, field: keyof ManualDraft, value: string) => {
+    setManualDrafts((previous) => ({
+      ...previous,
+      [payoutId]: { ...(previous[payoutId] || { method: '', reference: '', notes: '' }), [field]: value },
+    }))
+  }
+
+  const markManualPaid = async (payout: Payout) => {
+    if (!supabase) return
+    const draft = manualDrafts[payout.payout_id] || { method: '', reference: '', notes: '' }
+    if (!draft.method.trim() || !draft.reference.trim()) {
+      setError('Manual payout method and reference are required before marking a payout paid.')
+      return
+    }
+
+    setSavingPayoutId(payout.payout_id)
+    setError('')
+    setSuccess('')
+    try {
+      const { error: rpcError } = await supabase.rpc('admin_mark_manual_payout_paid', {
+        p_payout_id: payout.payout_id,
+        p_method: draft.method.trim(),
+        p_reference: draft.reference.trim(),
+        p_notes: draft.notes.trim() || null,
+      })
+      if (rpcError) throw rpcError
+      setSuccess(`Manual payout for order #${payout.order_id.slice(0, 8)} was recorded as paid.`)
+      setManualDrafts((previous) => ({ ...previous, [payout.payout_id]: { method: '', reference: '', notes: '' } }))
+      await load()
+    } catch (rpcError: any) {
+      setError(rpcError.message || 'Manual payout could not be recorded.')
+    } finally {
+      setSavingPayoutId(null)
+    }
+  }
+
   const visible = useMemo(() => payouts.filter((payout) => {
     const matchesStatus = !filter || payout.payout_status === filter
     const term = search.trim().toLowerCase()
-    const matchesSearch = !term || [payout.payout_id, payout.order_id, payout.seller_id, payout.store_id, payout.paystack_transfer_reference || ''].some((value) => value.toLowerCase().includes(term))
+    const matchesSearch = !term || [
+      payout.payout_id,
+      payout.order_id,
+      payout.seller_id,
+      payout.store_id,
+      payout.paystack_transfer_reference || '',
+      payout.manual_payout_reference || '',
+    ].some((value) => value.toLowerCase().includes(term))
     return matchesStatus && matchesSearch
   }), [payouts, filter, search])
 
@@ -97,19 +154,20 @@ export default function SellerPayouts({ businessIds }: { businessIds?: string[] 
       <div className="seller-payouts-header">
         <div>
           <h2>Seller Payouts</h2>
-          <p>Customer confirmation makes a payout eligible. Only a verified Paystack success makes it paid.</p>
+          <p>{isAdmin ? 'Ghana/Paystack payouts remain automated. After delivery confirmation, unsupported seller countries appear here for manual sending.' : 'Customer confirmation makes a payout eligible. A verified transfer or administrator-recorded manual payout is required before it is marked paid.'}</p>
         </div>
         <button className="btn-secondary btn-sm" onClick={load}>Refresh</button>
       </div>
 
       {error && <div className="error-banner">{error}</div>}
+      {success && <div className="success-banner">{success}</div>}
 
       {businessIds && businessIds.length > 0 && wallet && (
         <>
           <div className="wallet-heading">
             <div>
               <h3>My Wallet / Earnings</h3>
-              <p>Eligible earnings are not marked paid until the verified Paystack transfer succeeds.</p>
+              <p>Eligible earnings are not marked paid until the verified Paystack transfer succeeds or an administrator records the manual payout.</p>
             </div>
           </div>
           <div className="wallet-summary-grid">
@@ -160,19 +218,24 @@ export default function SellerPayouts({ businessIds }: { businessIds?: string[] 
 
       <div className="payout-table-wrap">
         <table className="payout-table">
-          <thead><tr><th>Order</th><th>Seller / Store</th><th>Gross</th><th>Commission</th><th>Seller amount</th><th>Status</th><th>Transfer</th></tr></thead>
+          <thead><tr><th>Order</th><th>Seller / Store</th><th>Gross</th><th>Commission</th><th>Seller amount</th><th>Mode / status</th><th>Transfer / manual record</th>{isAdmin && <th>Admin action</th>}</tr></thead>
           <tbody>
-            {visible.map((payout) => (
-              <tr key={payout.payout_id}>
-                <td><strong>#{payout.order_id.slice(0, 8)}</strong><small>{payout.payout_id.slice(0, 8)}</small></td>
-                <td><small>{payout.seller_id}</small><small>{payout.store_id}</small></td>
-                <td>{formatCurrency(payout.gross_amount_minor / 100)}</td>
-                <td>{formatCurrency(payout.commission_amount_minor / 100)}</td>
-                <td><strong>{formatCurrency(payout.seller_payout_amount_minor / 100)}</strong></td>
-                <td><span className={`payout-badge payout-${payout.payout_status.toLowerCase()}`}>{statusLabel[payout.payout_status] || payout.payout_status}</span>{payout.failure_reason && <small>{payout.failure_reason}</small>}</td>
-                <td>{payout.paystack_transfer_reference ? <small>{payout.paystack_transfer_reference}</small> : 'Not initiated'}</td>
-              </tr>
-            ))}
+            {visible.map((payout) => {
+              const draft = manualDrafts[payout.payout_id] || { method: '', reference: '', notes: '' }
+              const canMarkManualPaid = isAdmin && payout.payout_mode === 'MANUAL' && ['ELIGIBLE', 'QUEUED', 'FAILED'].includes(payout.payout_status)
+              return (
+                <tr key={payout.payout_id}>
+                  <td><strong>#{payout.order_id.slice(0, 8)}</strong><small>{payout.payout_id.slice(0, 8)}</small></td>
+                  <td><small>{payout.seller_id}</small><small>{payout.store_id}</small></td>
+                  <td>{formatCurrency(payout.gross_amount_minor / 100)}</td>
+                  <td>{formatCurrency(payout.commission_amount_minor / 100)}</td>
+                  <td><strong>{formatCurrency(payout.seller_payout_amount_minor / 100)}</strong></td>
+                  <td><span className="payout-badge">{payout.payout_mode === 'MANUAL' ? 'Manual payout' : 'Automated Paystack'}</span><span className={`payout-badge payout-${payout.payout_status.toLowerCase()}`}>{statusLabel[payout.payout_status] || payout.payout_status}</span>{payout.failure_reason && <small>{payout.failure_reason}</small>}</td>
+                  <td>{payout.payout_mode === 'MANUAL' ? <><small>{payout.manual_payout_method || 'Awaiting admin payout'}</small><small>{payout.manual_payout_reference || 'No reference recorded'}</small></> : payout.paystack_transfer_reference ? <small>{payout.paystack_transfer_reference}</small> : 'Not initiated'}</td>
+                  {isAdmin && <td>{canMarkManualPaid ? <div className="manual-payout-form"><input aria-label="Manual payout method" placeholder="Method" value={draft.method} onChange={(event) => updateDraft(payout.payout_id, 'method', event.target.value)} /><input aria-label="Manual payout reference" placeholder="Reference" value={draft.reference} onChange={(event) => updateDraft(payout.payout_id, 'reference', event.target.value)} /><input aria-label="Manual payout notes" placeholder="Notes (optional)" value={draft.notes} onChange={(event) => updateDraft(payout.payout_id, 'notes', event.target.value)} /><button className="btn-primary btn-sm" onClick={() => markManualPaid(payout)} disabled={savingPayoutId === payout.payout_id}>{savingPayoutId === payout.payout_id ? 'Recording…' : 'Send manually'}</button></div> : payout.payout_mode === 'MANUAL' ? 'Completed or not ready' : 'Automated'}</td>}
+                </tr>
+              )
+            })}
           </tbody>
         </table>
         {visible.length === 0 && <div className="payout-empty">No payouts match the current filters.</div>}
