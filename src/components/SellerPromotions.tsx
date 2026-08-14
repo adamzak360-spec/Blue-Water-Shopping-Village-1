@@ -22,6 +22,9 @@ type Promotion = {
   product_id: string | null
   promotion_type: Plan['code']
   status: string
+  review_status: string
+  target_categories: string[]
+  target_regions: string[]
   starts_at: string | null
   ends_at: string | null
   impressions_count: number
@@ -50,7 +53,7 @@ export default function SellerPromotions({ businessIds }: { businessIds: string[
     if (!supabase || !businessId) return
     const { data, error } = await supabase
       .from('seller_promotions')
-      .select('id, product_id, promotion_type, status, starts_at, ends_at, impressions_count, clicks_count, amount_minor, currency')
+      .select('id, product_id, promotion_type, status, review_status, target_categories, target_regions, starts_at, ends_at, impressions_count, clicks_count, amount_minor, currency')
       .eq('store_id', businessId)
       .order('created_at', { ascending: false })
       .limit(50)
@@ -85,7 +88,7 @@ export default function SellerPromotions({ businessIds }: { businessIds: string[
         await confirmSellerPromotion({ promotion_id: pending.promotion_id, reference: ref }, session.access_token)
         localStorage.removeItem('reliable_pending_promotion')
         await loadSellerPromotions()
-        setMessage('Payment verified. Your promotion is now active.')
+        setMessage('Payment verified. Your promotion is awaiting administrator approval before it appears publicly.')
         window.history.replaceState({}, '', window.location.pathname)
       } catch (error) {
         setMessage(error instanceof Error ? error.message : 'Promotion payment could not be confirmed.')
@@ -220,8 +223,9 @@ export default function SellerPromotions({ businessIds }: { businessIds: string[
                 <article className="seller-promotion-report-item" key={promotion.id}>
                   <div className="seller-promotion-report-title">
                     <strong>{promotion.product_id ? productNameById.get(promotion.product_id) || 'Promoted product' : 'Promoted store'}</strong>
-                    <span className="seller-promotion-status">{promotion.status}</span>
+                    <span className="seller-promotion-status">{promotion.review_status === 'APPROVED' ? 'Approved and live' : promotion.review_status === 'REJECTED' ? 'Rejected' : 'Awaiting approval'}</span>
                   </div>
+                  {(promotion.target_categories?.length > 0 || promotion.target_regions?.length > 0) && <p className="seller-promotion-target-summary">Targeting: {promotion.target_categories?.length ? promotion.target_categories.join(', ') : 'All categories'} · {promotion.target_regions?.length ? promotion.target_regions.join(', ') : 'All regions'}</p>}
                   <div className="seller-promotion-metrics">
                     <div><strong>{impressions.toLocaleString()}</strong><span>Impressions</span></div>
                     <div><strong>{clicks.toLocaleString()}</strong><span>Clicks</span></div>
