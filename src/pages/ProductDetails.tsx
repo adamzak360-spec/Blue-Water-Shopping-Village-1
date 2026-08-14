@@ -90,19 +90,49 @@ export default function ProductDetails() {
           setSellerBusiness((businessData as Business | null) || null)
         }
 
-        if (productData.has_sizes) {
-          const variantData = await getProductVariants(productId)
-          // Some legacy products have valid variant stock rows but an empty
-          // variant_value. Fall back to the product's stored size list so the
-          // selector remains readable and selectable without changing stock.
-          const normalizedVariants = variantData.map((variant, index) => ({
+        // Load variants even when older product rows forgot to set has_sizes.
+        // Some legacy rows store sizes on the product itself, while newer rows
+        // use product_variants, so normalize both sources into one selector.
+        let variantData: ProductVariant[] = []
+        try {
+          variantData = await getProductVariants(productId)
+        } catch (variantError) {
+          console.warn('Failed to load product variants:', variantError)
+        }
+
+        const embeddedVariants = Array.isArray(productData.variants)
+          ? productData.variants
+          : []
+        const storedSizes = Array.isArray(productData.sizes)
+          ? productData.sizes
+          : []
+
+        const sourceVariants = variantData.length > 0
+          ? variantData
+          : embeddedVariants.length > 0
+            ? embeddedVariants
+            : storedSizes.map((size, index) => ({
+                id: `${productId}-size-${index}`,
+                product_id: productId,
+                variant_type: 'size',
+                variant_value: typeof size === 'string' ? size : size.size,
+                stock_quantity: typeof size === 'string'
+                  ? Number(productData.stock_quantity) || 0
+                  : Number(size.stock) || 0,
+                active: true,
+              }))
+
+        const normalizedVariants = sourceVariants
+          .map((variant, index) => ({
             ...variant,
             variant_value: String(
-              variant.variant_value || productData.sizes?.[index]?.size || `Option ${index + 1}`
+              variant.variant_value || storedSizes[index]?.size || `Option ${index + 1}`
             ).trim(),
+            stock_quantity: Math.max(0, Number(variant.stock_quantity) || 0),
           }))
-          setVariants(normalizedVariants)
-        }
+          .filter(variant => variant.variant_value.length > 0)
+
+        setVariants(normalizedVariants)
 
         getAllProducts().then(allProducts => {
           const related = allProducts
@@ -144,7 +174,7 @@ export default function ProductDetails() {
     // Only require a size when the product actually has variants loaded. Some
     // legacy products have has_sizes enabled but no variant rows; those must
     // remain purchasable using their base stock.
-    const hasSelectableVariants = product.has_sizes && variants.length > 0
+    const hasSelectableVariants = variants.length > 0
     if (hasSelectableVariants && selectedSizes.length === 0) {
       setSizeError('Please select at least one size')
       return
@@ -311,7 +341,7 @@ export default function ProductDetails() {
     : 0
 
   // Get current stock based on selection
-  const hasSelectableVariants = product.has_sizes && variants.length > 0
+  const hasSelectableVariants = variants.length > 0
   const currentStock = hasSelectableVariants && selectedSizes.length > 0
     ? Math.min(...selectedSizes.map(size => Number(variants.find(v => v.variant_value === size)?.stock_quantity) || 0))
     : baseStock
@@ -484,14 +514,17 @@ export default function ProductDetails() {
           </div>
 
           {/* Size Selection */}
-          {product.has_sizes && variants.length > 0 && (
+          {variants.length > 0 && (
             <div className="size-selection-section">
               <h3 className="section-title">Select Sizes (Multiple allowed)</h3>
               <div className="size-options">
                 {variants.map((variant) => (
                   <button
                     key={variant.id}
+                    type="button"
                     className={`size-btn ${selectedSizes.includes(variant.variant_value) ? 'selected' : ''} ${variant.stock_quantity === 0 ? 'unavailable' : ''}`}
+                    aria-pressed={selectedSizes.includes(variant.variant_value)}
+                    aria-label={`Size ${variant.variant_value}${variant.stock_quantity === 0 ? ', out of stock' : ''}`}
                     onClick={() => {
                       setSelectedSizes(prev => 
                         prev.includes(variant.variant_value)
