@@ -20,11 +20,13 @@
 }
 
 .about-hero h1 {
+  color: #ffffff;
   font-size: clamp(2rem, 5vw, 2.8rem);
   font-weight: 700;
   margin: 0 0 1rem 0;
   line-height: 1.2;
   letter-spacing: -0.02em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
 }
 
 .about-hero .hero-subtitle {
