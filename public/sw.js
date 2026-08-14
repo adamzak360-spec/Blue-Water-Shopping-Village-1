@@ -1,4 +1,4 @@
-const CACHE_NAME = 'reliable-shell-v3'
+const CACHE_NAME = 'reliable-shell-v4'
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -26,7 +26,7 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET' || url.origin !== self.location.origin) return
 
   // Never cache API, auth, checkout, dashboard, or other user-specific data.
-  if (url.pathname.startsWith('/api') || url.pathname.includes('supabase')) return
+  if (url.pathname.startsWith('/api') || url.pathname.includes('supabase') || url.pathname === '/manifest.json' || url.pathname === '/api/manifest') return
 
   if (request.mode === 'navigate') {
     event.respondWith(

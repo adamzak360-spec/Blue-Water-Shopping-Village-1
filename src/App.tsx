@@ -75,6 +75,11 @@ import WhatsAppButton from './components/WhatsAppButton'
 import InstallAppPrompt from './components/InstallAppPrompt'
 import { getMarketplaceFaviconUrl, getMarketplaceLogoUrl } from './services/businessService'
 
+const addCacheBuster = (url: string) => {
+  const separator = url.includes('?') ? '&' : '?'
+  return `${url}${separator}v=${Date.now()}`
+}
+
 function App() {
   return <AppShell />
 }
@@ -104,19 +109,19 @@ function AppShell() {
   useEffect(() => {
     let cancelled = false
     getMarketplaceLogoUrl().then((logoUrl) => {
-      if (!cancelled && logoUrl) setMarketplaceLogoUrl(logoUrl)
+      if (!cancelled && logoUrl) setMarketplaceLogoUrl(addCacheBuster(logoUrl))
     })
     getMarketplaceFaviconUrl().then((faviconUrl) => {
-      if (!cancelled && faviconUrl) setMarketplaceFaviconUrl(faviconUrl)
+      if (!cancelled && faviconUrl) setMarketplaceFaviconUrl(addCacheBuster(faviconUrl))
     })
 
     const handleLogoUpdate = (event: Event) => {
       const nextUrl = (event as CustomEvent<string | null>).detail
-      setMarketplaceLogoUrl(nextUrl || '/logo-square.png')
+      setMarketplaceLogoUrl(nextUrl ? addCacheBuster(nextUrl) : addCacheBuster('/logo-square.png'))
     }
     const handleFaviconUpdate = (event: Event) => {
       const nextUrl = (event as CustomEvent<string | null>).detail
-      setMarketplaceFaviconUrl(nextUrl || '/favicon.ico')
+      setMarketplaceFaviconUrl(nextUrl ? addCacheBuster(nextUrl) : addCacheBuster('/favicon.ico'))
     }
     window.addEventListener('marketplace-logo-updated', handleLogoUpdate)
     window.addEventListener('marketplace-favicon-updated', handleFaviconUpdate)
@@ -132,6 +137,11 @@ function AppShell() {
     links.forEach((link) => {
       link.href = marketplaceFaviconUrl
     })
+
+    const manifestLink = document.querySelector<HTMLLinkElement>('link[rel="manifest"]')
+    if (manifestLink) {
+      manifestLink.href = `/api/manifest?v=${Date.now()}`
+    }
   }, [marketplaceFaviconUrl])
 
   // Reset the page position whenever navigation changes, including filter/query changes.

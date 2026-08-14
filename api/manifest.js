@@ -20,7 +20,10 @@ module.exports = async function handler(_req, res) {
         .select('favicon_url')
         .eq('id', MARKETPLACE_ID)
         .maybeSingle()
-      if (data?.favicon_url) icon = data.favicon_url
+      if (data?.favicon_url) {
+        const separator = data.favicon_url.includes('?') ? '&' : '?'
+        icon = `${data.favicon_url}${separator}v=${Date.now()}`
+      }
     }
   } catch (error) {
     console.error('[MANIFEST] Falling back to default icon:', error?.message || error)
