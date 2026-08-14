@@ -178,6 +178,7 @@ export default function Admin() {
   const [showOrderModal, setShowOrderModal] = useState(false)
   const [businesses, setBusinesses] = useState<Business[]>([])
   const [sellerBusinessIds, setSellerBusinessIds] = useState<string[]>([])
+  const [deliveryBusinessId, setDeliveryBusinessId] = useState('')
   const [productsLoading, setProductsLoading] = useState(false)
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [reviewsLoading, setReviewsLoading] = useState(false)
@@ -191,6 +192,14 @@ export default function Admin() {
   const [faviconActionLoading, setFaviconActionLoading] = useState(false)
   const [brandingEditor, setBrandingEditor] = useState<{ kind: 'logo' | 'favicon'; file: File } | null>(null)
   const [showEmailPreview, setShowEmailPreview] = useState(false)
+
+  useEffect(() => {
+    if (!isSellerRole) return
+    setDeliveryBusinessId(previous => {
+      if (previous && businesses.some(candidate => candidate.id === previous)) return previous
+      return business?.id || businesses[0]?.id || ''
+    })
+  }, [business, businesses, isSellerRole])
   const [storeSettings, setStoreSettings] = useState({
     name: '',
     description: '',
@@ -1364,12 +1373,34 @@ export default function Admin() {
 
         {/* Delivery Settings View */}
         {view === 'delivery' && (business || isAdminRole) && (
-          <DeliverySettings
-            businessId={isAdminRole ? undefined : business?.id}
-            isAdmin={isAdminRole}
-            countryCode={business?.country_code}
-            currencyCode={business?.currency_code}
-          />
+          <>
+            {isSellerRole && businesses.length > 1 && (
+              <div className="settings-card" style={{ marginBottom: '1rem' }}>
+                <label htmlFor="delivery-store-selector"><strong>Store whose delivery fees you are editing</strong></label>
+                <select
+                  id="delivery-store-selector"
+                  value={deliveryBusinessId || business?.id || ''}
+                  onChange={(event) => setDeliveryBusinessId(event.target.value)}
+                  style={{ width: '100%', marginTop: '0.5rem' }}
+                >
+                  {businesses.map(store => (
+                    <option key={store.id} value={store.id}>
+                      {store.name || store.business_name || 'Unnamed store'}
+                    </option>
+                  ))}
+                </select>
+                <small style={{ display: 'block', marginTop: '0.5rem' }}>
+                  Delivery fees are store-specific. Select the same store that owns the product before saving a fee.
+                </small>
+              </div>
+            )}
+            <DeliverySettings
+              businessId={isAdminRole ? undefined : (deliveryBusinessId || business?.id)}
+              isAdmin={isAdminRole}
+              countryCode={isAdminRole ? business?.country_code : (businesses.find(store => store.id === (deliveryBusinessId || business?.id))?.country_code || business?.country_code)}
+              currencyCode={isAdminRole ? business?.currency_code : (businesses.find(store => store.id === (deliveryBusinessId || business?.id))?.currency_code || business?.currency_code)}
+            />
+          </>
         )}
 
         {/* Store Settings View */}

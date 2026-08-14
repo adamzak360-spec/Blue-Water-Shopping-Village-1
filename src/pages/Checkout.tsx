@@ -41,38 +41,51 @@ export default function Checkout() {
   const [deliveryLoading, setDeliveryLoading] = useState(false)
   const [deliveryError, setDeliveryError] = useState('')
   const [resolvedBusinessIds, setResolvedBusinessIds] = useState<Record<string, string>>({})
+  const [businessResolutionPending, setBusinessResolutionPending] = useState(false)
 
   useEffect(() => {
     let isMounted = true
-    const missingProductIds = cart
-      .filter(item => !item.business_id && !resolvedBusinessIds[item.id])
-      .map(item => item.id)
+    const missingProductIds = Array.from(new Set(
+      cart
+        .filter(item => !item.business_id && !resolvedBusinessIds[item.id])
+        .map(item => item.id),
+    ))
 
-    if (missingProductIds.length === 0) return () => { isMounted = false }
+    if (missingProductIds.length === 0) {
+      setBusinessResolutionPending(false)
+      return () => { isMounted = false }
+    }
 
+    setBusinessResolutionPending(true)
     Promise.all(missingProductIds.map(async productId => {
       try {
         const product = await getProductById(productId)
-        return [productId, product?.business_id || DEFAULT_BUSINESS_ID] as const
+        // A successfully loaded legacy marketplace product may still have no
+        // owner; only that case can safely use the marketplace business. A
+        // lookup error must remain unresolved rather than silently becoming
+        // the global GH₵15 delivery method.
+        return [productId, product ? (product.business_id || DEFAULT_BUSINESS_ID) : ''] as const
       } catch {
-        return [productId, DEFAULT_BUSINESS_ID] as const
+        return [productId, ''] as const
       }
     })).then(entries => {
       if (!isMounted) return
       setResolvedBusinessIds(previous => ({
         ...previous,
-        ...Object.fromEntries(entries),
+        ...Object.fromEntries(entries.filter(([, businessId]) => Boolean(businessId))),
       }))
+      setBusinessResolutionPending(false)
     })
 
     return () => { isMounted = false }
   }, [cart, resolvedBusinessIds])
 
   const getCartBusinessId = (item: typeof cart[number]) =>
-    item.business_id || resolvedBusinessIds[item.id] || DEFAULT_BUSINESS_ID
+    item.business_id || resolvedBusinessIds[item.id] || ''
   const totalItemQuantity = cart.reduce((sum, item) => sum + item.quantity, 0)
-  const cartBusinessIds = Array.from(new Set(cart.map(getCartBusinessId)))
-  const checkoutBusinessId = cartBusinessIds.length === 1 ? cartBusinessIds[0] : undefined
+  const cartBusinessIds = Array.from(new Set(cart.map(getCartBusinessId).filter(Boolean)))
+  const unresolvedBusinessItems = cart.some(item => !getCartBusinessId(item))
+  const checkoutBusinessId = cartBusinessIds.length === 1 && !unresolvedBusinessItems ? cartBusinessIds[0] : undefined
   const cartStoreGroups = Array.from(
     cart.reduce((groups, item) => {
       const storeKey = getCartBusinessId(item)
@@ -92,7 +105,7 @@ export default function Checkout() {
   useEffect(() => {
     let isMounted = true
     const loadDeliveryOptions = async () => {
-      if (cart.length === 0) {
+      if (cart.length === 0 || businessResolutionPending || unresolvedBusinessItems || hasMultipleStores) {
         setDeliveryOptions([])
         setFormData(previous => ({ ...previous, deliveryMethod: '' }))
         return
@@ -125,7 +138,7 @@ export default function Checkout() {
 
     loadDeliveryOptions()
     return () => { isMounted = false }
-  }, [checkoutBusinessId, cart[0]?.currency, cart.length])
+  }, [checkoutBusinessId, cart[0]?.currency, cart.length, businessResolutionPending, unresolvedBusinessItems, hasMultipleStores])
 
   // Load Paystack script
   useEffect(() => {
@@ -198,7 +211,11 @@ export default function Checkout() {
     try {
       console.log('[Checkout] Form validation started')
 
-      if (!checkoutBusinessId) {
+      if (businessResolutionPending || unresolvedBusinessItems) {
+        throw new Error('We are still identifying the store for one or more cart items. Please wait a moment and try again.')
+      }
+
+      if (hasMultipleStores || !checkoutBusinessId) {
         throw new Error('Your cart contains products from multiple stores. Please checkout one store at a time.')
       }
       
@@ -543,7 +560,13 @@ export default function Checkout() {
                   {deliveryLoading ? (
                     <p className="delivery-loading-message">Loading delivery options...</p>
                   ) : deliveryOptions.length === 0 ? (
-                    <p className="delivery-empty-message">No delivery method is currently available for this store and currency. Please contact the seller.</p>
+                    <p className="delivery-empty-message">
+                      {businessResolutionPending || unresolvedBusinessItems
+                        ? 'Identifying the seller delivery settings...'
+                        : hasMultipleStores
+                          ? 'Checkout one store at a time so the correct seller delivery fee can be applied.'
+                          : 'No delivery method is currently available for this store and currency. Please contact the seller.'}
+                    </p>
                   ) : (
                     <select
                       id="deliveryMethod"
@@ -584,7 +607,7 @@ export default function Checkout() {
                     rows={3}
                   />
                 </div>
-                <button type="submit" className="submit-order-btn" disabled={isSubmitting || hasMultipleStores || deliveryLoading || deliveryOptions.length === 0}>
+                <button type="submit" className="submit-order-btn" disabled={isSubmitting || businessResolutionPending || unresolvedBusinessItems || hasMultipleStores || deliveryLoading || deliveryOptions.length === 0}>
                   {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
                 </button>
               </form>
