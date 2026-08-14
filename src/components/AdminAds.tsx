@@ -42,6 +42,15 @@ export default function AdminAds() {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [preview, setPreview] = useState(false)
+  const selectedAdvertiserId = advertisers.some((advertiser) => advertiser.id === form.advertiser_id)
+    ? form.advertiser_id
+    : (advertisers[0]?.id || '')
+
+  useEffect(() => {
+    if (selectedAdvertiserId && selectedAdvertiserId !== form.advertiser_id) {
+      setForm((current) => ({ ...current, advertiser_id: selectedAdvertiserId }))
+    }
+  }, [selectedAdvertiserId, form.advertiser_id])
 
   const load = async () => {
     if (!supabase) { setMessage('Supabase is not configured.'); return }
@@ -53,7 +62,6 @@ export default function AdminAds() {
     setAds((adData || []) as Advertisement[])
     setAdvertisers((advertiserData || []) as Advertiser[])
     if (settingsData) setSettings(settingsData)
-    if (!form.advertiser_id && advertiserData?.[0]) setForm((current) => ({ ...current, advertiser_id: advertiserData[0].id }))
   }
 
   useEffect(() => { void load() }, [])
@@ -70,7 +78,7 @@ export default function AdminAds() {
   const saveAd = async (event: React.FormEvent) => {
     event.preventDefault()
     if (!supabase || !user?.id) return
-    if (!form.advertiser_id) { setMessage('Please select an advertiser before creating the ad.'); focusAdsField('advertiser_id'); return }
+    if (!selectedAdvertiserId) { setMessage(advertisers.length ? 'Please select an advertiser before creating the ad.' : 'No advertisers are available yet. Create an advertiser through the advertiser onboarding page first.'); focusAdsField('advertiser_id'); return }
     if (!form.campaign_name.trim()) { setMessage('Enter a campaign name.'); focusAdsField('campaign_name'); return }
     if (!form.headline.trim()) { setMessage('Enter an advertisement headline.'); focusAdsField('headline'); return }
     if (!form.destination_url) { setMessage('Enter the HTTPS destination URL.'); focusAdsField('destination_url'); return }
@@ -80,10 +88,10 @@ export default function AdminAds() {
     if (new Date(form.ends_at) <= new Date(form.starts_at)) { setMessage('The end date must be after the start date.'); focusAdsField('ends_at'); return }
     if (Number(form.budget_minor) < 0 || !Number.isFinite(Number(form.budget_minor))) { setMessage('Enter a valid non-negative budget.'); focusAdsField('budget_minor'); return }
     setBusy(true)
-    const { error } = await supabase.from('advertisements').insert({ advertiser_id: form.advertiser_id, campaign_name: form.campaign_name.trim(), ad_type: form.ad_type, placement: form.placement, status: settings.approval_required ? 'PENDING_APPROVAL' : 'SCHEDULED', priority: Math.max(1, Math.min(100, Number(form.priority) || 10)), headline: form.headline.trim(), description: form.description.trim() || null, image_url: form.image_url.trim() || null, destination_url: form.destination_url.trim(), starts_at: toIso(form.starts_at), ends_at: toIso(form.ends_at), budget_minor: Math.max(0, Math.round(Number(form.budget_minor) || 0) * 100), created_by: user.id })
+    const { error } = await supabase.from('advertisements').insert({ advertiser_id: selectedAdvertiserId, campaign_name: form.campaign_name.trim(), ad_type: form.ad_type, placement: form.placement, status: settings.approval_required ? 'PENDING_APPROVAL' : 'SCHEDULED', priority: Math.max(1, Math.min(100, Number(form.priority) || 10)), headline: form.headline.trim(), description: form.description.trim() || null, image_url: form.image_url.trim() || null, destination_url: form.destination_url.trim(), starts_at: toIso(form.starts_at), ends_at: toIso(form.ends_at), budget_minor: Math.max(0, Math.round(Number(form.budget_minor) || 0) * 100), created_by: user.id })
     setBusy(false)
     setMessage(error ? error.message : 'Advertisement created.')
-    if (!error) { setForm({ ...emptyForm, advertiser_id: form.advertiser_id }); await load() }
+    if (!error) { setForm({ ...emptyForm, advertiser_id: selectedAdvertiserId }); await load() }
   }
 
   const setStatus = async (id: string, status: AdStatus) => {
@@ -110,7 +118,7 @@ export default function AdminAds() {
     <div className="ads-global-control"><div><strong>Advertising is {settings.advertising_enabled ? 'ON' : 'OFF'}</strong><span>{settings.advertising_enabled ? 'Eligible approved ads may appear in approved placements.' : 'No public ads are visible while this switch is off.'}</span></div><button type="button" disabled={busy} onClick={() => void updateSettings({ advertising_enabled: !settings.advertising_enabled })}>{settings.advertising_enabled ? 'Disable Advertising' : 'Enable Advertising'}</button></div>
     <div className="ads-summary"><div><strong>{summary.impressions.toLocaleString()}</strong><span>Total impressions</span></div><div><strong>{summary.clicks.toLocaleString()}</strong><span>Total clicks</span></div><div><strong>{summary.impressions ? ((summary.clicks / summary.impressions) * 100).toFixed(1) : '0.0'}%</strong><span>CTR</span></div><div><strong>{summary.active}</strong><span>Active campaigns</span></div><div><strong>{summary.paused}</strong><span>Paused</span></div><div><strong>{formatCurrency(summary.revenue / 100, 'GHS')}</strong><span>Ad revenue</span></div></div>
     <form className="ads-form" noValidate onSubmit={saveAd}><h3>Create advertisement</h3><div className="ads-form-grid">
-      <select name="advertiser_id" value={form.advertiser_id} onChange={(e) => setForm({ ...form, advertiser_id: e.target.value })}><option value="">Select advertiser</option>{advertisers.map((advertiser) => <option key={advertiser.id} value={advertiser.id}>{advertiser.name} ({advertiser.advertiser_type})</option>)}</select>
+      <select name="advertiser_id" value={selectedAdvertiserId} disabled={!advertisers.length || busy} onChange={(e) => setForm({ ...form, advertiser_id: e.target.value })}>{advertisers.length ? advertisers.map((advertiser) => <option key={advertiser.id} value={advertiser.id}>{advertiser.name} ({advertiser.advertiser_type})</option>) : <option value="">No advertisers available</option>}</select>
       <input name="campaign_name" placeholder="Campaign name" value={form.campaign_name} onChange={(e) => setForm({ ...form, campaign_name: e.target.value })} />
       <select value={form.ad_type} onChange={(e) => setForm({ ...form, ad_type: e.target.value })}><option value="BANNER">Banner</option><option value="PRODUCT">Product</option><option value="STORE">Store</option><option value="HOMEPAGE_PROMOTION">Homepage promotion</option></select>
       <select value={form.placement} onChange={(e) => setForm({ ...form, placement: e.target.value as AdPlacement })}>{placements.map((placement) => <option key={placement} value={placement}>{placement}</option>)}</select>
