@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import { configurePaystackRecipient } from '../services/paystackRecipientService'
+import { listPaystackInstitutions, PaystackInstitution } from '../services/paystackBanksService'
 import './IdentityVerificationForm.css' // Reuse verification styles
 
 interface Props {
@@ -13,6 +14,8 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [institutions, setInstitutions] = useState<PaystackInstitution[]>([])
+  const [isLoadingInstitutions, setIsLoadingInstitutions] = useState(false)
   // const [profile, setProfile] = useState<any>(null)
   
   const [formData, setFormData] = useState({
@@ -58,6 +61,30 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
     }
     loadProfile()
   }, [sellerId, storeId])
+
+  useEffect(() => {
+    let cancelled = false
+    const loadInstitutions = async () => {
+      if (formData.country_code !== 'GH' || formData.currency !== 'GHS' || formData.recipient_type === 'paypal') {
+        setInstitutions([])
+        return
+      }
+      setIsLoadingInstitutions(true)
+      try {
+        const { data: sessionData, error: sessionError } = await supabase!.auth.getSession()
+        if (sessionError || !sessionData.session?.access_token) throw new Error('Please sign in again before loading payout options.')
+        const type = formData.recipient_type === 'mobile_money' ? 'mobile_money' : 'ghipss'
+        const values = await listPaystackInstitutions(type, sessionData.session.access_token)
+        if (!cancelled) setInstitutions(values)
+      } catch (err: any) {
+        if (!cancelled) setError(err.message || 'Could not load Paystack payout options')
+      } finally {
+        if (!cancelled) setIsLoadingInstitutions(false)
+      }
+    }
+    loadInstitutions()
+    return () => { cancelled = true }
+  }, [formData.country_code, formData.currency, formData.recipient_type])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -192,16 +219,19 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
 
         {formData.country_code === 'GH' && formData.currency === 'GHS' && (
           <div className="form-group">
-            <label>{formData.recipient_type === 'mobile_money' ? 'Mobile-money provider code' : 'Bank code'}</label>
-            <input
-              type="text"
+            <label>{formData.recipient_type === 'mobile_money' ? 'Mobile-money network' : 'Bank'}</label>
+            <select
               value={formData.bank_code}
               onChange={e => setFormData({...formData, bank_code: e.target.value})}
-              placeholder={formData.recipient_type === 'mobile_money' ? 'Paystack telco code, e.g. MTN' : 'Paystack bank code'}
               required
-              disabled={isSaving}
-            />
-            <small>Use the code supplied by Paystack for the selected bank or mobile-money network; do not guess the value.</small>
+              disabled={isSaving || isLoadingInstitutions}
+            >
+              <option value="">{isLoadingInstitutions ? 'Loading Paystack options...' : 'Select an institution'}</option>
+              {institutions.map(institution => (
+                <option key={institution.code} value={institution.code}>{institution.name}</option>
+              ))}
+            </select>
+            <small>Select the seller’s actual bank or mobile-money network. Reliable sends the verified Paystack code automatically.</small>
           </div>
         )}
 
