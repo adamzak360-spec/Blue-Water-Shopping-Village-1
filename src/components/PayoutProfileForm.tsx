@@ -137,7 +137,7 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
         updated_at: new Date().toISOString(),
       }
 
-      const { error: saveError } = await supabase!.from('seller_payout_profiles').upsert(payload)
+      const { error: saveError } = await supabase!.from('seller_payout_profiles').upsert(payload, { onConflict: 'seller_id,store_id' })
       if (saveError) throw saveError
       
       if (onSuccess) onSuccess()

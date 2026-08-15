@@ -113,7 +113,7 @@ module.exports = async (req, res) => {
       payout_profile_confirmed_at: new Date().toISOString(),
       payout_profile_confirmation_note: 'Paystack recipient verified and activated.',
       updated_at: new Date().toISOString(),
-    });
+    }, { onConflict: 'seller_id,store_id' });
     if (saveError) throw saveError;
 
     return res.status(200).json({ status: true, data: { recipient_code: recipient.recipient_code, recipient_type: recipientType, currency, country_code: countryCode, account_name: accountName, account_number_last4: accountNumber.slice(-4), provider_onboarding_status: 'ACTIVE' } });
