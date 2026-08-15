@@ -68,6 +68,9 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
       if (!formData.account_number.trim()) throw new Error('For security, re-enter the full bank account number or mobile-money number before saving this payout profile.')
 
       const isPaystackAutomatedRoute = formData.country_code === 'GH' && formData.currency === 'GHS'
+      if (isPaystackAutomatedRoute && !formData.bank_code.trim()) {
+        throw new Error('Enter the Paystack bank code or mobile-money provider code before saving.')
+      }
       let recipientData: { recipient_code: string; recipient_type: string; provider_onboarding_status: 'ACTIVE' } | null = null
 
       if (isPaystackAutomatedRoute) {
@@ -186,6 +189,21 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
             disabled={isSaving}
           />
         </div>
+
+        {formData.country_code === 'GH' && formData.currency === 'GHS' && (
+          <div className="form-group">
+            <label>{formData.recipient_type === 'mobile_money' ? 'Mobile-money provider code' : 'Bank code'}</label>
+            <input
+              type="text"
+              value={formData.bank_code}
+              onChange={e => setFormData({...formData, bank_code: e.target.value})}
+              placeholder={formData.recipient_type === 'mobile_money' ? 'Paystack telco code, e.g. MTN' : 'Paystack bank code'}
+              required
+              disabled={isSaving}
+            />
+            <small>Use the code supplied by Paystack for the selected bank or mobile-money network; do not guess the value.</small>
+          </div>
+        )}
 
         {formData.recipient_type === 'bank_account' && (
           <>
