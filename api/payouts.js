@@ -4,8 +4,16 @@ const { createClient } = require('@supabase/supabase-js');
 
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 
+function isEnabled(value) {
+  return ['1', 'true', 'yes', 'on'].includes(String(value || '').trim().toLowerCase());
+}
+
 function payoutAutomationEnabled() {
-  return ['1', 'true', 'yes', 'on'].includes(String(process.env.PAYOUT_AUTOMATION_ENABLED || '').trim().toLowerCase());
+  return isEnabled(process.env.PAYOUT_AUTOMATION_ENABLED);
+}
+
+function singlePayoutTestEnabled() {
+  return isEnabled(process.env.PAYOUT_SINGLE_TEST_ENABLED);
 }
 
 function requestOrigin(req) {
@@ -68,7 +76,8 @@ async function recordTransferEvent(admin, eventKey, eventName, reference, payloa
 }
 
 async function processQueue(admin, limit, singlePayoutId = null) {
-  if (!payoutAutomationEnabled()) {
+  const singleTestMode = Boolean(singlePayoutId);
+  if (!payoutAutomationEnabled() && !(singleTestMode && singlePayoutTestEnabled())) {
     return { disabled: true, claimed: 0, processed: 0, pending: 0, failed: 0 };
   }
   const claim = singlePayoutId
@@ -211,12 +220,13 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   try {
     if (action === 'process-queue' || action === 'process-single') {
-      if (!payoutAutomationEnabled()) return res.status(409).json({ disabled: true, error: 'Automated payouts are disabled until production verification is complete.' });
+      const singlePayoutId = action === 'process-single' ? (req.body?.payout_id || req.query?.payout_id) : null;
+      const allowed = payoutAutomationEnabled() || (singlePayoutId && singlePayoutTestEnabled());
+      if (!allowed) return res.status(409).json({ disabled: true, error: 'Automated payouts are disabled until production verification is complete.' });
       const workerSecret = process.env.PAYOUT_WORKER_SECRET;
       const cronSecret = process.env.CRON_SECRET;
       const suppliedSecret = req.headers['x-payout-worker-secret'] || (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
       if ((!workerSecret || suppliedSecret !== workerSecret) && (!cronSecret || suppliedSecret !== cronSecret)) return res.status(401).json({ error: 'Unauthorized' });
-      const singlePayoutId = action === 'process-single' ? (req.body?.payout_id || req.query?.payout_id) : null;
       if (action === 'process-single' && !singlePayoutId) return res.status(400).json({ error: 'payout_id is required for a single-payout test' });
       const admin = supabaseAdmin();
       const result = await processQueue(admin, req.body?.limit || req.query?.limit, singlePayoutId);
