@@ -17,6 +17,8 @@ const statusLabel = (status?: string | null) => {
 
 export default function RegisteredSellerManagement() {
   const { role } = useAuth()
+  const normalizedRole = String(role || '').toLowerCase().replace(/-/g, '_')
+  const isAdmin = ['admin', 'general_admin'].includes(normalizedRole)
   const [businesses, setBusinesses] = useState<Business[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -46,8 +48,8 @@ export default function RegisteredSellerManagement() {
   }, [])
 
   useEffect(() => {
-    if (role === 'admin') loadBusinesses()
-  }, [role, loadBusinesses])
+    if (isAdmin) loadBusinesses()
+  }, [isAdmin, loadBusinesses])
 
   const filteredBusinesses = useMemo(() => {
     const term = search.trim().toLowerCase()
@@ -122,7 +124,7 @@ export default function RegisteredSellerManagement() {
     }
   }
 
-  if (role !== 'admin') {
+  if (!isAdmin) {
     return <div className="seller-management-empty">Registered seller management is available to administrators only.</div>
   }
 

@@ -110,6 +110,3 @@ GRANT ALL ON TABLE public.seller_payout_profiles, public.seller_payouts, public.
 NOTIFY pgrst, 'reload schema';
 
 -- End safe foundation migration.
-
-EOF
-cat /home/ubuntu/Blue-Water-Shopping-Village-1/migrations/20260815_seller_payout_foundation.sql | tail -20

@@ -4,6 +4,19 @@ const { createClient } = require('@supabase/supabase-js');
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 const SUPPORTED_RECIPIENTS = new Set(['ghipss', 'mobile_money', 'kepss', 'nuban', 'basa', 'mobile_money_business']);
 
+function payoutAutomationEnabled() {
+  return ['1', 'true', 'yes', 'on'].includes(String(process.env.PAYOUT_AUTOMATION_ENABLED || '').trim().toLowerCase());
+}
+
+function requestOrigin(req) {
+  const origin = req.headers.origin;
+  const configured = String(process.env.APP_ORIGIN || process.env.VITE_APP_URL || 'https://reliable-now.vercel.app')
+    .split(',')
+    .map(value => value.trim())
+    .filter(Boolean);
+  return origin && configured.includes(origin) ? origin : configured[0];
+}
+
 function adminClient() {
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -27,13 +40,14 @@ function clean(value, max = 120) {
 }
 
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', requestOrigin(req));
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
+    if (!payoutAutomationEnabled()) return res.status(409).json({ disabled: true, error: 'Automated Paystack payouts are disabled until production verification is complete.' });
     const token = bearer(req);
     if (!token) return res.status(401).json({ error: 'Seller authentication is required' });
     const body = req.body || {};

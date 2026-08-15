@@ -4,6 +4,19 @@ const { createClient } = require('@supabase/supabase-js');
 
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 
+function payoutAutomationEnabled() {
+  return ['1', 'true', 'yes', 'on'].includes(String(process.env.PAYOUT_AUTOMATION_ENABLED || '').trim().toLowerCase());
+}
+
+function requestOrigin(req) {
+  const origin = req.headers.origin;
+  const configured = String(process.env.APP_ORIGIN || process.env.VITE_APP_URL || 'https://reliable-now.vercel.app')
+    .split(',')
+    .map(value => value.trim())
+    .filter(Boolean);
+  return origin && configured.includes(origin) ? origin : configured[0];
+}
+
 function supabaseAdmin() {
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -24,13 +37,24 @@ function timingSafeEqualHex(a, b) {
 
 function verifyPaystackSignature(req) {
   const signature = req.headers['x-paystack-signature'];
-  const raw = req.rawBody ? Buffer.from(req.rawBody) : Buffer.from(JSON.stringify(req.body || {}));
+  if (!signature || !req.rawBody || !process.env.PAYSTACK_SECRET_KEY) return false;
+  const raw = Buffer.isBuffer(req.rawBody) ? req.rawBody : Buffer.from(req.rawBody);
   const expected = crypto.createHmac('sha512', process.env.PAYSTACK_SECRET_KEY).update(raw).digest('hex');
-  return timingSafeEqualHex(expected, signature);
+  return timingSafeEqualHex(expected, String(signature));
 }
 
 function transferReference(payoutId) {
   return `reliable_payout_${payoutId.replace(/-/g, '')}`.slice(0, 50);
+}
+
+async function verifyTransfer(headers, reference) {
+  try {
+    const response = await axios.get(`${PAYSTACK_BASE_URL}/transfer/${encodeURIComponent(reference)}`, { headers });
+    return response.data?.data || null;
+  } catch (error) {
+    if (error.response?.status === 404) return null;
+    throw error;
+  }
 }
 
 async function recordTransferEvent(admin, eventKey, eventName, reference, payload) {
@@ -44,6 +68,9 @@ async function recordTransferEvent(admin, eventKey, eventName, reference, payloa
 }
 
 async function processQueue(admin, limit) {
+  if (!payoutAutomationEnabled()) {
+    return { disabled: true, claimed: 0, processed: 0, pending: 0, failed: 0 };
+  }
   const { data: payouts, error } = await admin.rpc('claim_eligible_payouts', { p_limit: Math.min(Number(limit) || 25, 100) });
   if (error) throw error;
   if (!payouts || payouts.length === 0) return { claimed: 0, processed: 0, pending: 0, failed: 0 };
@@ -84,6 +111,21 @@ async function processQueue(admin, limit) {
 
     let transferInitiated = false;
     try {
+      // Verify the deterministic reference before creating a new transfer. This
+      // closes the timeout window where Paystack may have accepted the transfer
+      // but the original request did not return to the worker.
+      const existingTransfer = await verifyTransfer(headers, reference);
+      if (existingTransfer) {
+        const existingStatus = String(existingTransfer.status || '').toLowerCase();
+        if (existingStatus === 'success') {
+          await recordTransferEvent(admin, `verified:${reference}:success`, 'transfer.success', reference, existingTransfer);
+          processed += 1;
+        } else {
+          pending += 1;
+        }
+        continue;
+      }
+
       const initiated = await axios.post(`${PAYSTACK_BASE_URL}/transfer`, {
         source: 'balance',
         amount: Number(payout.seller_payout_amount_minor),
@@ -111,6 +153,29 @@ async function processQueue(admin, limit) {
       console.error('[PAYOUT] Transfer attempt failed:', payout.payout_id, error.response?.data || error.message);
       const message = error.response?.data?.message || error.message || 'Transfer attempt failed';
 
+      if (!transferInitiated) {
+        // A network error or a provider conflict can happen after Paystack has
+        // accepted the deterministic reference. Re-check before recording a
+        // failure that would make a safe retry impossible to distinguish.
+        try {
+          const recoveredTransfer = await verifyTransfer(headers, reference);
+          if (recoveredTransfer) {
+            const recoveredStatus = String(recoveredTransfer.status || '').toLowerCase();
+            if (recoveredStatus === 'success') {
+              await recordTransferEvent(admin, `verified:${reference}:success`, 'transfer.success', reference, recoveredTransfer);
+              processed += 1;
+            } else {
+              pending += 1;
+            }
+            continue;
+          }
+        } catch (verificationError) {
+          console.error('[PAYOUT] Recovery verification failed:', payout.payout_id, verificationError.response?.data || verificationError.message);
+          pending += 1;
+          continue;
+        }
+      }
+
       if (transferInitiated) {
         // The transfer may already exist even if status verification failed.
         // Do not mark it FAILED or retry it with the same recipient payout
@@ -134,7 +199,7 @@ async function processQueue(admin, limit) {
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', requestOrigin(req));
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Paystack-Signature, X-Payout-Worker-Secret');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -143,6 +208,7 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   try {
     if (action === 'process-queue') {
+      if (!payoutAutomationEnabled()) return res.status(409).json({ disabled: true, error: 'Automated payouts are disabled until production verification is complete.' });
       const workerSecret = process.env.PAYOUT_WORKER_SECRET;
       const cronSecret = process.env.CRON_SECRET;
       const suppliedSecret = req.headers['x-payout-worker-secret'] || (req.headers.authorization || '').replace(/^Bearer\s+/i, '');

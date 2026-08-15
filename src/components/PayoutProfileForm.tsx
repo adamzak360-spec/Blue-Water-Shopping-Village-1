@@ -22,8 +22,8 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
     bank_code: '',
     swift_code: '',
     iban: '',
-    currency: 'USD',
-    country_code: 'US',
+    currency: 'GHS',
+    country_code: 'GH',
   })
 
   useEffect(() => {
@@ -46,8 +46,8 @@ export const PayoutProfileForm: React.FC<Props> = ({ sellerId, storeId, onSucces
             bank_code: data.bank_code || '',
             swift_code: data.swift_code || '',
             iban: data.iban || '',
-            currency: data.currency || 'USD',
-            country_code: data.country_code || 'US',
+            currency: data.currency || 'GHS',
+            country_code: data.country_code || 'GH',
           })
         }
       } catch (err) {
