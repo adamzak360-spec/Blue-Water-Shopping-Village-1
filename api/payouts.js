@@ -67,11 +67,14 @@ async function recordTransferEvent(admin, eventKey, eventName, reference, payloa
   if (error) throw error;
 }
 
-async function processQueue(admin, limit) {
+async function processQueue(admin, limit, singlePayoutId = null) {
   if (!payoutAutomationEnabled()) {
     return { disabled: true, claimed: 0, processed: 0, pending: 0, failed: 0 };
   }
-  const { data: payouts, error } = await admin.rpc('claim_eligible_payouts', { p_limit: Math.min(Number(limit) || 25, 100) });
+  const claim = singlePayoutId
+    ? await admin.rpc('claim_single_eligible_payout', { p_payout_id: singlePayoutId })
+    : await admin.rpc('claim_eligible_payouts', { p_limit: Math.min(Number(limit) || 25, 100) });
+  const { data: payouts, error } = claim;
   if (error) throw error;
   if (!payouts || payouts.length === 0) return { claimed: 0, processed: 0, pending: 0, failed: 0 };
 
@@ -207,14 +210,16 @@ module.exports = async (req, res) => {
   const action = req.query?.action || req.body?.action || (req.method === 'GET' ? 'process-queue' : null);
   if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   try {
-    if (action === 'process-queue') {
+    if (action === 'process-queue' || action === 'process-single') {
       if (!payoutAutomationEnabled()) return res.status(409).json({ disabled: true, error: 'Automated payouts are disabled until production verification is complete.' });
       const workerSecret = process.env.PAYOUT_WORKER_SECRET;
       const cronSecret = process.env.CRON_SECRET;
       const suppliedSecret = req.headers['x-payout-worker-secret'] || (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
       if ((!workerSecret || suppliedSecret !== workerSecret) && (!cronSecret || suppliedSecret !== cronSecret)) return res.status(401).json({ error: 'Unauthorized' });
+      const singlePayoutId = action === 'process-single' ? (req.body?.payout_id || req.query?.payout_id) : null;
+      if (action === 'process-single' && !singlePayoutId) return res.status(400).json({ error: 'payout_id is required for a single-payout test' });
       const admin = supabaseAdmin();
-      const result = await processQueue(admin, req.body?.limit || req.query?.limit);
+      const result = await processQueue(admin, req.body?.limit || req.query?.limit, singlePayoutId);
       return res.status(200).json(result);
     }
 
