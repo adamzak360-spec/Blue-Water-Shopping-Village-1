@@ -4,8 +4,10 @@ const { createClient } = require('@supabase/supabase-js');
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 const SUPPORTED_RECIPIENTS = new Set(['ghipss', 'mobile_money', 'kepss', 'nuban', 'basa', 'mobile_money_business']);
 
-function payoutAutomationEnabled() {
-  return ['1', 'true', 'yes', 'on'].includes(String(process.env.PAYOUT_AUTOMATION_ENABLED || '').trim().toLowerCase());
+function recipientOnboardingEnabled() {
+  // Recipient creation does not move funds. Keep it independently controllable so
+  // sellers can complete verification while payout transfers remain disabled.
+  return !['0', 'false', 'no', 'off'].includes(String(process.env.PAYOUT_RECIPIENT_ONBOARDING_ENABLED || '').trim().toLowerCase());
 }
 
 function requestOrigin(req) {
@@ -47,7 +49,7 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    if (!payoutAutomationEnabled()) return res.status(409).json({ disabled: true, error: 'Automated Paystack payouts are disabled until production verification is complete.' });
+    if (!recipientOnboardingEnabled()) return res.status(409).json({ disabled: true, error: 'Paystack recipient onboarding is temporarily disabled by the administrator.' });
     const token = bearer(req);
     if (!token) return res.status(401).json({ error: 'Seller authentication is required' });
     const body = req.body || {};
