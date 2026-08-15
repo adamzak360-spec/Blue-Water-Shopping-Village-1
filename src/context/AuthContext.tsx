@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { supabase, isSupabaseConfigured } from '../supabaseClient'
 import type { Session, User } from '@supabase/supabase-js'
+import { reportSuccessfulLogin } from '../services/loginSecurityService'
 
 interface AuthContextType {
   session: Session | null
@@ -138,8 +139,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase!.auth.onAuthStateChange(async (_event, nextSession) => {
+    } = supabase!.auth.onAuthStateChange(async (event, nextSession) => {
       await applySession(nextSession)
+      if (event === 'SIGNED_IN') {
+        void reportSuccessfulLogin(nextSession)
+      }
       if (active) setIsLoading(false)
     })
 
