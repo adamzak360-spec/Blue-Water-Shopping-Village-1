@@ -225,8 +225,12 @@ module.exports = async (req, res) => {
       if (!allowed) return res.status(409).json({ disabled: true, error: 'Automated payouts are disabled until production verification is complete.' });
       const workerSecret = process.env.PAYOUT_WORKER_SECRET;
       const cronSecret = process.env.CRON_SECRET;
+      const singleTestToken = process.env.PAYOUT_SINGLE_TEST_TOKEN;
       const suppliedSecret = req.headers['x-payout-worker-secret'] || (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-      if ((!workerSecret || suppliedSecret !== workerSecret) && (!cronSecret || suppliedSecret !== cronSecret)) return res.status(401).json({ error: 'Unauthorized' });
+      const suppliedSingleTestToken = req.headers['x-payout-single-test-token'];
+      const recurringAuthorized = (workerSecret && suppliedSecret === workerSecret) || (cronSecret && suppliedSecret === cronSecret);
+      const singleTestAuthorized = action === 'process-single' && singlePayoutTestEnabled() && singleTestToken && suppliedSingleTestToken === singleTestToken;
+      if (!recurringAuthorized && !singleTestAuthorized) return res.status(401).json({ error: 'Unauthorized' });
       if (action === 'process-single' && !singlePayoutId) return res.status(400).json({ error: 'payout_id is required for a single-payout test' });
       const admin = supabaseAdmin();
       const result = await processQueue(admin, req.body?.limit || req.query?.limit, singlePayoutId);
