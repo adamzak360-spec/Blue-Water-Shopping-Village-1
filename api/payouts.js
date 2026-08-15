@@ -218,10 +218,9 @@ module.exports = async (req, res) => {
       return res.status(200).json(result);
     }
 
-    const admin = supabaseAdmin();
-
     if (action === 'webhook') {
       if (!verifyPaystackSignature(req)) return res.status(401).json({ error: 'Invalid Paystack signature' });
+      const admin = supabaseAdmin();
       const event = req.body || {};
       const transfer = event.data || {};
       const eventName = String(event.event || '').toLowerCase();
@@ -246,3 +245,5 @@ module.exports = async (req, res) => {
 };
 
 module.exports.processQueue = processQueue;
+module.exports.verifyPaystackSignature = verifyPaystackSignature;
+module.exports.payoutAutomationEnabled = payoutAutomationEnabled;

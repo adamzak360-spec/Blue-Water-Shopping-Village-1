@@ -70,6 +70,9 @@ const statusLabel: Record<string, string> = {
   PROCESSING: 'Payout Processing',
   PAID: 'Payout Paid',
   FAILED: 'Payout Failed — requires retry/review',
+  RETRY_REQUIRED: 'Retry Required',
+  PENDING_FUNDS: 'Pending Paystack Funds',
+  ON_HOLD: 'Payout On Hold',
   REVERSED: 'Payout Reversed',
 }
 
@@ -186,7 +189,7 @@ export default function SellerPayouts({ businessIds, isAdmin = false }: { busine
       <div className="seller-payouts-header">
         <div>
           <h2>Seller Payouts</h2>
-          <p>{isAdmin ? 'Ghana/Paystack payouts remain automated. After delivery confirmation, unsupported seller countries appear here for manual sending.' : 'Customer confirmation makes a payout eligible. A verified transfer or administrator-recorded manual payout is required before it is marked paid.'}</p>
+          <p>{isAdmin ? 'Automated Paystack payouts remain disabled until controlled verification is approved. After delivery confirmation, unsupported seller countries appear here for manual sending.' : 'Customer confirmation makes a payout eligible. A verified transfer or administrator-recorded manual payout is required before it is marked paid.'}</p>
         </div>
         <button className="btn-secondary btn-sm" onClick={load}>Refresh</button>
       </div>
@@ -232,7 +235,7 @@ export default function SellerPayouts({ businessIds, isAdmin = false }: { busine
       )}
 
       <div className="payout-summary-grid">
-        {['HELD', 'ELIGIBLE', 'QUEUED', 'PROCESSING', 'PAID', 'FAILED', 'REVERSED'].map((status) => (
+        {['HELD', 'ELIGIBLE', 'QUEUED', 'PROCESSING', 'PAID', 'FAILED', 'RETRY_REQUIRED', 'PENDING_FUNDS', 'ON_HOLD', 'REVERSED'].map((status) => (
           <div className="payout-summary-card" key={status}>
             <span>{statusLabel[status]}</span>
             <strong>{totals[status] || 0}</strong>
@@ -250,7 +253,7 @@ export default function SellerPayouts({ businessIds, isAdmin = false }: { busine
 
       <div className="payout-table-wrap">
         <table className="payout-table">
-          <thead><tr><th>Order</th><th>Seller / Store</th><th>Gross</th><th>Commission</th><th>Seller amount</th><th>Mode / status</th><th>Transfer / manual record</th>{isAdmin && <th>Admin action</th>}</tr></thead>
+          <thead><tr><th>Created / paid</th><th>Order</th><th>Seller / Store</th><th>Eligibility</th><th>Gross</th><th>Commission</th><th>Seller amount</th><th>Mode / transfer status</th><th>Transfer / manual record</th>{isAdmin && <th>Admin action</th>}</tr></thead>
           <tbody>
             {visible.map((payout) => {
               const profile = payoutProfiles[`${payout.seller_id}:${payout.store_id}`]
@@ -258,8 +261,10 @@ export default function SellerPayouts({ businessIds, isAdmin = false }: { busine
               const canMarkManualPaid = isAdmin && payout.payout_mode === 'MANUAL' && ['ELIGIBLE', 'QUEUED', 'FAILED'].includes(payout.payout_status) && Boolean(profile?.is_active && profile.payout_profile_confirmed_at)
               return (
                 <tr key={payout.payout_id}>
+                  <td><small>{new Date(payout.created_at).toLocaleString()}</small><small>{payout.paid_at ? `Paid ${new Date(payout.paid_at).toLocaleString()}` : 'Not paid'}</small></td>
                   <td><strong>#{payout.order_id.slice(0, 8)}</strong><small>{payout.payout_id.slice(0, 8)}</small></td>
                   <td><small>{payout.seller_id}</small><small>{payout.store_id}</small></td>
+                  <td><span className="payout-badge">{payout.eligibility_status}</span></td>
                   <td>{formatCurrency(payout.gross_amount_minor / 100)}</td>
                   <td>{formatCurrency(payout.commission_amount_minor / 100)}</td>
                   <td><strong>{formatCurrency(payout.seller_payout_amount_minor / 100)}</strong></td>
