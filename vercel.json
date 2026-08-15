@@ -15,6 +15,7 @@
   "routes": [
     { "src": "/sitemap.xml", "dest": "/api/sitemap" },
     { "src": "/robots.txt", "dest": "/api/robots" },
+    { "src": "/api/security-login", "dest": "/api/send-email?mode=security" },
     { "handle": "filesystem" },
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
