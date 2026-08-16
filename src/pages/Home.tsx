@@ -86,6 +86,7 @@ export default function Home() {
   const [showcaseMode, setShowcaseMode] = useState<'FREE' | 'PAID'>('PAID')
   const [showcaseEnabled, setShowcaseEnabled] = useState(true)
   const [freeShowcaseProductIds, setFreeShowcaseProductIds] = useState<string[]>([])
+  const [freeShowcaseProductsOverride, setFreeShowcaseProductsOverride] = useState<Product[]>([])
   
   const scrollRefs = {
     trending: useRef<HTMLDivElement>(null),
@@ -113,7 +114,20 @@ export default function Home() {
             const parsedMode = showcaseConfig.mode === 'FREE' ? 'FREE' : 'PAID'
             setShowcaseMode(parsedMode)
             setShowcaseEnabled(showcaseConfig.showcase_enabled !== false)
-            setFreeShowcaseProductIds(Array.isArray(showcaseConfig.product_ids) ? showcaseConfig.product_ids : [])
+            const configuredProductIds = Array.isArray(showcaseConfig.product_ids) ? showcaseConfig.product_ids : []
+            setFreeShowcaseProductIds(configuredProductIds)
+            if (parsedMode === 'FREE' && configuredProductIds.length > 0) {
+              const { data: selectedProducts, error: selectedProductsError } = await supabase
+                .from('products')
+                .select('*')
+                .in('id', configuredProductIds)
+                .eq('status', 'active')
+              if (selectedProductsError) {
+                console.warn('Selected free showcase products unavailable:', selectedProductsError.message)
+              } else {
+                setFreeShowcaseProductsOverride((selectedProducts || []) as Product[])
+              }
+            }
           }
           const { data: updates, error: updatesError } = await supabase
             .from('news_updates')
@@ -145,7 +159,7 @@ export default function Home() {
   const promotionIdByProductId = new Map(activePromotions.map(promotion => [promotion.productId, promotion.promotionId]))
   const promotedProducts = shuffle(activeProducts.filter(product => promotedProductIdSet.has(product.id)))
   const freeShowcaseProducts = freeShowcaseProductIds
-    .map(productId => activeProducts.find(product => product.id === productId))
+    .map(productId => freeShowcaseProductsOverride.find(product => product.id === productId) || activeProducts.find(product => product.id === productId))
     .filter((product): product is Product => Boolean(product))
   const featuredProducts = !showcaseEnabled
     ? []
