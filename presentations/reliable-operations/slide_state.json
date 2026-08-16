@@ -1,0 +1,114 @@
+{
+  "project_info": {
+    "title": "Reliable Premium Marketplace",
+    "created": 1786889663.077,
+    "last_updated": 1786890036.852,
+    "total_slides": 10
+  },
+  "slides": [
+    {
+      "id": "cover",
+      "state": "edited",
+      "pageNum": 1
+    },
+    {
+      "id": "operating_model",
+      "state": "edited",
+      "pageNum": 2
+    },
+    {
+      "id": "discovery",
+      "state": "edited",
+      "pageNum": 3
+    },
+    {
+      "id": "customer_journey",
+      "state": "edited",
+      "pageNum": 4
+    },
+    {
+      "id": "seller_tools",
+      "state": "edited",
+      "pageNum": 5
+    },
+    {
+      "id": "visibility",
+      "state": "edited",
+      "pageNum": 6
+    },
+    {
+      "id": "trust_payments",
+      "state": "edited",
+      "pageNum": 7
+    },
+    {
+      "id": "chat_security",
+      "state": "edited",
+      "pageNum": 8
+    },
+    {
+      "id": "admin_control",
+      "state": "edited",
+      "pageNum": 9
+    },
+    {
+      "id": "closing",
+      "state": "edited",
+      "pageNum": 10
+    }
+  ],
+  "outline": [
+    {
+      "id": "cover",
+      "title": "Reliable Premium Marketplace",
+      "summary": "A branded opening introducing Reliable as a trusted digital marketplace for customers, sellers, and communities.",
+      "image_plan": "/home/ubuntu/Blue-Water-Shopping-Village-1/public/logo-transparent.png - Cover slide featuring the Reliable logo/branding asset"
+    },
+    {
+      "id": "operating_model",
+      "title": "One marketplace, three operating layers",
+      "summary": "Explain the customer, seller, and admin layers and how they work together."
+    },
+    {
+      "id": "discovery",
+      "title": "Discovery starts with Home, Products, and Stores",
+      "summary": "Show the platform’s discovery surfaces and how users move between them."
+    },
+    {
+      "id": "customer_journey",
+      "title": "From discovery to delivery",
+      "summary": "Walk through the customer journey from product discovery to checkout, delivery, and support.",
+      "image_plan": "/home/ubuntu/upload/Screenshot_20260816-135246.png - Slide discussing products and catalogue search, illustrated by the app UI screenshot"
+    },
+    {
+      "id": "seller_tools",
+      "title": "Seller tools that support real operations",
+      "summary": "Explain stores, products, orders, chat, delivery, and payouts for sellers."
+    },
+    {
+      "id": "visibility",
+      "title": "Visibility is controlled and reversible",
+      "summary": "Explain store-only defaults, paid visibility packages, free public catalog mode, expiry, and revocation."
+    },
+    {
+      "id": "trust_payments",
+      "title": "Trust is built into payments and payouts",
+      "summary": "Explain server-side verification, settlement discipline, wallet accumulation, and idempotency."
+    },
+    {
+      "id": "chat_security",
+      "title": "Familiar communication, accountable security",
+      "summary": "Show WhatsApp-style product chat, unread notifications, delivery/read receipts, and new-device protection."
+    },
+    {
+      "id": "admin_control",
+      "title": "Administration is the control centre",
+      "summary": "Introduce admin controls for sellers, products, orders, payouts, visibility, branding, and reports."
+    },
+    {
+      "id": "closing",
+      "title": "Reliable: discover with confidence",
+      "summary": "Close with the operating promise and responsible-growth message."
+    }
+  ]
+}

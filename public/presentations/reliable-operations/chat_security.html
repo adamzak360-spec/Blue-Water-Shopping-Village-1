@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Familiar communication, accountable security</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0}
+.slide-container{width:1280px;min-height:720px;background:#0F2F57;color:#fff;font-family:Arial,Helvetica,sans-serif;padding:66px 84px 0;position:relative;overflow:hidden;display:flex;gap:40px;align-items:flex-start;margin-top:-1px}
+.kicker{font-size:14px;letter-spacing:3px;color:#67E8E0;font-weight:800;margin-bottom:12px}
+.title{font-size:50px;line-height:1.04;letter-spacing:-1.5px;font-weight:800;margin:0 0 18px;max-width:580px}
+.lead{font-size:20px;line-height:1.43;color:#D6E3F0;max-width:505px;margin:0}
+.left{width:44%;padding-top:10px}
+.right{width:48%;padding-top:10px}
+.flow{position:relative;margin-bottom:18px}
+.flow:before{content:"";position:absolute;left:27px;top:18px;bottom:18px;border-left:1px dotted #67E8E0}
+.receipt{display:flex;gap:12px;min-height:76px;position:relative;margin-bottom:6px}
+.node{width:54px;height:54px;border-radius:50%;background:#12B8B0;color:#052E38;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;position:relative;z-index:2;flex:none}
+.receipt:nth-child(2) .node{background:#D6E3F0;color:#0F2F57}
+.receipt:nth-child(3) .node{background:#fff;color:#0F2F57}
+.receipt h2{font-size:25px;line-height:1.1;margin:2px 0 6px;color:#fff}
+.receipt p{font-size:17px;line-height:1.32;color:#D6E3F0;margin:0;max-width:355px}
+.security{border-top:1px dotted rgba(255,255,255,.6);padding-top:12px}
+.security h3{font-size:20px;color:#67E8E0;margin:0 0 8px}
+.security p{font-size:16px;line-height:1.35;color:#D6E3F0;margin:0;max-width:430px}
+.bottom{border-top:1px dotted rgba(255,255,255,.55);padding-top:10px;color:#BFD2E4;font-size:16px;margin-top:18px}
+.bottom strong{color:#67E8E0}
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div class="left"><div class="kicker">COMMUNICATION AND SECURITY</div><h1 class="title">Familiar communication,<br>accountable security</h1><p class="lead">Product chat feels natural for customers and sellers, while receipts, unread counts, offline states, and sign-in alerts make the system accountable.</p></div>
+  <div class="right">
+    <div class="flow">
+      <div class="receipt"><div class="node">✓</div><div><h2>Sent</h2><p>One tick confirms the message was accepted by the chat flow.</p></div></div>
+      <div class="receipt"><div class="node">✓✓</div><div><h2>Delivered</h2><p>Two ticks indicate the message reached the conversation channel.</p></div></div>
+      <div class="receipt"><div class="node">✓✓</div><div><h2>Read</h2><p>Read styling changes when the recipient enters and views the conversation.</p></div></div>
+    </div>
+    <div class="security"><h3>Unread awareness and new-device protection</h3><p>Product chat buttons can show unseen-message counts. Offline messages expose a retry state. New-device sign-ins trigger security alerts so unusual access is visible early.</p></div>
+    <div class="bottom"><strong>Design principle:</strong> familiar interactions should never reduce operational visibility or security accountability.</div>
+  </div>
+</div>
+</body>
+</html>

@@ -54,6 +54,7 @@ import './Admin.css'
   const SellerPromotions = lazy(() => import('../components/SellerPromotions'))
   const ProductVisibilityManagement = lazy(() => import('../components/ProductVisibilityManagement'))
   const SellerProductVisibility = lazy(() => import('../components/SellerProductVisibility'))
+  const ReliableOperationsWorkspace = lazy(() => import('../components/ReliableOperationsWorkspace'))
 
   // Prefetch functions for near-instant transitions
   const prefetchInventory = () => import('../components/InventoryManagement')
@@ -68,8 +69,9 @@ import './Admin.css'
   const prefetchSellerPromotions = () => import('../components/SellerPromotions')
   const prefetchProductVisibility = () => import('../components/ProductVisibilityManagement')
   const prefetchSellerProductVisibility = () => import('../components/SellerProductVisibility')
+  const prefetchReliableOperations = () => import('../components/ReliableOperationsWorkspace')
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts' | 'promotions' | 'ads' | 'settings' | 'delivery' | 'marketplace' | 'news' | 'visibility'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts' | 'promotions' | 'ads' | 'settings' | 'delivery' | 'marketplace' | 'news' | 'visibility' | 'operations'
 
 interface ProductFormErrors {
   name?: string
@@ -1122,6 +1124,13 @@ export default function Admin() {
             >
               Product Visibility
             </button>
+            <button
+              className={`tab ${view === 'operations' ? 'active' : ''}`}
+              onClick={() => setView('operations')}
+              onMouseEnter={prefetchReliableOperations}
+            >
+              Operations Manual & Slides
+            </button>
           </>
         )}
         {isSellerRole && (
@@ -1205,6 +1214,7 @@ export default function Admin() {
         {/* Standalone Reliable Ads management. */}
         {view === 'ads' && canManageNews && <AdminAds />}
         {view === 'visibility' && isAdminRole && <ProductVisibilityManagement />}
+        {view === 'operations' && isAdminRole && <ReliableOperationsWorkspace />}
         {view === 'visibility' && isSellerRole && <SellerProductVisibility businessIds={sellerBusinessIds} />}
         {view === 'promotions' && isSellerRole && <SellerPromotions businessIds={sellerBusinessIds} />}
         {/* Marketplace Settings View */}

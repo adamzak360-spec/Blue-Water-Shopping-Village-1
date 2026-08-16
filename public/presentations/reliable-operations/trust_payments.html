@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Trust is built into payments and payouts</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0}
+.slide-container{width:1280px;min-height:720px;background:#F8FAFC;color:#0F172A;font-family:Arial,Helvetica,sans-serif;padding:70px 84px 0;position:relative;overflow:hidden}
+.kicker{font-size:14px;letter-spacing:3px;color:#0F8F8A;font-weight:800;margin-bottom:16px}
+.title{font-size:52px;line-height:1.04;letter-spacing:-1.5px;font-weight:800;margin:0 0 24px;max-width:590px}
+.lead{font-size:21px;line-height:1.45;color:#475569;max-width:500px;margin:0}
+.left{width:45%;padding-top:10px}
+.right{position:absolute;left:650px;top:86px;width:500px}
+/* Reduced vertical spacing inside steps to lower total height */
+.step{min-height:100px;display:flex;gap:16px;position:relative;padding-bottom:12px}
+.step:not(:last-child):after{content:"";position:absolute;left:20px;top:44px;height:50px;border-left:1px dotted #94A3B8}
+.num{width:42px;height:42px;background:#0F2F57;color:#fff;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center;position:relative;z-index:2}
+.step:nth-child(2) .num{background:#12B8B0;color:#06333B}
+.step:nth-child(3) .num{background:#DCE9F3;color:#0F2F57}
+.step:nth-child(4) .num{background:#0F2F57;color:#fff}
+.step h2{font-size:25px;line-height:1.1;margin:2px 0 7px;font-weight:800}
+.step p{font-size:17px;line-height:1.35;color:#475569;margin:0;max-width:410px}
+.principle{position:absolute;left:84px;right:84px;bottom:40px;border-top:1px dotted #94A3B8;padding-top:12px;font-size:17px;color:#475569}
+.principle strong{color:#0F8F8A}
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div class="left"><div class="kicker">TRUST AND FINANCIAL DISCIPLINE</div><h1 class="title">Trust is built into payments and payouts</h1><p class="lead">Reliable keeps customer payment, Paystack settlement, seller wallet accumulation, and transfer authorization as separate, auditable operations.</p></div>
+  <div class="right">
+    <div class="step"><div class="num">01</div><div><h2>Verify on the server</h2><p>Paystack references, amounts, currency, ownership, and recipient details are checked outside the browser.</p></div></div>
+    <div class="step"><div class="num">02</div><div><h2>Respect settlement</h2><p>Revenue shown in a dashboard is not automatically available for transfer; available balance and fees still matter.</p></div></div>
+    <div class="step"><div class="num">03</div><div><h2>Accumulate safely</h2><p>Below-threshold seller earnings remain in the wallet ledger instead of triggering a premature payout.</p></div></div>
+    <div class="step"><div class="num">04</div><div><h2>Keep operations idempotent</h2><p>Repeated confirmations do not duplicate entitlements, payout records, or Paystack transfers.</p></div></div>
+  </div>
+  <div class="principle"><strong>Operating principle:</strong> no transfer is safe until amount, fee, balance, recipient, authorization, and audit state agree.</div>
+</div>
+</body>
+</html>
