@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { calculatePayoutAmounts, getPaystackFeeConfig, normalizePayoutMethod } = require('../api/payout-fees.js');
+const { calculatePayoutAmounts, getPaystackFeeConfig, normalizePayoutMethod } = require('../lib/payout-fees.js');
 
 assert.equal(normalizePayoutMethod('momo'), 'mobile_money');
 assert.equal(normalizePayoutMethod('ghipss'), 'bank');
