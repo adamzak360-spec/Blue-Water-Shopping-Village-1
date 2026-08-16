@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reliable System Operations Manual</title>
+<style>
+:root{--navy:#102f56;--teal:#0b9a96;--coral:#e8795e;--ink:#20354c;--muted:#617287;--line:#dbe6ed;--paper:#f5f9fb}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{margin:0;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.65;background:linear-gradient(180deg,#eef9f8 0,#f8fbfc 280px,var(--paper) 100%)}
+.page{width:min(100% - 28px,960px);margin:0 auto;padding:24px 0 56px}
+.cover{position:relative;overflow:hidden;padding:clamp(24px,6vw,58px);border-radius:26px;background:linear-gradient(135deg,#081d38,#102f56 65%,#087f80);color:#fff;box-shadow:0 18px 44px rgba(16,47,86,.18)}
+.cover:after{content:"";position:absolute;right:-100px;bottom:-150px;width:340px;height:340px;border:1px solid rgba(255,255,255,.23);border-radius:50%;box-shadow:0 0 0 28px rgba(255,255,255,.06),0 0 0 58px rgba(255,255,255,.04)}
+.cover h1{position:relative;z-index:1;margin:0;max-width:760px;font-size:clamp(2rem,6vw,4.1rem);line-height:1.04;letter-spacing:-.045em}
+.cover .eyebrow{position:relative;z-index:1;margin-bottom:14px;color:#8ee8df;font-size:.74rem;font-weight:850;letter-spacing:.16em;text-transform:uppercase}
+.cover p{position:relative;z-index:1;max-width:720px;margin:18px 0 0;color:#d5e6ef;font-size:clamp(.92rem,2vw,1.1rem)}
+.meta{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}.meta span{padding:9px 12px;border:1px solid rgba(255,255,255,.2);border-radius:10px;background:rgba(255,255,255,.09);color:#e1edf3;font-size:.78rem}
+.content{margin-top:18px;padding:clamp(22px,5vw,48px);border:1px solid var(--line);border-radius:24px;background:#fff;box-shadow:0 10px 30px rgba(16,47,86,.07)}
+.content h2{margin:34px 0 10px;color:var(--navy);font-size:clamp(1.35rem,3vw,2rem);line-height:1.15;letter-spacing:-.025em;border-top:3px solid #d8f0ed;padding-top:18px}.content h2:first-child{margin-top:0;border-top:0;padding-top:0}
+.content h3{margin:22px 0 8px;color:var(--navy);font-size:1.1rem}
+.content p{margin:0 0 14px;color:var(--muted)}.content strong{color:var(--navy)}
+.content blockquote{margin:18px 0;padding:16px 18px;border-left:4px solid var(--coral);border-radius:0 12px 12px 0;background:#fff7f3;color:#536779}
+.content ol,.content ul{padding-left:1.35rem;color:var(--muted)}.content li{margin:.25rem 0}
+table{width:100%;margin:16px 0 22px;border-collapse:collapse;font-size:.9rem}th{background:var(--navy);color:#fff;text-align:left;font-weight:800}th,td{padding:10px 11px;border:1px solid var(--line);vertical-align:top}td{color:var(--muted)}tr:nth-child(even) td{background:#f8fbfc}
+.footer{margin-top:18px;text-align:center;color:#8090a0;font-size:.78rem}
+@media(max-width:620px){.page{width:min(100% - 14px,960px);padding-top:7px}.cover,.content{border-radius:18px}.content{padding:19px 16px}.content h2{font-size:1.35rem}table{display:block;overflow-x:auto;white-space:normal}th,td{min-width:125px;padding:8px;font-size:.78rem}.meta{display:grid;grid-template-columns:1fr}}
+@media print{body{background:#fff}.page{width:100%;padding:0}.cover,.content{box-shadow:none;border:0}.content{padding:28px 0}.content h2{break-after:avoid}}
+</style>
+</head>
+<body><main class="page"><header class="cover"><div class="eyebrow">Reliable Premium Marketplace</div><h1>System Operations Manual</h1><p>A clear operating reference for company leadership, administrators, sellers, support staff, and conference audiences.</p><div class="meta"><span>Last updated: August 2026</span><span>Document owner: Reliable Operations</span></div></header><article class="content"><h1>Reliable System Operations Manual</h1>
+<p><strong>Reliable Premium Marketplace</strong><br />
+<strong>Audience:</strong> Company leadership, administrators, sellers, support staff, and conference audiences<br />
+<strong>Last updated:</strong> August 2026<br />
+<strong>Document owner:</strong> Reliable Operations</p>
+<blockquote>
+<p>Reliable is a Ghana-focused digital marketplace that connects customers with independent sellers through discoverable stores, product browsing, secure checkout, delivery coordination, seller payouts, customer support, and accountable administration.</p>
+</blockquote>
+<h2>1. Company and platform overview</h2>
+<p>Reliable is designed as a trusted marketplace rather than a single-store catalogue. The platform gives each seller a storefront while providing customers with a consistent way to discover products, compare offers, place orders, communicate around products, and receive delivery support. The public experience includes the Home page, Products catalogue, Stores directory, product details, cart, checkout, order history, account settings, support content, and marketplace policies.</p>
+<p>The operating model has three connected layers. The <strong>customer layer</strong> discovers products, shops, communicates, pays, and confirms delivery. The <strong>seller layer</strong> manages a store, publishes products, processes orders, maintains payout details, and communicates with interested customers. The <strong>admin layer</strong> governs the marketplace, manages registered sellers and stores, controls publication and visibility, reviews payouts, maintains policies and branding, and protects the integrity of payments and user access.</p>
+<table>
+<thead>
+<tr>
+<th>Platform area</th>
+<th>Primary purpose</th>
+<th>Main users</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Home</td>
+<td>Brand introduction, discovery, campaigns, and selected product exposure</td>
+<td>Everyone</td>
+</tr>
+<tr>
+<td>Products</td>
+<td>Searchable product catalogue and purchase entry point</td>
+<td>Customers and visitors</td>
+</tr>
+<tr>
+<td>Stores</td>
+<td>Discovery of independent seller storefronts</td>
+<td>Customers and visitors</td>
+</tr>
+<tr>
+<td>Storefront</td>
+<td>Seller-owned catalogue and store information</td>
+<td>Sellers and customers</td>
+</tr>
+<tr>
+<td>Product details</td>
+<td>Product information, cart action, seller context, and public product chat</td>
+<td>Everyone</td>
+</tr>
+<tr>
+<td>Customer account</td>
+<td>Orders, settings, saved items, and support access</td>
+<td>Customers</td>
+</tr>
+<tr>
+<td>Seller workspace</td>
+<td>Products, orders, store settings, promotion, visibility, and payouts</td>
+<td>Sellers</td>
+</tr>
+<tr>
+<td>Admin dashboard</td>
+<td>Governance, operations, finance controls, security, branding, and reporting</td>
+<td>Administrators</td>
+</tr>
+</tbody>
+</table>
+<h2>2. Customer operating journey</h2>
+<p>A customer can begin from Home, Products, Stores, a direct product link, or a shared product conversation. Search is designed to support discovery across active store inventory. A normal catalogue view follows the marketplace publication policy, while an explicit product search can discover an active product held by any participating store. Store search helps customers move from a product or category idea to the seller’s complete storefront.</p>
+<p>The standard customer flow is:</p>
+<ol>
+<li>Discover a product or store.</li>
+<li>Open the product details page and review price, stock, images, variants, delivery information, return information, and seller context.</li>
+<li>Add the product to the cart and review quantities, delivery options, and totals.</li>
+<li>Complete checkout using the available payment flow.</li>
+<li>Track order status from the customer account.</li>
+<li>Communicate through the product group chat when clarification is useful.</li>
+<li>Confirm delivery when the order is received and accurate.</li>
+<li>Use support, returns, or refund processes when the order requires intervention.</li>
+</ol>
+<p>Customers should not share payment secrets, seller credentials, or one-time authentication codes in product chat. Support requests involving payment or account access should be escalated through the official support channel.</p>
+<h2>3. Seller operating journey</h2>
+<p>A seller registers, completes the required business and payout information, creates a store profile, adds products, and manages fulfilment. Product records include commercial information such as name, description, price, currency, category, stock, images, variants, delivery fees, processing time, service area, pickup instructions, delivery instructions, return policy, and customer-facing notes.</p>
+<p>A seller’s store remains the permanent home for its active products. The seller store is not removed when a public visibility package expires. Public Home and Products exposure is a separate entitlement controlled by the marketplace publication mode and the verified visibility package system.</p>
+<table>
+<thead>
+<tr>
+<th>Seller responsibility</th>
+<th>Required operating standard</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Product accuracy</td>
+<td>Use truthful names, descriptions, prices, images, stock, and specifications.</td>
+</tr>
+<tr>
+<td>Fulfilment</td>
+<td>Process orders within the stated time and keep stock status accurate.</td>
+</tr>
+<tr>
+<td>Communication</td>
+<td>Respond professionally and avoid requesting sensitive credentials in chat.</td>
+</tr>
+<tr>
+<td>Delivery</td>
+<td>Follow the stated service area, fees, pickup rules, and delivery instructions.</td>
+</tr>
+<tr>
+<td>Returns</td>
+<td>Honour the published return policy and escalate disputes promptly.</td>
+</tr>
+<tr>
+<td>Payouts</td>
+<td>Maintain accurate Paystack recipient details and understand settlement timing.</td>
+</tr>
+<tr>
+<td>Account security</td>
+<td>Protect the account, use trusted devices, and respond to new-device alerts.</td>
+</tr>
+</tbody>
+</table>
+<h2>4. Stores and product visibility</h2>
+<p>Every seller has a store-level catalogue. The administrator controls how products are exposed beyond the seller’s store. The safe paid-publication mode keeps products store-only unless an active, verified, unexpired entitlement grants access to the Home page, Products page, or both.</p>
+<p>The administrator can also enable <strong>Free Public Catalog Mode</strong>. When enabled, active products can appear on Home and Products without sellers purchasing visibility packages. This is a marketplace-wide operating switch and is controlled only from the admin dashboard. When disabled, the verified package rules apply again.</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th style="text-align: right;">Storefront</th>
+<th style="text-align: right;">Products page</th>
+<th style="text-align: right;">Home page</th>
+<th style="text-align: right;">Seller payment required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Free Public Catalog Mode enabled</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">Yes for active products</td>
+<td style="text-align: right;">Yes for active products</td>
+<td style="text-align: right;">No</td>
+</tr>
+<tr>
+<td>Paid visibility mode</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">Only with verified Products or Home + Products entitlement</td>
+<td style="text-align: right;">Only with verified Home or Home + Products entitlement</td>
+<td style="text-align: right;">Yes for public exposure</td>
+</tr>
+<tr>
+<td>Expired or revoked entitlement</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">No, unless free mode is enabled</td>
+<td style="text-align: right;">No, unless free mode is enabled</td>
+<td style="text-align: right;">Not applicable</td>
+</tr>
+</tbody>
+</table>
+<p>Visibility packages are admin-configured offers. Each package has a name, code, description, GHS price, duration, target destination, and active/inactive state. The current supported destinations are <strong>Home</strong>, <strong>Products</strong>, and <strong>Home + Products</strong>. Package activation makes an offer available; it does not publish a seller product by itself.</p>
+<h2>5. Visibility-package payment operations</h2>
+<p>A seller selects an eligible product and an active package. The server loads the package and verifies product ownership before initializing Paystack. The amount, currency, seller, store, product, target, and expiry are never trusted from the browser. A server-generated unique reference links the pending purchase to the authenticated seller.</p>
+<p>A product becomes public only after the server verifies the Paystack transaction, confirms the expected amount and currency, confirms that the payment reference belongs to the seller’s pending purchase, and performs an idempotent transition to the paid state. Repeated confirmation must return the existing result rather than creating duplicate entitlements.</p>
+<table>
+<thead>
+<tr>
+<th>Entitlement state</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PENDING</td>
+<td>Payment initialized but not verified as successful.</td>
+</tr>
+<tr>
+<td>PAID</td>
+<td>Payment verified and public visibility active until expiry or revocation.</td>
+</tr>
+<tr>
+<td>EXPIRED</td>
+<td>The paid period has ended.</td>
+</tr>
+<tr>
+<td>CANCELLED</td>
+<td>The pending purchase was cancelled before activation.</td>
+</tr>
+<tr>
+<td>REFUNDED</td>
+<td>The payment was refunded and public visibility must not remain active.</td>
+</tr>
+<tr>
+<td>REVOKED</td>
+<td>An administrator removed visibility while preserving the audit record.</td>
+</tr>
+</tbody>
+</table>
+<p>Visibility-package revenue is financially separate from order payouts and the seller wallet. It must not change a seller’s order net amount, Paystack transfer eligibility, queued payout, or payout threshold calculation.</p>
+<h2>6. Orders, settlement, and seller payouts</h2>
+<p>Order payouts follow the existing secure Paystack process. Customer payment, marketplace commission, Paystack charges, seller net proceeds, settlement timing, and transfer eligibility are distinct events. A customer payment does not guarantee that the same funds are immediately available for a transfer; Paystack settlement and available balance rules still apply.</p>
+<p>The payout worker is idempotent. It must never create duplicate transfers, mark an unpaid transfer as paid, or bypass the recipient and authorization checks. When the seller’s eligible wallet balance is below the configured transfer threshold, the amount remains accumulated in the seller wallet and the payout remains safely queued rather than being sent prematurely.</p>
+<p>Golden’s previously reviewed GHS 1.90 payout is an example of this protection: it remains queued because it is below the configured wallet requirement, and no transfer should be initiated without a verified balance, fee, recipient, authorization, and explicit operational approval.</p>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Operational rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recipient</td>
+<td>Confirm the legitimate active Paystack recipient before transfer.</td>
+</tr>
+<tr>
+<td>Amount</td>
+<td>Use the immutable verified seller net amount.</td>
+</tr>
+<tr>
+<td>Fees</td>
+<td>Use the applicable Ghana transfer fee for the payout method; never guess.</td>
+</tr>
+<tr>
+<td>Balance</td>
+<td>Check live available Paystack balance, not dashboard revenue alone.</td>
+</tr>
+<tr>
+<td>Threshold</td>
+<td>Accumulate below-threshold seller earnings in the wallet ledger.</td>
+</tr>
+<tr>
+<td>Idempotency</td>
+<td>One payout record and one transfer attempt per approved operation.</td>
+</tr>
+<tr>
+<td>Audit</td>
+<td>Preserve status, reference, timestamps, operator, and failure reason.</td>
+</tr>
+</tbody>
+</table>
+<h2>7. Product group chat and receipts</h2>
+<p>Each product can have a public WhatsApp-style group conversation for customers, visitors, and the seller. The interface uses chronological messages, compact participant headers, green message bubbles, external timestamps, and delivery/read indicators.</p>
+<p>The receipt lifecycle is <strong>sending</strong>, <strong>sent</strong>, <strong>delivered</strong>, <strong>read</strong>, and <strong>offline/retry</strong>. Realtime message and receipt subscriptions allow participants to see new messages without refreshing. Opening a product chat clears that user’s unread count for the product. The product-detail Chat button can show a WhatsApp-style unread badge when new messages have not yet been viewed.</p>
+<p>Chat is for product-related communication, not for collecting passwords, authentication codes, card details, Paystack secrets, or other confidential information. Abuse, fraud attempts, or suspicious payment instructions should be reported to administration.</p>
+<h2>8. Account security and new-device alerts</h2>
+<p>Reliable uses authenticated account access and new-device sign-in alerts to help users detect unexpected account activity. A new-device alert should identify the account event, advise the user to review the account, and direct suspicious activity to support. Administrators must not request passwords or one-time codes through chat or informal messages.</p>
+<p>Administrative access is role-gated. High-risk operations such as payout authorization and administrative configuration require the appropriate role and server-side validation. Production database changes must be additive, reviewed, confirmed, and followed by read-only verification.</p>
+<h2>9. Administration handbook</h2>
+<p>The admin dashboard is the operating control centre. Administrators should use it to review marketplace health, manage products and stores, inspect registered sellers, review orders and payouts, configure visibility packages, enable or disable free public catalog mode, manage marketplace branding, and review operational reports.</p>
+<table>
+<thead>
+<tr>
+<th>Admin area</th>
+<th>Core action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dashboard</td>
+<td>Review activity, alerts, account readiness, and operational summary.</td>
+</tr>
+<tr>
+<td>Products</td>
+<td>Review, edit, activate, or deactivate catalogue records.</td>
+</tr>
+<tr>
+<td>Orders</td>
+<td>Monitor fulfilment, status, delivery confirmation, and exceptions.</td>
+</tr>
+<tr>
+<td>Registered Sellers</td>
+<td>Review participating businesses and store information.</td>
+</tr>
+<tr>
+<td>Seller Payouts</td>
+<td>Review queued, eligible, failed, and completed payout records.</td>
+</tr>
+<tr>
+<td>Product Visibility</td>
+<td>Configure packages, free catalog mode, and paid entitlements.</td>
+</tr>
+<tr>
+<td>Marketplace Settings</td>
+<td>Maintain global branding, logo, favicon, and marketplace settings.</td>
+</tr>
+<tr>
+<td>Store Settings</td>
+<td>Maintain seller-specific profile, delivery, and social settings.</td>
+</tr>
+<tr>
+<td>Reports and Analytics</td>
+<td>Review financial, inventory, sales, and operational performance.</td>
+</tr>
+<tr>
+<td>Security and policies</td>
+<td>Maintain safe operating rules, notices, and escalation paths.</td>
+</tr>
+</tbody>
+</table>
+<p>For any financial action, administrators should first inspect the record, confirm the seller and store, verify the amount and recipient, inspect the relevant Paystack state, and confirm that no duplicate or conflicting operation exists. Never use a browser-visible value as the sole source of truth for a transfer.</p>
+<h2>10. Day-to-day operating checklist</h2>
+<p>At the start of an operating day, review the dashboard, order exceptions, seller onboarding issues, payout queue, security alerts, and public catalogue state. During the day, monitor new orders, seller communication, product moderation, and delivery exceptions. At close of day, review unresolved orders, failed payments, queued payouts, package entitlements nearing expiry, and support escalations.</p>
+<table>
+<thead>
+<tr>
+<th>Frequency</th>
+<th>Review</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Every operating day</td>
+<td>Orders, failed payments, support, new-device alerts, and seller issues.</td>
+</tr>
+<tr>
+<td>Before a payout</td>
+<td>Recipient, amount, fee, live balance, threshold, authorization, and idempotency.</td>
+</tr>
+<tr>
+<td>Weekly</td>
+<td>Registered sellers, inactive products, expired entitlements, catalog quality, and reports.</td>
+</tr>
+<tr>
+<td>Monthly</td>
+<td>Marketplace policies, package pricing, payout performance, security posture, and branding.</td>
+</tr>
+<tr>
+<td>Before a conference</td>
+<td>Product flow, store flow, admin controls, screenshots, slide logo, and presenter notes.</td>
+</tr>
+</tbody>
+</table>
+<h2>11. Conference and meeting presentation use</h2>
+<p>The presentation is intended to explain Reliable to partners, sellers, investors, conference audiences, and internal teams. It should show the company mission, marketplace architecture, customer and seller journeys, trust controls, product discovery, store model, chat, delivery, payout discipline, and growth controls without exposing secrets or personal data.</p>
+<p>Before downloading a presentation, an administrator can upload a logo in the presentation workspace. The logo is placed into the designated branded areas so the exported presentation remains consistent. Use a transparent PNG or SVG with adequate padding for the cleanest result.</p>
+<h2>12. Incident and escalation principles</h2>
+<p>When a product, order, payment, payout, account, or database issue is reported, preserve the original record and capture the exact user-visible error. Do not create a duplicate record to work around a failure. Classify the incident, restrict any high-risk action, verify the relevant source of truth, and record the resolution.</p>
+<p>A payout discrepancy should be treated as a financial investigation, not a UI problem. A sign-in or new-device concern should be treated as a security issue. A product visibility problem should be checked against store status, product status, free catalog mode, entitlement state, and expiry. A chat issue should be checked against the conversation room, Realtime subscription, receipt row, and offline retry state.</p>
+<h2>13. Safe information handling</h2>
+<p>This manual intentionally excludes passwords, service-role keys, Paystack secret keys, personal access tokens, private customer details, and raw authentication material. Such information belongs only in approved secret-management or authenticated operational systems. Conference slides should use sanitized screenshots and representative examples rather than live confidential records.</p>
+<h2>References</h2>
+<p><em>Prepared for internal operations, onboarding, and conference communication. Review before external distribution.</em></p>
+<h2>Appendix A: Presenter safety checklist</h2>
+<p>Before presenting, confirm that screenshots contain no customer names, private contact details, payment references, authentication prompts, service-role keys, or seller payout secrets. Use the administrator logo uploader to brand the deck, export a PDF or presentation file, and keep the live dashboard closed during public presentations unless a sanitized demo account is being used.</p>
+<h2>Appendix B: Glossary</h2>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Active product</td>
+<td>A product record available for its permitted publication context and stock state.</td>
+</tr>
+<tr>
+<td>Entitlement</td>
+<td>A verified, time-bounded permission for a product to appear on a public destination.</td>
+</tr>
+<tr>
+<td>Free catalog mode</td>
+<td>An admin-controlled setting that allows active products to appear publicly without a visibility payment.</td>
+</tr>
+<tr>
+<td>Store-only</td>
+<td>The default product publication boundary in paid visibility mode.</td>
+</tr>
+<tr>
+<td>Wallet accumulation</td>
+<td>Holding eligible seller earnings until the transfer threshold and other payout controls are satisfied.</td>
+</tr>
+<tr>
+<td>Realtime receipt</td>
+<td>A delivery/read state for a product-chat message.</td>
+</tr>
+<tr>
+<td>Idempotent operation</td>
+<td>An operation that can safely be repeated without creating a duplicate financial or publication result.</td>
+</tr>
+</tbody>
+</table>
+<h2>Appendix C: Presenter narrative</h2>
+<p>Reliable brings independent sellers and customers into one accountable marketplace. Customers discover through Home, Products, and Stores. Sellers keep ownership of their storefronts and products. Administrators control quality, visibility, security, and financial discipline. The platform does not confuse product discovery with payment settlement: public publication, order fulfilment, and seller payout are separate controlled operations. This separation is the foundation for trust as Reliable grows.</p></article><div class="footer">Reliable Premium Marketplace · Internal operations reference · No credentials or private secrets included</div></main></body>
+</html>
