@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const axios = require('axios');
 const { createClient } = require('@supabase/supabase-js');
-const { getPaystackFeeConfig, calculatePayoutAmounts } = require('./payout-fees');
+const { getPaystackFeeConfig, calculatePayoutAmounts } = require('../lib/payout-fees');
 
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 
