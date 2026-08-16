@@ -76,17 +76,105 @@ async function recordTransferEvent(admin, eventKey, eventName, reference, payloa
   if (error) throw error;
 }
 
-async function processQueue(admin, limit, singlePayoutId = null) {
+async function getAuthenticatedAdmin(admin, req) {
+  const authorization = req.headers?.authorization || req.headers?.Authorization || '';
+  const token = authorization.startsWith('Bearer ') ? authorization.slice('Bearer '.length).trim() : '';
+  if (!token) return null;
+  const { data: authData, error: authError } = await admin.auth.getUser(token);
+  if (authError || !authData?.user) return null;
+  const { data: profile, error: profileError } = await admin.from('profiles').select('role').eq('id', authData.user.id).maybeSingle();
+  if (profileError) throw profileError;
+  const role = String(profile?.role || '').toLowerCase();
+  return ['admin', 'general_admin'].includes(role) ? authData.user : null;
+}
+
+async function getQueuedSinglePayout(admin, payoutId) {
+  const { data: payout, error: payoutError } = await admin.from('seller_payouts').select('*').eq('payout_id', payoutId).maybeSingle();
+  if (payoutError) throw payoutError;
+  if (!payout) return null;
+  const { data: profile, error: profileError } = await admin.from('seller_payout_profiles').select('recipient_code, recipient_type, country_code, is_active, payout_profile_confirmed_at, provider_onboarding_status, payment_provider').eq('seller_id', payout.seller_id).eq('store_id', payout.store_id).maybeSingle();
+  if (profileError) throw profileError;
+  if (!profile) return null;
+  return {
+    payout_id: payout.payout_id,
+    order_id: payout.order_id,
+    seller_id: payout.seller_id,
+    store_id: payout.store_id,
+    seller_payout_amount_minor: payout.seller_payout_amount_minor,
+    payout_fee_minor: payout.payout_fee_minor,
+    seller_amount_sent_minor: payout.seller_amount_sent_minor,
+    provider_total_debit_minor: payout.provider_total_debit_minor,
+    minimum_transfer_minor: payout.minimum_transfer_minor,
+    payout_method: payout.payout_method,
+    country_code: payout.country_code,
+    currency: payout.currency,
+    recipient_code: profile.recipient_code,
+    paystack_transfer_reference: payout.paystack_transfer_reference,
+    payout_status: payout.payout_status,
+    eligibility_status: payout.eligibility_status,
+    profile_active: profile.is_active,
+    profile_confirmed: Boolean(profile.payout_profile_confirmed_at),
+    provider_onboarding_status: profile.provider_onboarding_status,
+    payment_provider: profile.payment_provider,
+  };
+}
+
+async function verifySinglePayoutSafety(admin, payoutId) {
+  const { data: payout, error: payoutError } = await admin.from('seller_payouts').select('payout_id, order_id, seller_id, store_id, payout_status, eligibility_status, payout_mode, payment_provider, currency, payout_fee_minor, seller_amount_sent_minor, provider_total_debit_minor, paystack_transfer_reference').eq('payout_id', payoutId).maybeSingle();
+  if (payoutError) throw payoutError;
+  if (!payout) return { ok: false, reason: 'Payout not found.' };
+  const { data: order, error: orderError } = await admin.from('orders').select('status, customer_delivery_confirmation, admin_delivery_confirmation').eq('id', payout.order_id).maybeSingle();
+  if (orderError) throw orderError;
+  const { data: profile, error: profileError } = await admin.from('seller_payout_profiles').select('recipient_code, is_active, payout_profile_confirmed_at, provider_onboarding_status, payment_provider').eq('seller_id', payout.seller_id).eq('store_id', payout.store_id).maybeSingle();
+  if (profileError) throw profileError;
+  const confirmed = order?.customer_delivery_confirmation === 'CONFIRMED' || order?.admin_delivery_confirmation === true;
+  const safe = payout.payout_status === 'QUEUED'
+    && payout.eligibility_status === 'ELIGIBLE'
+    && payout.payout_mode === 'AUTOMATED'
+    && String(payout.payment_provider || 'paystack').toLowerCase() === 'paystack'
+    && order?.status === 'delivered'
+    && confirmed
+    && profile?.is_active === true
+    && Boolean(profile?.payout_profile_confirmed_at)
+    && profile?.provider_onboarding_status === 'ACTIVE'
+    && String(profile?.payment_provider || 'paystack').toLowerCase() === 'paystack'
+    && Boolean(profile?.recipient_code)
+    && payout.payout_fee_minor != null
+    && payout.seller_amount_sent_minor != null
+    && payout.provider_total_debit_minor != null
+    && !payout.paystack_transfer_reference;
+  return { ok: safe, reason: safe ? null : 'Payout safety revalidation failed; no transfer was sent.' };
+}
+
+async function processQueue(admin, limit, singlePayoutId = null, allowAdminSingle = false) {
   const singleTestMode = Boolean(singlePayoutId);
-  if (!payoutAutomationEnabled() && !(singleTestMode && singlePayoutTestEnabled())) {
+  if (!payoutAutomationEnabled() && !(singleTestMode && (singlePayoutTestEnabled() || allowAdminSingle))) {
     return { disabled: true, claimed: 0, processed: 0, pending: 0, failed: 0 };
   }
-  const claim = singlePayoutId
-    ? await admin.rpc('claim_single_eligible_payout', { p_payout_id: singlePayoutId })
-    : await admin.rpc('claim_eligible_payouts', { p_limit: Math.min(Number(limit) || 25, 100) });
-  const { data: payouts, error } = claim;
-  if (error) throw error;
+  let payouts;
+  if (singlePayoutId) {
+    const { data: queuedPayout, error: queuedError } = await admin.rpc('claim_single_eligible_payout', { p_payout_id: singlePayoutId });
+    if (queuedError) throw queuedError;
+    if (queuedPayout && queuedPayout.length > 0) {
+      payouts = queuedPayout;
+    } else {
+      const current = await getQueuedSinglePayout(admin, singlePayoutId);
+      if (!current || current.payout_status !== 'QUEUED' || current.eligibility_status !== 'ELIGIBLE' || !current.profile_active || !current.profile_confirmed || !current.recipient_code) {
+        return { claimed: 0, processed: 0, pending: 0, failed: 0, skipped: true, reason: 'Payout is not in a safe eligible queued state.' };
+      }
+      payouts = [current];
+    }
+  } else {
+    const claim = await admin.rpc('claim_eligible_payouts', { p_limit: Math.min(Number(limit) || 25, 100) });
+    if (claim.error) throw claim.error;
+    payouts = claim.data;
+  }
   if (!payouts || payouts.length === 0) return { claimed: 0, processed: 0, pending: 0, failed: 0 };
+
+  if (singlePayoutId) {
+    const safety = await verifySinglePayoutSafety(admin, singlePayoutId);
+    if (!safety.ok) return { claimed: 0, processed: 0, pending: 0, failed: 0, skipped: true, reason: safety.reason };
+  }
 
   const headers = paystackHeaders();
   let processed = 0;
@@ -244,15 +332,15 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', requestOrigin(req));
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Paystack-Signature, X-Payout-Worker-Secret');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Paystack-Signature, X-Payout-Worker-Secret, X-Payout-Single-Test-Token');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const action = req.query?.action || req.body?.action || (req.method === 'GET' ? 'process-queue' : null);
   if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   try {
-    if (action === 'process-queue' || action === 'process-single') {
-      const singlePayoutId = action === 'process-single' ? (req.body?.payout_id || req.query?.payout_id) : null;
-      const allowed = payoutAutomationEnabled() || (singlePayoutId && singlePayoutTestEnabled());
+    if (action === 'process-queue' || action === 'process-single' || action === 'admin-process-single') {
+      const singlePayoutId = action === 'process-queue' ? null : (req.body?.payout_id || req.query?.payout_id);
+      const allowed = payoutAutomationEnabled() || (singlePayoutId && (singlePayoutTestEnabled() || action === 'admin-process-single'));
       if (!allowed) return res.status(409).json({ disabled: true, error: 'Automated payouts are disabled until production verification is complete.' });
       const workerSecret = process.env.PAYOUT_WORKER_SECRET;
       const cronSecret = process.env.CRON_SECRET;
@@ -261,10 +349,12 @@ module.exports = async (req, res) => {
       const suppliedSingleTestToken = req.headers['x-payout-single-test-token'];
       const recurringAuthorized = (workerSecret && suppliedSecret === workerSecret) || (cronSecret && suppliedSecret === cronSecret);
       const singleTestAuthorized = action === 'process-single' && singlePayoutTestEnabled() && singleTestToken && suppliedSingleTestToken === singleTestToken;
-      if (!recurringAuthorized && !singleTestAuthorized) return res.status(401).json({ error: 'Unauthorized' });
-      if (action === 'process-single' && !singlePayoutId) return res.status(400).json({ error: 'payout_id is required for a single-payout test' });
       const admin = supabaseAdmin();
-      const result = await processQueue(admin, req.body?.limit || req.query?.limit, singlePayoutId);
+      const authenticatedAdmin = action === 'admin-process-single' ? await getAuthenticatedAdmin(admin, req) : null;
+      const adminAuthorized = action === 'admin-process-single' && Boolean(authenticatedAdmin);
+      if (!recurringAuthorized && !singleTestAuthorized && !adminAuthorized) return res.status(401).json({ error: 'Unauthorized' });
+      if ((action === 'process-single' || action === 'admin-process-single') && !singlePayoutId) return res.status(400).json({ error: 'payout_id is required for a single-payout test' });
+      const result = await processQueue(admin, req.body?.limit || req.query?.limit, singlePayoutId, adminAuthorized);
       return res.status(200).json(result);
     }
 

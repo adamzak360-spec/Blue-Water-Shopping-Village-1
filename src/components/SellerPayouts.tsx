@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { useAuth } from '../context/AuthContext'
 import { formatCurrency } from '../utils/currency'
 import './SellerPayouts.css'
 
@@ -103,6 +104,7 @@ export default function SellerPayouts({ businessIds, isAdmin = false }: { busine
   const [manualDrafts, setManualDrafts] = useState<Record<string, ManualDraft>>({})
   const [savingPayoutId, setSavingPayoutId] = useState<string | null>(null)
   const [orderDetails, setOrderDetails] = useState<Record<string, OrderDelivery>>({})
+  const { session } = useAuth()
 
   const payoutMethodLabel = (method: string | null) => method === 'mobile_money' ? 'Mobile Money' : method === 'bank' ? 'Bank' : 'Not verified'
 
@@ -169,6 +171,36 @@ export default function SellerPayouts({ businessIds, isAdmin = false }: { busine
       await load()
     } catch (rpcError: any) {
       setError(rpcError.message || `Could not ${action} payout.`)
+    } finally {
+      setSavingPayoutId(null)
+    }
+  }
+
+  const executePaystackPayout = async (payout: Payout) => {
+    if (!isAdmin || !session?.access_token) {
+      setError('Administrator authentication is required to execute a Paystack payout.')
+      return
+    }
+    const expectedDebit = formatCurrency((payout.provider_total_debit_minor || 0) / 100)
+    const expectedSent = formatCurrency((payout.seller_amount_sent_minor || 0) / 100)
+    const confirmation = window.prompt(`This sends ${expectedSent} to the verified seller recipient and debits ${expectedDebit} from Paystack including the fee. Type EXECUTE to continue.`)
+    if (confirmation !== 'EXECUTE') return
+
+    setSavingPayoutId(payout.payout_id)
+    setError('')
+    setSuccess('')
+    try {
+      const response = await fetch('/api/payouts?action=admin-process-single', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ payout_id: payout.payout_id }),
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.error || 'Paystack payout execution failed.')
+      setSuccess(`Paystack execution completed: ${result.processed || 0} paid, ${result.pending || 0} pending.`)
+      await load()
+    } catch (executionError: any) {
+      setError(executionError.message || 'Paystack payout execution failed.')
     } finally {
       setSavingPayoutId(null)
     }
@@ -306,6 +338,7 @@ export default function SellerPayouts({ businessIds, isAdmin = false }: { busine
               const canHold = isAdmin && ['HELD', 'ELIGIBLE', 'FAILED', 'RETRY_REQUIRED', 'PENDING_FUNDS', 'ON_HOLD'].includes(payout.payout_status)
               const canRelease = isAdmin && ['HELD', 'ON_HOLD'].includes(payout.payout_status)
               const canRetry = isAdmin && ['FAILED', 'RETRY_REQUIRED', 'PENDING_FUNDS'].includes(payout.payout_status)
+              const canExecutePaystack = isAdmin && payout.payout_mode !== 'MANUAL' && payout.payout_status === 'QUEUED' && payout.eligibility_status === 'ELIGIBLE' && Boolean(profile?.is_active && profile.payout_profile_confirmed_at && payout.payout_fee_minor != null && payout.seller_amount_sent_minor != null && payout.provider_total_debit_minor != null)
               return (
                 <tr key={payout.payout_id}>
                   <td><small>{new Date(payout.created_at).toLocaleString()}</small><small>{payout.paid_at ? `Paid ${new Date(payout.paid_at).toLocaleString()}` : 'Not paid'}</small></td>
@@ -320,7 +353,7 @@ export default function SellerPayouts({ businessIds, isAdmin = false }: { busine
                   <td>{payout.provider_total_debit_minor == null ? 'Not calculated' : formatCurrency(payout.provider_total_debit_minor / 100)}</td>
                   <td><span className="payout-badge">{payout.payout_mode === 'MANUAL' ? 'Manual payout' : 'Automated Paystack'}</span><span className={`payout-badge payout-${payout.payout_status.toLowerCase()}`}>{statusLabel[payout.payout_status] || payout.payout_status}</span>{payout.failure_reason && <small>{payout.failure_reason}</small>}</td>
                   <td>{payout.payout_mode === 'MANUAL' ? <><small>{profile ? `${profile.country_code || 'Country not set'} · ${profile.currency || payout.currency} · ${profile.recipient_type}` : 'Payout profile not found'}</small><small>{profile?.account_name || 'Account name not confirmed'} · ****{profile?.account_number_last4 || '----'}</small><small>{profile?.bank_code ? `Bank code: ${profile.bank_code}` : 'Bank/mobile provider not set'}</small><small>{payout.manual_payout_reference || 'No transfer reference recorded'}</small></> : payout.paystack_transfer_reference ? <small>{payout.paystack_transfer_reference}</small> : 'Not initiated'}</td>
-                  {isAdmin && <td><div className="payout-admin-actions">{canHold && <button className="btn-secondary btn-sm" onClick={() => performAdminAction(payout, 'hold')} disabled={savingPayoutId === payout.payout_id}>Hold</button>}{canRelease && <button className="btn-secondary btn-sm" onClick={() => performAdminAction(payout, 'release')} disabled={savingPayoutId === payout.payout_id}>Release</button>}{canRetry && <button className="btn-secondary btn-sm" onClick={() => performAdminAction(payout, 'retry')} disabled={savingPayoutId === payout.payout_id}>Retry</button>}{canMarkManualPaid ? <div className="manual-payout-form"><small>Use the saved profile above to send the transfer.</small><input aria-label="Manual payout reference" placeholder="Transfer reference" value={draft.reference} onChange={(event) => updateDraft(payout.payout_id, 'reference', event.target.value)} /><input aria-label="Manual payout notes" placeholder="Notes (optional)" value={draft.notes} onChange={(event) => updateDraft(payout.payout_id, 'notes', event.target.value)} /><button className="btn-primary btn-sm" onClick={() => markManualPaid(payout)} disabled={savingPayoutId === payout.payout_id}>{savingPayoutId === payout.payout_id ? 'Recording…' : 'Record manual payout'}</button></div> : payout.payout_mode === 'MANUAL' ? 'Completed or not ready' : 'Monitoring only'}</div></td>}
+                  {isAdmin && <td><div className="payout-admin-actions">{canHold && <button className="btn-secondary btn-sm" onClick={() => performAdminAction(payout, 'hold')} disabled={savingPayoutId === payout.payout_id}>Hold</button>}{canRelease && <button className="btn-secondary btn-sm" onClick={() => performAdminAction(payout, 'release')} disabled={savingPayoutId === payout.payout_id}>Release</button>}{canRetry && <button className="btn-secondary btn-sm" onClick={() => performAdminAction(payout, 'retry')} disabled={savingPayoutId === payout.payout_id}>Retry</button>}{canExecutePaystack && <button className="btn-primary btn-sm" onClick={() => executePaystackPayout(payout)} disabled={savingPayoutId === payout.payout_id}>{savingPayoutId === payout.payout_id ? 'Executing…' : 'Execute Paystack payout'}</button>}{canMarkManualPaid ? <div className="manual-payout-form"><small>Use the saved profile above to send the transfer.</small><input aria-label="Manual payout reference" placeholder="Transfer reference" value={draft.reference} onChange={(event) => updateDraft(payout.payout_id, 'reference', event.target.value)} /><input aria-label="Manual payout notes" placeholder="Notes (optional)" value={draft.notes} onChange={(event) => updateDraft(payout.payout_id, 'notes', event.target.value)} /><button className="btn-primary btn-sm" onClick={() => markManualPaid(payout)} disabled={savingPayoutId === payout.payout_id}>{savingPayoutId === payout.payout_id ? 'Recording…' : 'Record manual payout'}</button></div> : payout.payout_mode === 'MANUAL' ? 'Completed or not ready' : 'Monitoring only'}</div></td>}
                 </tr>
               )
             })}
