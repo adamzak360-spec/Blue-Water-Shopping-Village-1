@@ -11,7 +11,7 @@ import {
   generatePaymentReference,
 } from '../services/paystackService'
 import { formatCurrency } from '../utils/currency'
-import { getDeliveryMethodsForBusiness, type DeliveryMethod } from '../services/deliveryService'
+import { getDeliveryMethodsForBusiness, getProductDeliveryMethods, DELIVERY_CONTROL_MODE, type DeliveryMethod } from '../services/deliveryService'
 import { getProductById } from '../services/productService'
 import './Checkout.css'
 
@@ -114,11 +114,21 @@ export default function Checkout() {
       setDeliveryLoading(true)
       setDeliveryError('')
       try {
-        const options = await getDeliveryMethodsForBusiness(
+        let options = await getDeliveryMethodsForBusiness(
           checkoutBusinessId,
           undefined,
           cart[0]?.currency || 'GHS',
         )
+
+        // In seller-managed mode, product-level seller fees are the fallback
+        // when the seller has not created rows in delivery_methods. This keeps
+        // valid seller fees from silently becoming GH₵0.00 after global rules
+        // are removed. Marketplace mode intentionally skips this fallback.
+        if (DELIVERY_CONTROL_MODE === 'SELLER' && options.length === 0) {
+          options = cart.flatMap(item => getProductDeliveryMethods(item))
+            .filter((option, index, all) => all.findIndex(candidate => candidate.name === option.name && candidate.price === option.price) === index)
+        }
+
         if (!isMounted) return
         setDeliveryOptions(options)
         setFormData(previous => ({
@@ -565,7 +575,9 @@ export default function Checkout() {
                         ? 'Identifying the seller delivery settings...'
                         : hasMultipleStores
                           ? 'Checkout one store at a time so the correct seller delivery fee can be applied.'
-                          : 'No delivery method is currently available for this store and currency. Please contact the seller.'}
+                          : DELIVERY_CONTROL_MODE === 'MARKETPLACE'
+                            ? 'Marketplace delivery is active, but no administrator delivery method is available.'
+                            : 'The seller has not configured a delivery fee for this product or store. Please contact the seller.'}
                     </p>
                   ) : (
                     <select
@@ -607,7 +619,7 @@ export default function Checkout() {
                     rows={3}
                   />
                 </div>
-                <button type="submit" className="submit-order-btn" disabled={isSubmitting || businessResolutionPending || unresolvedBusinessItems || hasMultipleStores || deliveryLoading || deliveryOptions.length === 0}>
+                <button type="submit" className="submit-order-btn" disabled={isSubmitting || businessResolutionPending || unresolvedBusinessItems || hasMultipleStores || deliveryLoading || deliveryOptions.length === 0 || !formData.deliveryMethod}>
                   {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
                 </button>
               </form>

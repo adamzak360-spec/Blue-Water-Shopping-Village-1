@@ -2,6 +2,10 @@ import { isSupabaseConfigured, supabase } from '../supabaseClient'
 
 export type DeliveryPricingType = 'flat' | 'per_item'
 
+// Seller-managed delivery is the active policy. Set this to MARKETPLACE when
+// the administrator is ready to disable seller options and use global methods only.
+export const DELIVERY_CONTROL_MODE: 'SELLER' | 'MARKETPLACE' = 'SELLER'
+
 export interface DeliveryMethod {
   id: string
   business_id?: string | null
@@ -64,8 +68,46 @@ export async function getDeliveryMethodsForBusiness(
   const businessMethods = (businessResult.data || []) as DeliveryMethod[]
   const globalMethods = (globalResult.data || []) as DeliveryMethod[]
 
-  // A seller's configured methods replace the global defaults for that store.
-  return businessMethods.length > 0 ? businessMethods : globalMethods
+  if (DELIVERY_CONTROL_MODE === 'MARKETPLACE') return globalMethods
+  // Seller-managed mode: never let a global method override seller settings.
+  return businessMethods
+}
+
+export function getProductDeliveryMethods(product: {
+  id: string
+  business_id?: string | null
+  currency?: string
+  delivery_fee_tamale?: number | null
+  delivery_fee_greater_accra?: number | null
+  delivery_fee_lesser_accra?: number | null
+  delivery_fee_dhl?: number | null
+  delivery_fee_ups?: number | null
+  delivery_fee_fedex?: number | null
+}): DeliveryMethod[] {
+  if (DELIVERY_CONTROL_MODE !== 'SELLER') return []
+  const currency = product.currency || 'GHS'
+  const entries: Array<[string, string, number | null | undefined]> = [
+    ['tamale', 'Tamale Delivery', product.delivery_fee_tamale],
+    ['stc', 'STC Transport', product.delivery_fee_greater_accra],
+    ['vip', 'VIP Transport', product.delivery_fee_lesser_accra],
+    ['oa', 'OA Transport', product.delivery_fee_dhl],
+    ['vvip', 'VVIP Transport', product.delivery_fee_ups],
+    ['fedex', 'FedEx Delivery', product.delivery_fee_fedex],
+  ]
+  return entries
+    .filter(([, , price]) => Number.isFinite(Number(price)) && Number(price) > 0)
+    .map(([code, name, price], index) => ({
+      id: `product-${product.id}-${code}`,
+      business_id: product.business_id || null,
+      name,
+      coverage_area: 'Seller configured',
+      price: Number(price),
+      currency_code: currency,
+      pricing_type: 'flat',
+      estimated_days: null,
+      is_active: true,
+      sort_order: index,
+    }))
 }
 
 export async function getBusinessDeliveryMethods(businessId: string): Promise<DeliveryMethod[]> {
