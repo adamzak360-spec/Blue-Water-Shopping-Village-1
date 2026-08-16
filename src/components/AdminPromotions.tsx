@@ -21,19 +21,30 @@ export default function AdminPromotions() {
   const [reviewFilter, setReviewFilter] = useState('ALL')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
+  const [showcaseMode, setShowcaseMode] = useState<'FREE' | 'PAID'>('PAID')
+  const [showcaseEnabled, setShowcaseEnabled] = useState(true)
+  const [selectedShowcaseProducts, setSelectedShowcaseProducts] = useState<string[]>([])
+  const [showcaseSaving, setShowcaseSaving] = useState(false)
 
   const load = async () => {
     if (!supabase) { setMessage('Supabase is not configured.'); return }
-    const [{ data: planData }, { data: promotionData }, { data: storeData }, { data: productData }] = await Promise.all([
+    const [{ data: planData }, { data: promotionData }, { data: storeData }, { data: productData }, { data: showcaseSettings }, { data: showcaseItems }] = await Promise.all([
       supabase.from('promotion_plans').select('*').order('created_at'),
       supabase.from('seller_promotions').select('id, seller_id, store_id, product_id, promotion_type, status, review_status, review_notes, target_categories, target_regions, amount_minor, currency, starts_at, ends_at, payment_reference, impressions_count, clicks_count, created_at').order('created_at', { ascending: false }).limit(100),
       supabase.from('businesses').select('id, name'),
       supabase.from('products').select('id, name, category'),
+      supabase.from('home_showcase_settings').select('mode, showcase_enabled').eq('id', true).maybeSingle(),
+      supabase.from('home_showcase_items').select('product_id, sort_order').eq('is_active', true).order('sort_order'),
     ])
     setPlans((planData || []) as Plan[])
     setPromotions((promotionData || []) as Promotion[])
     setStores((storeData || []) as Lookup[])
     setProducts((productData || []) as Lookup[])
+    if (showcaseSettings) {
+      setShowcaseMode(showcaseSettings.mode === 'FREE' ? 'FREE' : 'PAID')
+      setShowcaseEnabled(showcaseSettings.showcase_enabled !== false)
+    }
+    setSelectedShowcaseProducts((showcaseItems || []).map((item: { product_id: string }) => item.product_id))
   }
 
   useEffect(() => { void load() }, [])
@@ -67,6 +78,27 @@ export default function AdminPromotions() {
     setBusy(false); setMessage(error ? error.message : 'Promotion status updated.'); if (!error) await load()
   }
 
+  const saveShowcaseSettings = async () => {
+    if (!supabase) { setMessage('Supabase is not configured.'); return }
+    setShowcaseSaving(true); setMessage('')
+    try {
+      const { error: settingsError } = await supabase.from('home_showcase_settings').upsert({ id: true, mode: showcaseMode, showcase_enabled: showcaseEnabled, updated_at: new Date().toISOString() })
+      if (settingsError) throw settingsError
+      const { error: deleteError } = await supabase.from('home_showcase_items').delete().neq('product_id', '00000000-0000-0000-0000-000000000000')
+      if (deleteError) throw deleteError
+      if (selectedShowcaseProducts.length > 0) {
+        const { error: insertError } = await supabase.from('home_showcase_items').insert(selectedShowcaseProducts.map((productId, index) => ({ product_id: productId, sort_order: index, is_active: true })))
+        if (insertError) throw insertError
+      }
+      setMessage('Home showcase settings saved.')
+      await load()
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Could not save Home showcase settings.')
+    } finally {
+      setShowcaseSaving(false)
+    }
+  }
+
   const storeNameById = useMemo(() => new Map(stores.map(store => [store.id, store.name])), [stores])
   const productById = useMemo(() => new Map(products.map(product => [product.id, product])), [products])
   const filteredPromotions = promotions.filter(promotion => (statusFilter === 'ALL' || promotion.status === statusFilter) && (reviewFilter === 'ALL' || promotion.review_status === reviewFilter))
@@ -76,6 +108,12 @@ export default function AdminPromotions() {
   return <section className="admin-promotions animate-fade-in">
     <div className="section-title-wrapper"><h2 className="section-title">Advertising & Promotions</h2><p>Review targeting, approve paid placements, and monitor promotion performance. Payment activation remains server-verified.</p></div>
     <div className="admin-promotion-summary"><div><strong>{pendingReviewCount}</strong><span>Awaiting approval</span></div><div><strong>{activeApprovedCount}</strong><span>Approved active</span></div><div><strong>{promotions.length}</strong><span>Total campaigns</span></div></div>
+    <div className="promotion-plan-form home-showcase-admin-card"><h3>Home featured showcase</h3><p>Select free products for the space between Call to Order and the community section, or switch back to paid subscription promotions.</p><div className="promotion-form-grid">
+      <label>Showcase mode<select value={showcaseMode} onChange={e => setShowcaseMode(e.target.value as 'FREE' | 'PAID')}><option value="FREE">Free Admin Selection</option><option value="PAID">Paid Subscription Promotions</option></select></label>
+      <label><input type="checkbox" checked={showcaseEnabled} onChange={e => setShowcaseEnabled(e.target.checked)} /> Show showcase on Home</label>
+      <label className="showcase-product-picker">Free products<select multiple size={Math.min(8, Math.max(4, products.length))} value={selectedShowcaseProducts} onChange={e => setSelectedShowcaseProducts(Array.from(e.target.selectedOptions, option => option.value))}>{products.map(product => <option key={product.id} value={product.id}>{product.name}{product.category ? ` · ${product.category}` : ''}</option>)}</select><small>Hold Ctrl/Cmd to select multiple products. Order follows the selected list.</small></label>
+      <button disabled={showcaseSaving} type="button" onClick={() => void saveShowcaseSettings()}>{showcaseSaving ? 'Saving…' : 'Save Home showcase'}</button>
+    </div></div>
     <form className="promotion-plan-form" onSubmit={savePlan}><h3>Promotion plan settings</h3><div className="promotion-form-grid">
       <select value={form.code} onChange={e => setForm({ ...form, code: e.target.value as Plan['code'], name: e.target.value === 'FEATURED_PRODUCT' ? 'Featured Product' : 'Featured Store', placement: e.target.value === 'FEATURED_PRODUCT' ? 'MARKETPLACE' : 'STORES' })}><option value="FEATURED_PRODUCT">Featured Product</option><option value="FEATURED_STORE">Featured Store</option></select>
       <input required type="number" min="0.01" step="0.01" placeholder="Price (GHS)" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />

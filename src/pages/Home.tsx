@@ -83,6 +83,9 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
   const [currentBanner, setCurrentBanner] = useState(0)
   const [activePromotions, setActivePromotions] = useState<ActivePromotedProduct[]>([])
+  const [showcaseMode, setShowcaseMode] = useState<'FREE' | 'PAID'>('PAID')
+  const [showcaseEnabled, setShowcaseEnabled] = useState(true)
+  const [freeShowcaseProductIds, setFreeShowcaseProductIds] = useState<string[]>([])
   
   const scrollRefs = {
     trending: useRef<HTMLDivElement>(null),
@@ -103,6 +106,15 @@ export default function Home() {
         setAllProducts(shuffle(data))
         setActivePromotions(activePromotionData)
         if (isSupabaseConfigured && supabase) {
+          const { data: showcaseConfig, error: showcaseConfigError } = await supabase.rpc('get_home_showcase_config')
+          if (showcaseConfigError) {
+            console.warn('Home showcase configuration unavailable:', showcaseConfigError.message)
+          } else if (showcaseConfig) {
+            const parsedMode = showcaseConfig.mode === 'FREE' ? 'FREE' : 'PAID'
+            setShowcaseMode(parsedMode)
+            setShowcaseEnabled(showcaseConfig.showcase_enabled !== false)
+            setFreeShowcaseProductIds(Array.isArray(showcaseConfig.product_ids) ? showcaseConfig.product_ids : [])
+          }
           const { data: updates, error: updatesError } = await supabase
             .from('news_updates')
             .select('id, title, message')
@@ -132,6 +144,12 @@ export default function Home() {
   const promotedProductIdSet = new Set(activePromotions.map(promotion => promotion.productId))
   const promotionIdByProductId = new Map(activePromotions.map(promotion => [promotion.productId, promotion.promotionId]))
   const promotedProducts = shuffle(activeProducts.filter(product => promotedProductIdSet.has(product.id)))
+  const freeShowcaseProducts = freeShowcaseProductIds
+    .map(productId => activeProducts.find(product => product.id === productId))
+    .filter((product): product is Product => Boolean(product))
+  const featuredProducts = !showcaseEnabled
+    ? []
+    : showcaseMode === 'FREE' ? freeShowcaseProducts : promotedProducts
   const organicProducts = activeProducts.filter(product => !promotedProductIdSet.has(product.id))
   
   // Use disjoint organic pools so homepage sections do not repeatedly show the same products.
@@ -161,7 +179,7 @@ export default function Home() {
   // Keep the curated showcase moving gently from one end to the other.
   useEffect(() => {
     const rail = scrollRefs.featured.current
-    if (!rail || promotedProducts.length < 2 || isFeaturedPaused) return
+    if (!rail || featuredProducts.length < 2 || isFeaturedPaused) return
     const timer = window.setInterval(() => {
       const maxScroll = rail.scrollWidth - rail.clientWidth
       if (maxScroll <= 0) return
@@ -169,7 +187,7 @@ export default function Home() {
       rail.scrollTo({ left: nextPosition >= maxScroll ? 0 : nextPosition, behavior: 'auto' })
     }, 32)
     return () => window.clearInterval(timer)
-  }, [promotedProducts.length, isFeaturedPaused])
+  }, [featuredProducts.length, isFeaturedPaused])
 
   const scroll = (ref: React.RefObject<HTMLDivElement | null>, direction: 'left' | 'right') => {
     if (ref.current) {
@@ -394,7 +412,7 @@ export default function Home() {
       </section>
 
       {/* --- Managed Featured Showcase: intentionally between Call to Order and Newsletter --- */}
-      {promotedProducts.length > 0 && (
+      {featuredProducts.length > 0 && (
         <section
           className="section featured-showcase-section"
           aria-label="Featured products"
@@ -407,20 +425,20 @@ export default function Home() {
             <div className="featured-showcase-heading">
               <div>
                 <span className="featured-showcase-eyebrow">Selected for you</span>
-                <h3>Featured on Reliable</h3>
-                <p>Explore products selected by our marketplace team.</p>
+                <h3>{showcaseMode === 'FREE' ? 'Featured on Reliable' : 'Sponsored on Reliable'}</h3>
+                <p>{showcaseMode === 'FREE' ? 'Explore products selected by our marketplace team.' : 'Explore products selected through Reliable promotions.'}</p>
               </div>
               <Link to="/products" className="featured-showcase-link">View all products <ArrowRight size={16} /></Link>
             </div>
             <div className="featured-showcase-rail" ref={scrollRefs.featured}>
-              {promotedProducts.slice(0, 12).map((product) => (
+              {featuredProducts.slice(0, 12).map((product) => (
                 <div key={product.id} className="featured-showcase-card">
                   <ProductCard
                     product={product}
                     featuredMedia
                     showStock
-                    isSponsored
-                    promotionId={promotionIdByProductId.get(product.id)}
+                    isSponsored={showcaseMode === 'PAID'}
+                    promotionId={showcaseMode === 'PAID' ? promotionIdByProductId.get(product.id) : undefined}
                   />
                 </div>
               ))}
