@@ -52,9 +52,40 @@
 .brand-logo {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: 0.42rem;
+  min-width: 0;
   text-decoration: none;
   transition: all var(--transition-fast);
+}
+
+.marketplace-brand-logo {
+  display: block;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  object-position: center;
+  background: transparent;
+  border-radius: 0;
+}
+
+.marketplace-brand-logo.logo-shape-wide {
+  width: 46px;
+  height: 30px;
+}
+
+.marketplace-brand-logo.logo-shape-tall {
+  width: 27px;
+  height: 36px;
+}
+
+.marketplace-brand-logo.logo-shape-square {
+  width: 34px;
+  height: 34px;
+}
+
+.drawer-brand-logo {
+  margin-right: 0;
 }
 
 .brand-logo .logo-text {
@@ -66,8 +97,27 @@
 }
 
 @media (max-width: 480px) {
+  .brand-logo {
+    gap: 0.3rem;
+  }
+
   .brand-logo .logo-text {
     font-size: 1.25rem;
+  }
+
+  .marketplace-brand-logo.logo-shape-wide {
+    width: 40px;
+    height: 27px;
+  }
+
+  .marketplace-brand-logo.logo-shape-tall {
+    width: 24px;
+    height: 32px;
+  }
+
+  .marketplace-brand-logo.logo-shape-square {
+    width: 30px;
+    height: 30px;
   }
 }
 
@@ -76,8 +126,8 @@
 }
 
 @media (max-width: 480px) {
-  .brand-logo img {
-    height: 32px;
+  .brand-logo img.marketplace-brand-logo {
+    object-fit: contain;
   }
 }
 

@@ -120,6 +120,7 @@ function AppShell() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [marketplaceLogoUrl, setMarketplaceLogoUrl] = useState('/logo-square.png')
+  const [marketplaceLogoShape, setMarketplaceLogoShape] = useState<'wide' | 'tall' | 'square'>('square')
   const [marketplaceFaviconUrl, setMarketplaceFaviconUrl] = useState('/favicon.ico')
 
   const isAdminRoute = location.pathname.startsWith('/admin')
@@ -218,7 +219,7 @@ function AppShell() {
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
             <Link to="/" className="brand-logo">
-              <img src={marketplaceLogoUrl} alt="Reliable" style={{ height: '32px', width: '32px', objectFit: 'cover', borderRadius: '50%' }} />
+              <img src={marketplaceLogoUrl} alt="Reliable" className={`marketplace-brand-logo logo-shape-${marketplaceLogoShape}`} onLoad={(event) => { const image = event.currentTarget; const ratio = image.naturalWidth / Math.max(image.naturalHeight, 1); setMarketplaceLogoShape(ratio >= 1.65 ? 'wide' : ratio <= 0.72 ? 'tall' : 'square') }} />
               <span className="logo-text">RELIABLE</span>
             </Link>
           </div>
@@ -259,7 +260,7 @@ function AppShell() {
       <aside className={`side-drawer ${isMenuOpen ? 'open' : ''}`}>
         <div className="drawer-header">
           <div className="drawer-logo">
-            <img src={marketplaceLogoUrl} alt="Reliable" style={{ height: '32px', width: '32px', objectFit: 'cover', marginRight: '10px', borderRadius: '50%' }} />
+            <img src={marketplaceLogoUrl} alt="Reliable" className={`marketplace-brand-logo drawer-brand-logo logo-shape-${marketplaceLogoShape}`} onLoad={(event) => { const image = event.currentTarget; const ratio = image.naturalWidth / Math.max(image.naturalHeight, 1); setMarketplaceLogoShape(ratio >= 1.65 ? 'wide' : ratio <= 0.72 ? 'tall' : 'square') }} />
             <span>RELIABLE</span>
           </div>
           <button onClick={toggleMenu}><X size={24} /></button>
@@ -313,7 +314,7 @@ function AppShell() {
       <main className="app-main">
         <Suspense fallback={
           <div className="loading-screen" aria-label="Loading Reliable">
-            <img src={marketplaceLogoUrl} alt="Reliable" className="loading-logo" />
+            <img src={marketplaceLogoUrl} alt="Reliable" className={`loading-logo marketplace-brand-logo logo-shape-${marketplaceLogoShape}`} />
           </div>
         }>
           <Routes>
