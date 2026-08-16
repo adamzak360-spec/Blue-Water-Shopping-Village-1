@@ -560,25 +560,36 @@ export default function ProductDetails() {
             <div className="size-selection-section">
               <h3 className="section-title">Select Sizes (Multiple allowed)</h3>
               <div className="size-options">
-                {variants.map((variant) => (
-                  <button
-                    key={variant.id}
-                    type="button"
-                    className={`size-btn ${selectedSizes.includes(variant.variant_value) ? 'selected' : ''} ${variant.stock_quantity === 0 ? 'unavailable' : ''}`}
-                    aria-pressed={selectedSizes.includes(variant.variant_value)}
-                    aria-label={`Size ${variant.variant_value}${variant.stock_quantity === 0 ? ', out of stock' : ''}`}
-                    onClick={() => {
-                      setSelectedSizes(prev => 
-                        prev.includes(variant.variant_value)
-                          ? prev.filter(s => s !== variant.variant_value)
-                          : [...prev, variant.variant_value]
-                      )
-                    }}
-                    disabled={variant.stock_quantity === 0}
-                  >
-                    {variant.variant_value}
-                  </button>
-                ))}
+                {variants.map((variant) => {
+                  const variantStock = Math.max(0, Number(variant.stock_quantity) || 0)
+                  const badgeTone = variantStock > 0 && variantStock < 5 ? 'low' : 'healthy'
+                  return (
+                    <div className="size-option" key={variant.id}>
+                      <span
+                        className={`size-stock-badge ${badgeTone} ${variantStock === 0 ? 'empty' : ''}`}
+                        aria-label={`${variantStock} ${variantStock === 1 ? 'unit' : 'units'} remaining for size ${variant.variant_value}`}
+                      >
+                        {variantStock}
+                      </span>
+                      <button
+                        type="button"
+                        className={`size-btn ${selectedSizes.includes(variant.variant_value) ? 'selected' : ''} ${variantStock === 0 ? 'unavailable' : ''}`}
+                        aria-pressed={selectedSizes.includes(variant.variant_value)}
+                        aria-label={`Size ${variant.variant_value}, ${variantStock === 0 ? 'out of stock' : `${variantStock} ${variantStock === 1 ? 'unit' : 'units'} remaining`}`}
+                        onClick={() => {
+                          setSelectedSizes(prev =>
+                            prev.includes(variant.variant_value)
+                              ? prev.filter(s => s !== variant.variant_value)
+                              : [...prev, variant.variant_value]
+                          )
+                        }}
+                        disabled={variantStock === 0}
+                      >
+                        {variant.variant_value}
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
               {sizeError && <span className="size-error">{sizeError}</span>}
             </div>
