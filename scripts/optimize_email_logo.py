@@ -3,7 +3,7 @@ from PIL import Image
 
 root = Path('/home/ubuntu/Blue-Water-Shopping-Village-1')
 src = root / 'public/manual-assets/reliable-logo-full-source.webp'
-out = root / 'public/manual-assets/reliable-email-logo.png'
+out = root / 'public/manual-assets/reliable-email-logo-full-v2.png'
 
 with Image.open(src) as image:
     image = image.convert('RGBA')
