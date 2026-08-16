@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { BookOpen, Download, ExternalLink, FileText, ImagePlus, Presentation, ShieldCheck } from 'lucide-react'
+import { BookOpen, Download, ExternalLink, FileText, ImagePlus, Megaphone, Palette, Presentation, ShieldCheck } from 'lucide-react'
 import './ReliableOperationsWorkspace.css'
 
 const manualSections = [
@@ -46,6 +46,15 @@ const slides = [
   { title: 'Familiar communication, accountable security', summary: 'Chat receipts, unread awareness, offline retry, and sign-in protection.' },
   { title: 'Administration is the control centre', summary: 'Governance across stores, catalogue, finance, security, and knowledge.' },
   { title: 'Reliable: discover with confidence', summary: 'Closing promise for meetings and conferences.' },
+]
+
+const campaignAssets = [
+  { title: 'Lifestyle hero', description: 'Warm customer-facing hero image for website sections and presentations.', src: '/campaign-assets/reliable-hero-shopping.jpg', kind: 'Generated lifestyle visual' },
+  { title: 'Product storytelling collage', description: 'Curated product-style visual for catalogue, seller, and marketplace storytelling.', src: '/campaign-assets/reliable-products-collage.jpg', kind: 'Product visual' },
+  { title: 'Live Products page', description: 'Authentic screenshot of the public Reliable product-discovery interface.', src: '/campaign-assets/reliable-live-products-page.webp', kind: 'Authentic platform screenshot' },
+  { title: 'Conference flyer', description: 'Portrait event handout for conferences, meetings, and exhibitions.', src: '/campaign-assets/reliable-conference-flyer.jpg', kind: 'Print-ready campaign asset' },
+  { title: 'Pull-up banner', description: 'Tall event banner for reception areas, booths, and speaking engagements.', src: '/campaign-assets/reliable-pullup-banner.jpg', kind: 'Event display asset' },
+  { title: 'Exhibition wall', description: 'Wide backdrop graphic for trade-show and exhibition spaces.', src: '/campaign-assets/reliable-exhibition-wall.jpg', kind: 'Wide event graphic' },
 ]
 
 const logoToDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
@@ -105,7 +114,7 @@ export default function ReliableOperationsWorkspace() {
       <div className="operations-tabs" role="tablist" aria-label="Operations workspace sections">
         <button className={activeSection === 'manual' ? 'active' : ''} onClick={() => setActiveSection('manual')}><BookOpen size={17} /> Operations manual</button>
         <button className={activeSection === 'slides' ? 'active' : ''} onClick={() => setActiveSection('slides')}><Presentation size={17} /> Presentation deck</button>
-        <button className={activeSection === 'branding' ? 'active' : ''} onClick={() => setActiveSection('branding')}><ImagePlus size={17} /> Logo and export</button>
+        <button className={activeSection === 'branding' ? 'active' : ''} onClick={() => setActiveSection('branding')}><ImagePlus size={17} /> Logo and export</button><button className={activeSection === 'campaign' ? 'active' : ''} onClick={() => setActiveSection('campaign')}><Palette size={17} /> Campaign visuals</button>
       </div>
 
       {activeSection === 'manual' && <div className="manual-grid"><article className="manual-intro"><ShieldCheck size={24} /><h2>One operating language for the whole marketplace</h2><p>This manual is the safe, meeting-ready explanation of how Reliable works. It describes responsibilities and controls without exposing credentials or private records.</p><div className="manual-meta"><span><strong>Audience</strong> Customers · sellers · admins · partners</span><span><strong>Scope</strong> Company, platform, trust, money, and operations</span></div></article><div className="manual-sections">{manualSections.map(section => <article className="manual-section" key={section.title}><h3>{section.title}</h3><p>{section.body}</p></article>)}</div><div className="manual-actions"><a href="/docs/reliable-system-operations-manual.md" download><FileText size={17} /> Download manual source</a></div></div>}
@@ -113,6 +122,8 @@ export default function ReliableOperationsWorkspace() {
       {activeSection === 'slides' && <div className="slides-workspace"><div className="slide-list">{slides.map((slide, index) => <button className={selectedSlide === index ? 'selected' : ''} key={slide.title} onClick={() => setSelectedSlide(index)}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{slide.title}</strong><small>{slide.summary}</small></div></button>)}</div><div className={`slide-preview ${selectedSlide % 2 ? 'navy' : ''}`}><img src={logoUrl} alt="Reliable logo" /><div className="preview-eyebrow">RELIABLE PREMIUM MARKETPLACE · {String(selectedSlide + 1).padStart(2, '0')}</div><h2>{slides[selectedSlide].title}</h2><p>{slides[selectedSlide].summary}</p><div className="preview-rule" /><span className="preview-footer">Company and platform operations</span></div></div>}
 
       {activeSection === 'branding' && <div className="branding-panel"><div className="branding-copy"><ImagePlus size={28} /><h2>Upload once. Brand every slide.</h2><p>Choose a transparent PNG or high-resolution JPG. The logo is placed automatically in the reserved top-right area of every exported slide.</p><label className="upload-logo"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleLogo} /> Choose logo</label><div className="export-actions"><button onClick={downloadPresentation}><Download size={17} /> Download presentation HTML</button><button onClick={printPresentation}><ExternalLink size={17} /> Print / save as PDF</button></div></div><div className="branding-preview"><span>Logo preview</span><img src={logoUrl} alt="Uploaded Reliable logo" /></div></div>}
+
+      {activeSection === 'campaign' && <div className="campaign-workspace"><div className="campaign-intro"><Megaphone size={27} /><div><h2>Campaign visual kit</h2><p>Use these coordinated visuals for hero sections, conference presentations, flyers, pull-up banners, exhibition walls, and seller or customer storytelling. The authentic platform screenshot is clearly labelled; generated visuals are available for atmosphere and brand communication.</p></div></div><div className="campaign-grid">{campaignAssets.map(asset => <article className="campaign-asset" key={asset.src}><img src={asset.src} alt={asset.title} loading="lazy" /><div className="campaign-asset-copy"><span>{asset.kind}</span><h3>{asset.title}</h3><p>{asset.description}</p><a href={asset.src} download>Download asset</a></div></article>)}</div></div>}
     </section>
   )
 }
