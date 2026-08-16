@@ -124,21 +124,29 @@ function getEmailWrapper(content: string, title: string): string {
             border-collapse: collapse;
             margin: 0 auto;
           }
+          .brand-lockup-cell {
+            white-space: nowrap;
+            text-align: center;
+            vertical-align: middle;
+          }
           .brand-lockup-logo {
-            display: block;
-            width: 84px;
-            height: 84px;
+            display: inline-block;
+            width: 72px;
+            height: 72px;
             object-fit: contain;
+            vertical-align: middle;
             border: 0;
+            margin-right: 8px;
           }
           .brand-lockup-name {
-            padding-left: 7px;
+            display: inline-block;
             color: #059669;
-            font-size: 18px;
-            line-height: 84px;
+            font-size: 16px;
+            line-height: 72px;
             font-weight: 800;
             letter-spacing: -0.02em;
             white-space: nowrap;
+            vertical-align: middle;
           }
           .header h1 {
             font-size: 24px;
@@ -286,8 +294,10 @@ function getEmailWrapper(content: string, title: string): string {
           <div class="brand-banner">
             <table role="presentation" class="brand-lockup" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td valign="middle"><img src="${EMAIL_LOGO_URL}" alt="${COMPANY_NAME} shopping-bag logo" width="84" height="84" border="0" class="brand-lockup-logo" style="display:block;width:84px;height:84px;object-fit:contain;border:0;"></td>
-                <td valign="middle" class="brand-lockup-name" style="padding-left:7px;color:#1e3a8a;font-size:18px;line-height:84px;font-weight:800;letter-spacing:-0.02em;white-space:nowrap;"><span style="color:#059669;">Reliable</span><span style="color:#dc2626;padding:0 4px;">•</span><span style="color:#0A2E5C;">Premium Marketplace</span></td>
+                <td valign="middle" class="brand-lockup-cell" style="white-space:nowrap;text-align:center;vertical-align:middle;">
+                  <img src="${EMAIL_LOGO_URL}" alt="${COMPANY_NAME} shopping-bag logo" width="72" height="72" border="0" class="brand-lockup-logo" style="display:inline-block;width:72px;height:72px;object-fit:contain;vertical-align:middle;border:0;margin-right:8px;">
+                  <span class="brand-lockup-name" style="display:inline-block;color:#059669;font-size:16px;line-height:72px;font-weight:800;letter-spacing:-0.02em;white-space:nowrap;vertical-align:middle;"><span style="color:#059669;">Reliable</span><span style="color:#dc2626;padding:0 3px;">•</span><span style="color:#0A2E5C;">Premium Marketplace</span></span>
+                </td>
               </tr>
             </table>
           </div>
