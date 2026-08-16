@@ -33,6 +33,15 @@ export interface ChatMessage {
   updated_at: string
 }
 
+export interface ChatMessageReceipt {
+  message_id: string
+  user_id: string
+  delivered_at: string | null
+  read_at: string | null
+  created_at: string
+  updated_at: string
+}
+
 const ensureSupabase = () => {
   if (!supabase) throw new Error('Supabase is not configured')
   return supabase
@@ -97,6 +106,36 @@ export async function sendChatMessage(input: {
   return data as ChatMessage
 }
 
+export async function listMessageReceipts(messageIds: string[]) {
+  const client = ensureSupabase()
+  const ids = [...new Set(messageIds.filter(Boolean))]
+  if (ids.length === 0) return [] as ChatMessageReceipt[]
+  const { data, error } = await client
+    .from('chat_message_receipts')
+    .select('message_id, user_id, delivered_at, read_at, created_at, updated_at')
+    .in('message_id', ids)
+  if (error) throw error
+  return (data || []) as ChatMessageReceipt[]
+}
+
+export async function markChatMessagesDelivered(conversationId: string, messageIds?: string[]) {
+  const client = ensureSupabase()
+  const { error } = await client.rpc('mark_chat_messages_delivered', {
+    p_conversation_id: conversationId,
+    p_message_ids: messageIds?.length ? messageIds : null,
+  })
+  if (error) throw error
+}
+
+export async function markChatMessagesRead(conversationId: string, messageIds?: string[]) {
+  const client = ensureSupabase()
+  const { error } = await client.rpc('mark_chat_messages_read', {
+    p_conversation_id: conversationId,
+    p_message_ids: messageIds?.length ? messageIds : null,
+  })
+  if (error) throw error
+}
+
 export async function listMessageReactions(messageIds: string[]) {
   const client = ensureSupabase()
   const ids = [...new Set(messageIds.filter(Boolean))]
@@ -156,6 +195,19 @@ export function subscribeToMessageReactions(conversationId: string, onReaction: 
       schema: 'public',
       table: 'chat_message_reactions',
     }, payload => onReaction(payload.new as ChatReaction, payload.eventType as 'INSERT' | 'DELETE'))
+    .subscribe()
+  return () => { void client.removeChannel(channel) }
+}
+
+export function subscribeToMessageReceipts(conversationId: string, onReceipt: (receipt: ChatMessageReceipt) => void) {
+  const client = ensureSupabase()
+  const channel = client
+    .channel(`product-chat-receipts-${conversationId}`)
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'chat_message_receipts',
+    }, payload => onReceipt(payload.new as ChatMessageReceipt))
     .subscribe()
   return () => { void client.removeChannel(channel) }
 }

@@ -10,13 +10,18 @@ import {
   getChatParticipantNames,
   getOrCreatePublicProductConversation,
   listConversationMessages,
+  listMessageReceipts,
   listMessageReactions,
+  markChatMessagesDelivered,
+  markChatMessagesRead,
   reportChatMessage,
   sendChatMessage,
   subscribeToConversation,
+  subscribeToMessageReceipts,
   subscribeToMessageReactions,
   toggleMessageReaction,
   type ChatMessage,
+  type ChatMessageReceipt,
   type ChatReaction,
 } from '../services/chatService'
 import './ProductChat.css'
@@ -32,6 +37,8 @@ export default function ProductChat() {
   const [conversationId, setConversationId] = useState('')
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [senderNames, setSenderNames] = useState<Record<string, string>>({})
+  const [receipts, setReceipts] = useState<ChatMessageReceipt[]>([])
+  const [messageStatuses, setMessageStatuses] = useState<Record<string, 'sending' | 'offline' | 'sent' | 'delivered' | 'read'>>({})
   const [reactions, setReactions] = useState<ChatReaction[]>([])
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [draft, setDraft] = useState('')
@@ -71,7 +78,9 @@ export default function ProductChat() {
         setConversationId(conversation.id)
         const loadedMessages = await listConversationMessages(conversation.id)
         setMessages(loadedMessages)
-        setReactions(await listMessageReactions(loadedMessages.map(message => message.id)))
+        const messageIds = loadedMessages.map(message => message.id)
+        setReceipts(await listMessageReceipts(messageIds))
+        setReactions(await listMessageReactions(messageIds))
         setSenderNames(await getChatParticipantNames(loadedMessages.map(message => message.sender_id)))
       } catch (err) {
         if (active) setError(err instanceof Error ? err.message : 'Unable to load this product discussion.')
@@ -82,6 +91,29 @@ export default function ProductChat() {
     void load()
     return () => { active = false }
   }, [businessId, productId])
+
+  useEffect(() => {
+    if (!conversationId || !user || messages.length === 0) return
+    const incomingIds = messages.filter(message => message.sender_id !== user.id && !message.deleted_at).map(message => message.id)
+    if (incomingIds.length === 0) return
+    void markChatMessagesDelivered(conversationId, incomingIds).catch(() => undefined)
+    if (shouldStickToBottomRef.current) {
+      void markChatMessagesRead(conversationId, incomingIds).catch(() => undefined)
+    }
+  }, [conversationId, messages, user])
+
+  useEffect(() => {
+    if (!conversationId) return
+    return subscribeToMessageReceipts(conversationId, incoming => {
+      setReceipts(previous => {
+        const index = previous.findIndex(item => item.message_id === incoming.message_id && item.user_id === incoming.user_id)
+        if (index === -1) return [...previous, incoming]
+        const next = [...previous]
+        next[index] = { ...next[index], ...incoming }
+        return next
+      })
+    })
+  }, [conversationId])
 
   useEffect(() => {
     if (!conversationId) return
@@ -128,6 +160,16 @@ export default function ProductChat() {
   const participantLabel = useMemo(() => `${sellerName} and the Reliable community`, [sellerName])
   const quickEmojis = ['👍', '❤️', '😂', '😮', '😢', '🎉']
 
+  const getMessageStatus = (message: ChatMessage) => {
+    if (message.sender_id !== user?.id) return null
+    const localStatus = messageStatuses[message.id]
+    if (localStatus === 'sending' || localStatus === 'offline') return localStatus
+    const messageReceipts = receipts.filter(receipt => receipt.message_id === message.id && receipt.user_id !== message.sender_id)
+    if (messageReceipts.some(receipt => receipt.read_at)) return 'read'
+    if (messageReceipts.some(receipt => receipt.delivered_at)) return 'delivered'
+    return localStatus || 'sent'
+  }
+
   const insertEmoji = (emoji: string) => {
     setDraft(previous => `${previous}${emoji}`)
     setShowEmojiPicker(false)
@@ -150,33 +192,66 @@ export default function ProductChat() {
     navigate(`/login?redirect=${encodeURIComponent(loginTarget)}`)
   }
 
-  const handleSend = async () => {
-    if (!user) { requireAccount(); return }
-    if (!conversationId || !draft.trim() || sending) return
-    setSending(true)
-    setError('')
+  const submitMessage = async (body: string, replyToMessageId?: string | null, optimisticId: string = crypto.randomUUID()) => {
+    if (!user || !conversationId || !body.trim()) return
+    const optimisticMessage: ChatMessage = {
+      id: optimisticId,
+      conversation_id: conversationId,
+      sender_id: user.id,
+      sender_role: currentRole,
+      body: body.trim(),
+      reply_to_message_id: replyToMessageId || null,
+      shared_message_id: null,
+      deleted_at: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+    setMessageStatuses(previous => ({ ...previous, [optimisticId]: 'sending' }))
+    setMessages(previous => [...previous, optimisticMessage].sort((a, b) => {
+      const byTime = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      return byTime || a.id.localeCompare(b.id)
+    }))
     try {
       const message = await sendChatMessage({
         conversationId,
         senderId: user.id,
         senderRole: currentRole,
-        body: draft,
-        replyToMessageId: replyTo?.id,
+        body,
+        replyToMessageId,
       })
-      setMessages(previous => {
-        if (previous.some(item => item.id === message.id)) return previous
-        return [...previous, message].sort((a, b) => {
-          const byTime = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-          return byTime || a.id.localeCompare(b.id)
-        })
-      })
+      setMessages(previous => previous.filter(item => item.id !== optimisticId).concat(message).sort((a, b) => {
+        const byTime = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        return byTime || a.id.localeCompare(b.id)
+      }))
+      setMessageStatuses(previous => ({ ...previous, [message.id]: 'sent' }))
+      return true
+    } catch (err) {
+      setMessageStatuses(previous => ({ ...previous, [optimisticId]: 'offline' }))
+      setError(err instanceof Error ? err.message : 'Message could not be sent. Tap the warning mark to retry.')
+      return false
+    }
+  }
+
+  const handleSend = async () => {
+    if (!user) { requireAccount(); return }
+    if (!conversationId || !draft.trim() || sending) return
+    setSending(true)
+    setError('')
+    const body = draft.trim()
+    const sent = await submitMessage(body, replyTo?.id)
+    if (sent) {
       setDraft('')
       setReplyTo(null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Message could not be sent.')
-    } finally {
-      setSending(false)
     }
+    setSending(false)
+  }
+
+  const retryMessage = async (message: ChatMessage) => {
+    setMessages(previous => previous.filter(item => item.id !== message.id))
+    setError('')
+    setSending(true)
+    await submitMessage(message.body, message.reply_to_message_id, message.id)
+    setSending(false)
   }
 
   const handleDelete = async (message: ChatMessage) => {
@@ -284,6 +359,12 @@ export default function ProductChat() {
               </div>
               <div className="chat-message-meta">
                 <time dateTime={message.created_at}>{new Date(message.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</time>
+                {getMessageStatus(message) && (() => {
+                  const status = getMessageStatus(message)
+                  return <button className={`chat-message-status is-${status}`} onClick={() => status === 'offline' ? void retryMessage(message) : undefined} aria-label={status === 'offline' ? 'Message not sent. Tap to retry.' : `Message ${status}`}>
+                    {status === 'offline' ? '!' : status === 'sending' ? '◌' : status === 'read' ? '✓✓' : status === 'delivered' ? '✓✓' : '✓'}
+                  </button>
+                })()}
               </div>
             </article>
           )
