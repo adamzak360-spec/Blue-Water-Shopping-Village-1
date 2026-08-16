@@ -133,7 +133,7 @@ function getEmailWrapper(content: string, title: string): string {
           }
           .brand-lockup-name {
             padding-left: 7px;
-            color: #1e3a8a;
+            color: #059669;
             font-size: 18px;
             line-height: 38px;
             font-weight: 800;
@@ -287,7 +287,7 @@ function getEmailWrapper(content: string, title: string): string {
             <table role="presentation" class="brand-lockup" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td valign="middle"><img src="${EMAIL_LOGO_URL}" alt="${COMPANY_NAME} shopping-bag logo" width="38" height="38" border="0" class="brand-lockup-logo" style="display:block;width:38px;height:38px;object-fit:contain;border:0;"></td>
-                <td valign="middle" class="brand-lockup-name" style="padding-left:7px;color:#1e3a8a;font-size:18px;line-height:38px;font-weight:800;letter-spacing:-0.02em;white-space:nowrap;">Reliable Premium Marketplace</td>
+                <td valign="middle" class="brand-lockup-name" style="padding-left:7px;color:#1e3a8a;font-size:18px;line-height:38px;font-weight:800;letter-spacing:-0.02em;white-space:nowrap;"><span style="color:#059669;">Reliable</span><span style="color:#dc2626;padding:0 4px;">•</span><span style="color:#0A2E5C;">Premium Marketplace</span></td>
               </tr>
             </table>
           </div>
