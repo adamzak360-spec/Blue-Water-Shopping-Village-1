@@ -82,15 +82,14 @@ export default function AdminPromotions() {
     if (!supabase) { setMessage('Supabase is not configured.'); return }
     setShowcaseSaving(true); setMessage('')
     try {
-      const { error: settingsError } = await supabase.from('home_showcase_settings').upsert({ id: true, mode: showcaseMode, showcase_enabled: showcaseEnabled, updated_at: new Date().toISOString() })
-      if (settingsError) throw settingsError
-      const { error: deleteError } = await supabase.from('home_showcase_items').delete().neq('product_id', '00000000-0000-0000-0000-000000000000')
-      if (deleteError) throw deleteError
-      if (selectedShowcaseProducts.length > 0) {
-        const { error: insertError } = await supabase.from('home_showcase_items').insert(selectedShowcaseProducts.map((productId, index) => ({ product_id: productId, sort_order: index, is_active: true })))
-        if (insertError) throw insertError
-      }
-      setMessage('Home showcase settings saved.')
+      const { data, error } = await supabase.rpc('save_home_showcase_settings', {
+        p_mode: showcaseMode,
+        p_showcase_enabled: showcaseEnabled,
+        p_product_ids: selectedShowcaseProducts,
+      })
+      if (error) throw error
+      const savedCount = Number((data as { saved_product_count?: number } | null)?.saved_product_count ?? selectedShowcaseProducts.length)
+      setMessage(`Home showcase settings saved${showcaseMode === 'FREE' ? ` with ${savedCount} product${savedCount === 1 ? '' : 's'}.` : '.'}`)
       await load()
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Could not save Home showcase settings.')
