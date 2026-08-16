@@ -4,6 +4,11 @@ import {
   getAdminVisibilityPlans,
   updateAdminVisibilityPlan,
 } from '../services/productVisibilityService'
+import {
+  DEFAULT_MARKETPLACE_ID,
+  getMarketplaceFreeCatalogMode,
+  updateBusinessProfile,
+} from '../services/businessService'
 import type { ProductVisibilityPlan, ProductVisibilityTarget } from '../types'
 import './ProductVisibilityManagement.css'
 
@@ -18,11 +23,17 @@ export default function ProductVisibilityManagement() {
   const [plans, setPlans] = useState<ProductVisibilityPlan[]>([])
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
+  const [freeCatalogMode, setFreeCatalogMode] = useState(false)
   const [form, setForm] = useState({ code: '', name: '', description: '', target: 'PRODUCTS' as ProductVisibilityTarget, priceGhs: '', durationDays: '30' })
 
   const load = async () => {
     try {
-      setPlans(await getAdminVisibilityPlans())
+      const [loadedPlans, freeMode] = await Promise.all([
+        getAdminVisibilityPlans(),
+        getMarketplaceFreeCatalogMode(),
+      ])
+      setPlans(loadedPlans)
+      setFreeCatalogMode(freeMode)
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Could not load visibility packages.')
     }
@@ -50,6 +61,21 @@ export default function ProductVisibilityManagement() {
     } finally { setBusy(false) }
   }
 
+  const toggleFreeCatalog = async () => {
+    setBusy(true)
+    setMessage('')
+    const nextValue = !freeCatalogMode
+    try {
+      await updateBusinessProfile(DEFAULT_MARKETPLACE_ID, { free_public_catalog: nextValue })
+      setFreeCatalogMode(nextValue)
+      setMessage(nextValue
+        ? 'Free public catalog mode is enabled. Active products can appear on Home and Products without a visibility payment.'
+        : 'Free public catalog mode is disabled. Paid visibility entitlements are required again.')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Could not update free public catalog mode.')
+    } finally { setBusy(false) }
+  }
+
   const toggle = async (plan: ProductVisibilityPlan) => {
     setBusy(true)
     setMessage('')
@@ -66,6 +92,17 @@ export default function ProductVisibilityManagement() {
     <div className="section-title-wrapper">
       <h2 className="section-title">Product Visibility Packages</h2>
       <p>Control which paid packages allow seller products to appear beyond their own stores. Products remain store-only until a verified payment is active.</p>
+    </div>
+    <div className="visibility-management-card">
+      <h3>Free public catalog mode</h3>
+      <p>When enabled, all active seller products can appear on the public Home and Products pages as they did before paid visibility packages. Sellers are not charged. Seller stores continue to work normally.</p>
+      <div className="visibility-free-mode-row">
+        <strong>{freeCatalogMode ? 'Enabled' : 'Disabled'}</strong>
+        <button type="button" disabled={busy} onClick={() => void toggleFreeCatalog()}>
+          {freeCatalogMode ? 'Disable free mode' : 'Enable free mode'}
+        </button>
+      </div>
+      <small>{freeCatalogMode ? 'Public catalog is currently open to active products.' : 'Public catalog currently uses verified paid visibility entitlements.'}</small>
     </div>
     <div className="visibility-management-card">
       <h3>Create package</h3>

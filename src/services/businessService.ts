@@ -45,6 +45,7 @@ export interface Business {
   show_location_public?: boolean
   show_delivery_info_public?: boolean
   show_product_count?: boolean
+  free_public_catalog?: boolean
   created_at: string
   updated_at: string
 }
@@ -176,6 +177,23 @@ export async function getMarketplaceProductCountVisibility(): Promise<boolean> {
   }
 
   return Boolean(data?.show_product_count)
+}
+
+export async function getMarketplaceFreeCatalogMode(): Promise<boolean> {
+  if (!isSupabaseConfigured || !supabase) return false
+
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('free_public_catalog')
+    .eq('id', DEFAULT_MARKETPLACE_ID)
+    .maybeSingle()
+
+  if (error) {
+    console.error('Error fetching marketplace free catalog mode:', error)
+    return false
+  }
+
+  return Boolean(data?.free_public_catalog)
 }
 
 export async function getPublicBusinesses(searchTerm = '', category = ''): Promise<Business[]> {
