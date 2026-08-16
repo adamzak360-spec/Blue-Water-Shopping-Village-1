@@ -182,9 +182,11 @@ async function processQueue(admin, limit, singlePayoutId = null, allowAdminSingl
   let failed = 0;
 
   let balanceByCurrency = {};
+  let balanceVerified = false;
   try {
     const balanceResponse = await axios.get(`${PAYSTACK_BASE_URL}/balance`, { headers });
     for (const balance of balanceResponse.data?.data || []) balanceByCurrency[balance.currency] = Number(balance.balance || 0);
+    balanceVerified = Array.isArray(balanceResponse.data?.data);
   } catch (error) {
     console.error('[PAYOUT] Could not inspect Paystack balance:', error.response?.data || error.message);
   }
@@ -221,7 +223,15 @@ async function processQueue(admin, limit, singlePayoutId = null, allowAdminSingl
     }
 
     const available = balanceByCurrency[payout.currency] ?? null;
-    if (available !== null && available < amounts.providerTotalDebitMinor) {
+    if (!balanceVerified || available === null) {
+      await admin.rpc('release_payout_to_queued', {
+        p_payout_id: payout.payout_id,
+        p_reason: `Paystack available ${payout.currency} balance could not be verified; payout remains queued.`,
+      });
+      pending += 1;
+      continue;
+    }
+    if (available < amounts.providerTotalDebitMinor) {
       await admin.rpc('release_payout_to_queued', {
         p_payout_id: payout.payout_id,
         p_reason: `Paystack available balance is insufficient for provider debit of ${amounts.providerTotalDebitMinor} minor units; payout remains queued.`,
