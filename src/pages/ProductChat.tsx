@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Flag, MessageCircle, MoreVertical, Send, ShieldCheck, Smile, Trash2, Users } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -40,6 +40,9 @@ export default function ProductChat() {
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
+  const [headerCompact, setHeaderCompact] = useState(false)
+  const threadRef = useRef<HTMLElement | null>(null)
+  const shouldStickToBottomRef = useRef(true)
 
   const currentRole = role === 'seller' ? 'seller' : 'customer'
   const loginTarget = `/chat/product/${productId}?business=${encodeURIComponent(businessId)}`
@@ -92,10 +95,35 @@ export default function ProductChat() {
   useEffect(() => {
     if (!conversationId) return
     return subscribeToConversation(conversationId, incoming => {
-      setMessages(previous => previous.some(message => message.id === incoming.id) ? previous : [...previous, incoming])
+      setMessages(previous => {
+        if (previous.some(message => message.id === incoming.id)) return previous
+        return [...previous, incoming].sort((a, b) => {
+          const byTime = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          return byTime || a.id.localeCompare(b.id)
+        })
+      })
       void getChatParticipantNames([incoming.sender_id]).then(names => setSenderNames(previous => ({ ...previous, ...names })))
     })
   }, [conversationId])
+
+  useEffect(() => {
+    const thread = threadRef.current
+    if (!thread) return
+    const onScroll = () => {
+      const distanceFromBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight
+      shouldStickToBottomRef.current = distanceFromBottom < 96
+      setHeaderCompact(thread.scrollTop > 24)
+    }
+    onScroll()
+    thread.addEventListener('scroll', onScroll, { passive: true })
+    return () => thread.removeEventListener('scroll', onScroll)
+  }, [conversationId])
+
+  useEffect(() => {
+    const thread = threadRef.current
+    if (!thread || !shouldStickToBottomRef.current) return
+    requestAnimationFrame(() => { thread.scrollTop = thread.scrollHeight })
+  }, [messages.length])
 
   const participantLabel = useMemo(() => `${sellerName} and the Reliable community`, [sellerName])
   const quickEmojis = ['👍', '❤️', '😂', '😮', '😢', '🎉']
@@ -135,7 +163,13 @@ export default function ProductChat() {
         body: draft,
         replyToMessageId: replyTo?.id,
       })
-      setMessages(previous => previous.some(item => item.id === message.id) ? previous : [...previous, message])
+      setMessages(previous => {
+        if (previous.some(item => item.id === message.id)) return previous
+        return [...previous, message].sort((a, b) => {
+          const byTime = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          return byTime || a.id.localeCompare(b.id)
+        })
+      })
       setDraft('')
       setReplyTo(null)
     } catch (err) {
@@ -175,7 +209,7 @@ export default function ProductChat() {
 
   return (
     <div className="product-chat-page">
-      <header className="chat-header">
+      <header className={`chat-header ${headerCompact ? 'is-compact' : ''}`}>
         <button className="chat-back-btn" onClick={() => navigate(-1)} aria-label="Go back"><ArrowLeft size={20} /></button>
         <div className="chat-product-summary">
           {product?.image_url && <img src={product.image_url} alt="" />}
@@ -187,9 +221,9 @@ export default function ProductChat() {
         <Users size={21} aria-label="Public discussion" />
       </header>
 
-      <div className="chat-safety-note"><ShieldCheck size={16} /> Public product discussion. Keep payments and private information inside Reliable Premium Marketplace.</div>
+      <div className={`chat-safety-note ${headerCompact ? 'is-hidden' : ''}`}><ShieldCheck size={16} /> Public product discussion. Keep payments and private information inside Reliable Premium Marketplace.</div>
 
-      <main className="chat-thread" aria-live="polite">
+      <main ref={threadRef} className="chat-thread" aria-live="polite">
         {messages.length === 0 && (
           <div className="chat-empty-state">
             <MessageCircle size={42} />
@@ -200,11 +234,13 @@ export default function ProductChat() {
         {messages.map(message => {
           const mine = message.sender_id === user?.id
           const canDelete = mine || role === 'seller' || role === 'admin'
-          const senderLabel = message.sender_role === 'seller'
-            ? `${senderNames[message.sender_id] || sellerName} · Seller`
-            : message.sender_role === 'admin'
-              ? `${senderNames[message.sender_id] || 'Reliable Admin'} · Admin`
-              : senderNames[message.sender_id] || 'Reliable member'
+          const senderLabel = mine
+            ? 'You'
+            : message.sender_role === 'seller'
+              ? `${senderNames[message.sender_id] || sellerName} · Seller`
+              : message.sender_role === 'admin'
+                ? `${senderNames[message.sender_id] || 'Reliable Admin'} · Admin`
+                : senderNames[message.sender_id] || 'Reliable member'
           const repliedTo = message.reply_to_message_id
             ? messages.find(candidate => candidate.id === message.reply_to_message_id)
             : undefined
@@ -234,7 +270,6 @@ export default function ProductChat() {
                     })}
                   </div>
                 )}
-                <time>{new Date(message.created_at).toLocaleString()}</time>
                 <button className="chat-message-menu-btn" onClick={() => setMenuMessageId(menuMessageId === message.id ? null : message.id)} aria-label="Message actions"><MoreVertical size={16} /></button>
                 {menuMessageId === message.id && (
                   <div className="chat-message-menu">
@@ -246,6 +281,9 @@ export default function ProductChat() {
                     </div>
                   </div>
                 )}
+              </div>
+              <div className="chat-message-meta">
+                <time dateTime={message.created_at}>{new Date(message.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</time>
               </div>
             </article>
           )

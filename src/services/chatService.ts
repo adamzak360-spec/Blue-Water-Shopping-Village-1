@@ -70,7 +70,10 @@ export async function listConversationMessages(conversationId: string, limit = 5
   if (before) query = query.lt('created_at', before)
   const { data, error } = await query
   if (error) throw error
-  return ((data || []) as ChatMessage[]).reverse()
+  return ((data || []) as ChatMessage[]).reverse().sort((a, b) => {
+    const byTime = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    return byTime || a.id.localeCompare(b.id)
+  })
 }
 
 export async function sendChatMessage(input: {
