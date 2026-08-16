@@ -24,6 +24,7 @@ import {
   type ChatMessageReceipt,
   type ChatReaction,
 } from '../services/chatService'
+import { markProductChatSeen } from '../services/chatUnreadStore'
 import './ProductChat.css'
 
 export default function ProductChat() {
@@ -78,6 +79,7 @@ export default function ProductChat() {
         setConversationId(conversation.id)
         const loadedMessages = await listConversationMessages(conversation.id)
         setMessages(loadedMessages)
+        markProductChatSeen(productId, loadedMessages.length > 0 ? loadedMessages[loadedMessages.length - 1].created_at : new Date().toISOString())
         const messageIds = loadedMessages.map(message => message.id)
         setReceipts(await listMessageReceipts(messageIds))
         setReactions(await listMessageReactions(messageIds))

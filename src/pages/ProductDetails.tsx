@@ -10,6 +10,8 @@ import { useAuth } from '../context/AuthContext'
 import { useWishlist } from '../context/WishlistContext'
 import { formatCurrency } from '../utils/currency'
 import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock, Heart, ZoomIn, Phone, MessageCircle } from 'lucide-react'
+import { getOrCreatePublicProductConversation, listConversationMessages, subscribeToConversation } from '../services/chatService'
+import { getChatUnreadState, getChatUnreadSince, markProductChatSeen, recordUnreadChatMessage, setChatUnreadCount, subscribeToChatUnreadChanges } from '../services/chatUnreadStore'
 import StockStatus from '../components/StockStatus'
 import ProductShare from '../components/ProductShare'
 import ProductCard from '../components/ProductCard'
@@ -31,6 +33,7 @@ export default function ProductDetails() {
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
   const [ratingStats, setRatingStats] = useState({ averageRating: 0, totalReviews: 0 })
+  const [chatUnreadCount, setChatUnreadCountState] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [quantity, setQuantity] = useState(1)
@@ -159,8 +162,47 @@ export default function ProductDetails() {
     loadProductAndReviews()
   }, [productId])
 
+  useEffect(() => {
+    if (!product?.id || !sellerBusiness?.id) return
+    let active = true
+    let cleanupRealtime: (() => void) | undefined
+    const initialState = getChatUnreadState(product.id)
+    setChatUnreadCountState(initialState.count)
+    const unsubscribeLocal = subscribeToChatUnreadChanges(product.id, state => {
+      if (active) setChatUnreadCountState(state.count)
+    })
+    const loadChatUnread = async () => {
+      try {
+        const conversation = await getOrCreatePublicProductConversation(product.id, sellerBusiness.id)
+        if (!active) return
+        const since = getChatUnreadSince(product.id)
+        const messages = await listConversationMessages(conversation.id, 100)
+        if (!active) return
+        const incoming = messages.filter(message => message.sender_id !== user?.id && (!since || new Date(message.created_at).getTime() > new Date(since).getTime()))
+        const newest = incoming.reduce<string | null>((latest, message) => !latest || new Date(message.created_at).getTime() > new Date(latest).getTime() ? message.created_at : latest, since)
+        setChatUnreadCount(product.id, incoming.length, newest)
+        setChatUnreadCountState(incoming.length)
+        cleanupRealtime = subscribeToConversation(conversation.id, message => {
+          if (!active || message.sender_id === user?.id) return
+          const next = recordUnreadChatMessage(product.id, message.created_at)
+          setChatUnreadCountState(next.count)
+        })
+      } catch (err) {
+        console.warn('Unable to load chat unread state:', err)
+      }
+    }
+    void loadChatUnread()
+    return () => {
+      active = false
+      unsubscribeLocal()
+      cleanupRealtime?.()
+    }
+  }, [product?.id, sellerBusiness?.id, user?.id])
+
   const handleChat = () => {
     if (!product || !sellerBusiness) return
+    markProductChatSeen(product.id)
+    setChatUnreadCountState(0)
     if (!user) {
       setShowChatGate(true)
       return
@@ -565,9 +607,10 @@ export default function ProductDetails() {
 
           {/* Action Buttons */}
           <div className="action-buttons">
-            <button className="chat-product-btn" onClick={handleChat} disabled={!sellerBusiness}>
+            <button className="chat-product-btn" onClick={handleChat} disabled={!sellerBusiness} aria-label={chatUnreadCount > 0 ? `Chat with Seller, ${chatUnreadCount} unread ${chatUnreadCount === 1 ? 'message' : 'messages'}` : 'Chat with Seller'}>
               <MessageCircle size={20} />
-              Chat with Seller
+              <span>Chat with Seller</span>
+              {chatUnreadCount > 0 && <span className="chat-unread-badge" aria-label={`${chatUnreadCount} unread ${chatUnreadCount === 1 ? 'message' : 'messages'}`}>{chatUnreadCount > 99 ? '99+' : chatUnreadCount}</span>}
             </button>
             <button
               className="add-to-cart-btn"
