@@ -14,6 +14,23 @@ type WalletSummary = {
   adjustments_minor: number
 }
 
+type WalletAccumulation = {
+  seller_id: string
+  store_id: string
+  currency: string
+  payout_method: string | null
+  available_minor: number
+  applicable_fee_minor: number | null
+  minimum_transfer_minor: number | null
+  required_wallet_minor: number | null
+  shortfall_minor: number | null
+  threshold_reached: boolean
+  expected_transfer_minor: number
+  expected_provider_debit_minor: number | null
+  eligible_earning_count: number
+  last_earning_at: string | null
+}
+
 type WalletLedgerEntry = {
   id: string
   transaction_type: string
@@ -100,6 +117,7 @@ export default function SellerPayouts({ businessIds, isAdmin = false }: { busine
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [wallet, setWallet] = useState<WalletSummary | null>(null)
+  const [walletAccumulations, setWalletAccumulations] = useState<Record<string, WalletAccumulation>>({})
   const [ledger, setLedger] = useState<WalletLedgerEntry[]>([])
   const [manualDrafts, setManualDrafts] = useState<Record<string, ManualDraft>>({})
   const [savingPayoutId, setSavingPayoutId] = useState<string | null>(null)
@@ -133,6 +151,27 @@ export default function SellerPayouts({ businessIds, isAdmin = false }: { busine
           .in('store_id', storeIds)
         if (profileError) setError(profileError.message)
         else setPayoutProfiles(Object.fromEntries(((profileData || []) as PayoutProfile[]).map((profile) => [`${profile.seller_id}:${profile.store_id}`, profile])))
+
+        if (isAdmin) {
+          try {
+            const accumulationEntries = await Promise.all(loadedPayouts
+              .filter((payout) => payout.seller_id && payout.store_id)
+              .filter((payout, index, all) => index === all.findIndex((candidate) => candidate.seller_id === payout.seller_id && candidate.store_id === payout.store_id))
+              .map(async (payout) => {
+                const { data: accumulationData, error: accumulationError } = await supabase!.rpc('get_seller_wallet_accumulation', {
+                  p_seller_id: payout.seller_id,
+                  p_store_id: payout.store_id,
+                })
+                if (accumulationError) throw accumulationError
+                const accumulation = (accumulationData?.[0] || null) as WalletAccumulation | null
+                return accumulation ? [`${accumulation.seller_id}:${accumulation.store_id}`, accumulation] as const : null
+              }))
+            setWalletAccumulations(Object.fromEntries(accumulationEntries.filter(Boolean) as Array<readonly [string, WalletAccumulation]>))
+          } catch (accumulationError: any) {
+            setWalletAccumulations({})
+            setError(accumulationError.message || 'Seller wallet threshold status could not be loaded.')
+          }
+        }
       }
     }
 
@@ -272,6 +311,26 @@ export default function SellerPayouts({ businessIds, isAdmin = false }: { busine
       {error && <div className="error-banner">{error}</div>}
       {success && <div className="success-banner">{success}</div>}
 
+      {isAdmin && Object.values(walletAccumulations).length > 0 && (
+        <section className="wallet-threshold-section">
+          <div className="wallet-heading">
+            <div>
+              <h3>Seller Wallet Thresholds</h3>
+              <p>Accumulated seller earnings are held until the transfer amount reaches the provider minimum.</p>
+            </div>
+          </div>
+          <div className="wallet-threshold-grid">
+            {Object.values(walletAccumulations).map((accumulation) => (
+              <div className="wallet-threshold-card" key={`${accumulation.seller_id}:${accumulation.store_id}`}>
+                <div className="wallet-threshold-card-header"><strong>Seller {accumulation.seller_id.slice(0, 8)}</strong><span className={`payout-badge ${accumulation.threshold_reached ? 'payout-paid' : 'payout-queued'}`}>{accumulation.threshold_reached ? 'Ready for payout' : 'Accumulating'}</span></div>
+                <small>Store: {accumulation.store_id.slice(0, 8)} · {payoutMethodLabel(accumulation.payout_method)}</small>
+                <div className="wallet-threshold-values"><span>Available<strong>{formatCurrency(accumulation.available_minor / 100)}</strong></span><span>Required<strong>{accumulation.required_wallet_minor == null ? 'Not configured' : formatCurrency(accumulation.required_wallet_minor / 100)}</strong></span><span>Shortfall<strong>{accumulation.shortfall_minor == null ? 'Not configured' : formatCurrency(accumulation.shortfall_minor / 100)}</strong></span><span>Expected sent<strong>{formatCurrency(accumulation.expected_transfer_minor / 100)}</strong></span></div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {businessIds && businessIds.length > 0 && wallet && (
         <>
           <div className="wallet-heading">
@@ -333,12 +392,13 @@ export default function SellerPayouts({ businessIds, isAdmin = false }: { busine
             {visible.map((payout) => {
               const profile = payoutProfiles[`${payout.seller_id}:${payout.store_id}`]
               const order = orderDetails[payout.order_id]
+              const accumulation = walletAccumulations[`${payout.seller_id}:${payout.store_id}`]
               const draft = manualDrafts[payout.payout_id] || { reference: '', notes: '' }
               const canMarkManualPaid = isAdmin && payout.payout_mode === 'MANUAL' && ['ELIGIBLE', 'QUEUED', 'FAILED'].includes(payout.payout_status) && Boolean(profile?.is_active && profile.payout_profile_confirmed_at)
               const canHold = isAdmin && ['HELD', 'ELIGIBLE', 'FAILED', 'RETRY_REQUIRED', 'PENDING_FUNDS', 'ON_HOLD'].includes(payout.payout_status)
               const canRelease = isAdmin && ['HELD', 'ON_HOLD'].includes(payout.payout_status)
               const canRetry = isAdmin && ['FAILED', 'RETRY_REQUIRED', 'PENDING_FUNDS'].includes(payout.payout_status)
-              const canExecutePaystack = isAdmin && payout.payout_mode !== 'MANUAL' && payout.payout_status === 'QUEUED' && payout.eligibility_status === 'ELIGIBLE' && Boolean(profile?.is_active && profile.payout_profile_confirmed_at && payout.payout_fee_minor != null && payout.seller_amount_sent_minor != null && payout.provider_total_debit_minor != null)
+              const canExecutePaystack = isAdmin && accumulation?.threshold_reached === true && payout.payout_mode !== 'MANUAL' && payout.payout_status === 'QUEUED' && payout.eligibility_status === 'ELIGIBLE' && Boolean(profile?.is_active && profile.payout_profile_confirmed_at && payout.payout_fee_minor != null && payout.seller_amount_sent_minor != null && payout.provider_total_debit_minor != null)
               return (
                 <tr key={payout.payout_id}>
                   <td><small>{new Date(payout.created_at).toLocaleString()}</small><small>{payout.paid_at ? `Paid ${new Date(payout.paid_at).toLocaleString()}` : 'Not paid'}</small></td>
@@ -353,7 +413,7 @@ export default function SellerPayouts({ businessIds, isAdmin = false }: { busine
                   <td>{payout.provider_total_debit_minor == null ? 'Not calculated' : formatCurrency(payout.provider_total_debit_minor / 100)}</td>
                   <td><span className="payout-badge">{payout.payout_mode === 'MANUAL' ? 'Manual payout' : 'Automated Paystack'}</span><span className={`payout-badge payout-${payout.payout_status.toLowerCase()}`}>{statusLabel[payout.payout_status] || payout.payout_status}</span>{payout.failure_reason && <small>{payout.failure_reason}</small>}</td>
                   <td>{payout.payout_mode === 'MANUAL' ? <><small>{profile ? `${profile.country_code || 'Country not set'} · ${profile.currency || payout.currency} · ${profile.recipient_type}` : 'Payout profile not found'}</small><small>{profile?.account_name || 'Account name not confirmed'} · ****{profile?.account_number_last4 || '----'}</small><small>{profile?.bank_code ? `Bank code: ${profile.bank_code}` : 'Bank/mobile provider not set'}</small><small>{payout.manual_payout_reference || 'No transfer reference recorded'}</small></> : payout.paystack_transfer_reference ? <small>{payout.paystack_transfer_reference}</small> : 'Not initiated'}</td>
-                  {isAdmin && <td><div className="payout-admin-actions">{canHold && <button className="btn-secondary btn-sm" onClick={() => performAdminAction(payout, 'hold')} disabled={savingPayoutId === payout.payout_id}>Hold</button>}{canRelease && <button className="btn-secondary btn-sm" onClick={() => performAdminAction(payout, 'release')} disabled={savingPayoutId === payout.payout_id}>Release</button>}{canRetry && <button className="btn-secondary btn-sm" onClick={() => performAdminAction(payout, 'retry')} disabled={savingPayoutId === payout.payout_id}>Retry</button>}{canExecutePaystack && <button className="btn-primary btn-sm" onClick={() => executePaystackPayout(payout)} disabled={savingPayoutId === payout.payout_id}>{savingPayoutId === payout.payout_id ? 'Executing…' : 'Execute Paystack payout'}</button>}{canMarkManualPaid ? <div className="manual-payout-form"><small>Use the saved profile above to send the transfer.</small><input aria-label="Manual payout reference" placeholder="Transfer reference" value={draft.reference} onChange={(event) => updateDraft(payout.payout_id, 'reference', event.target.value)} /><input aria-label="Manual payout notes" placeholder="Notes (optional)" value={draft.notes} onChange={(event) => updateDraft(payout.payout_id, 'notes', event.target.value)} /><button className="btn-primary btn-sm" onClick={() => markManualPaid(payout)} disabled={savingPayoutId === payout.payout_id}>{savingPayoutId === payout.payout_id ? 'Recording…' : 'Record manual payout'}</button></div> : payout.payout_mode === 'MANUAL' ? 'Completed or not ready' : 'Monitoring only'}</div></td>}
+                  {isAdmin && <td><div className="payout-admin-actions">{canHold && <button className="btn-secondary btn-sm" onClick={() => performAdminAction(payout, 'hold')} disabled={savingPayoutId === payout.payout_id}>Hold</button>}{canRelease && <button className="btn-secondary btn-sm" onClick={() => performAdminAction(payout, 'release')} disabled={savingPayoutId === payout.payout_id}>Release</button>}{canRetry && <button className="btn-secondary btn-sm" onClick={() => performAdminAction(payout, 'retry')} disabled={savingPayoutId === payout.payout_id}>Retry</button>}{canExecutePaystack && <button className="btn-primary btn-sm" onClick={() => executePaystackPayout(payout)} disabled={savingPayoutId === payout.payout_id}>{savingPayoutId === payout.payout_id ? 'Executing…' : 'Execute Paystack payout'}</button>}{isAdmin && payout.payout_mode !== 'MANUAL' && accumulation && !accumulation.threshold_reached && <small className="wallet-threshold-note">Accumulating: {formatCurrency((accumulation.shortfall_minor || 0) / 100)} more needed before the minimum transfer.</small>}{canMarkManualPaid ? <div className="manual-payout-form"><small>Use the saved profile above to send the transfer.</small><input aria-label="Manual payout reference" placeholder="Transfer reference" value={draft.reference} onChange={(event) => updateDraft(payout.payout_id, 'reference', event.target.value)} /><input aria-label="Manual payout notes" placeholder="Notes (optional)" value={draft.notes} onChange={(event) => updateDraft(payout.payout_id, 'notes', event.target.value)} /><button className="btn-primary btn-sm" onClick={() => markManualPaid(payout)} disabled={savingPayoutId === payout.payout_id}>{savingPayoutId === payout.payout_id ? 'Recording…' : 'Record manual payout'}</button></div> : payout.payout_mode === 'MANUAL' ? 'Completed or not ready' : 'Monitoring only'}</div></td>}
                 </tr>
               )
             })}

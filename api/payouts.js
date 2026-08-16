@@ -176,21 +176,13 @@ async function processQueue(admin, limit, singlePayoutId = null, allowAdminSingl
     if (!safety.ok) return { claimed: 0, processed: 0, pending: 0, failed: 0, skipped: true, reason: safety.reason };
   }
 
-  const headers = paystackHeaders();
   let processed = 0;
   let pending = 0;
   let failed = 0;
+  const thresholdQualifiedPayouts = [];
 
-  let balanceByCurrency = {};
-  let balanceVerified = false;
-  try {
-    const balanceResponse = await axios.get(`${PAYSTACK_BASE_URL}/balance`, { headers });
-    for (const balance of balanceResponse.data?.data || []) balanceByCurrency[balance.currency] = Number(balance.balance || 0);
-    balanceVerified = Array.isArray(balanceResponse.data?.data);
-  } catch (error) {
-    console.error('[PAYOUT] Could not inspect Paystack balance:', error.response?.data || error.message);
-  }
-
+  // Accumulation guard: release below-threshold earnings before any Paystack API call.
+  // The payout-ledger trigger preserves the seller allocation as an idempotent SALE_EARNING entry.
   for (const payout of payouts) {
     const feeConfig = getPaystackFeeConfig({
       country: payout.country_code || 'GH',
@@ -200,7 +192,7 @@ async function processQueue(admin, limit, singlePayoutId = null, allowAdminSingl
     if (!feeConfig) {
       await admin.rpc('release_payout_to_queued', {
         p_payout_id: payout.payout_id,
-        p_reason: 'Payout method or fee configuration is not verified; payout remains queued.',
+        p_reason: 'Payout method or fee configuration is not verified; earnings remain queued.',
       });
       pending += 1;
       continue;
@@ -215,13 +207,41 @@ async function processQueue(admin, limit, singlePayoutId = null, allowAdminSingl
       await admin.rpc('release_payout_to_queued', {
         p_payout_id: payout.payout_id,
         p_reason: !amounts.feeSufficient
-          ? 'Seller amount is insufficient to cover the applicable payout transfer fee.'
-          : 'Calculated seller transfer is below the provider minimum; payout remains queued.',
+          ? 'Seller wallet earnings are below the applicable payout fee; earnings remain accumulated.'
+          : `Seller wallet has not reached the Paystack minimum transfer threshold of ${feeConfig.minimumTransferMinor} minor units; earnings remain accumulated.`,
       });
       pending += 1;
       continue;
     }
+    thresholdQualifiedPayouts.push(payout);
+  }
 
+  if (thresholdQualifiedPayouts.length === 0) {
+    return { claimed: payouts.length, processed, pending, failed, accumulated: pending };
+  }
+
+  const headers = paystackHeaders();
+  let balanceByCurrency = {};
+  let balanceVerified = false;
+  try {
+    const balanceResponse = await axios.get(`${PAYSTACK_BASE_URL}/balance`, { headers });
+    for (const balance of balanceResponse.data?.data || []) balanceByCurrency[balance.currency] = Number(balance.balance || 0);
+    balanceVerified = Array.isArray(balanceResponse.data?.data);
+  } catch (error) {
+    console.error('[PAYOUT] Could not inspect Paystack balance:', error.response?.data || error.message);
+  }
+
+  for (const payout of thresholdQualifiedPayouts) {
+    const feeConfig = getPaystackFeeConfig({
+      country: payout.country_code || 'GH',
+      currency: payout.currency,
+      payoutMethod: payout.payout_method || payout.recipient_type,
+    });
+    const amounts = calculatePayoutAmounts({
+      sellerAmountBeforeFeeMinor: Number(payout.seller_payout_amount_minor),
+      feeMinor: feeConfig.feeMinor,
+      minimumTransferMinor: feeConfig.minimumTransferMinor,
+    });
     const available = balanceByCurrency[payout.currency] ?? null;
     if (!balanceVerified || available === null) {
       await admin.rpc('release_payout_to_queued', {
