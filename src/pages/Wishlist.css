@@ -29,8 +29,8 @@
 .wishlist-shop-btn { display: inline-flex; align-items: center; gap: .5rem; padding: .8rem 1.1rem; border-radius: .55rem; background: #059669; color: white; font-weight: 700; text-decoration: none; }
 .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.25rem; }
 .wishlist-card { overflow: hidden; display: flex; min-width: 0; flex-direction: column; border: 1px solid #e5e7eb; border-radius: .85rem; background: white; box-shadow: 0 8px 25px rgba(15, 23, 42, .06); }
-.wishlist-card-image { display: grid; flex: 0 0 280px; place-items: center; min-height: 280px; max-height: 280px; overflow: hidden; padding: .75rem; background: #f8fafc; text-decoration: none; color: #98a2b3; }
-.wishlist-card-image img { display: block; width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain !important; object-position: center !important; }
+.wishlist-card-image { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; min-height: 0; max-height: 520px; overflow: hidden; padding: .75rem; background: #f8fafc; text-decoration: none; color: #98a2b3; }
+.wishlist-card-image img { display: block; width: 100% !important; height: auto !important; max-width: 100% !important; max-height: 520px !important; object-fit: contain !important; object-position: center !important; }
 .wishlist-card-image img[src] { overflow: visible; }
 .wishlist-card-body { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: .55rem; padding: 1rem; background: #fff; }
 .wishlist-card-body .product-category,
@@ -58,7 +58,8 @@
   .wishlist-page { padding-top: 2.25rem; }
   .wishlist-header { align-items: start; flex-direction: column; }
   .wishlist-continue { font-size: .9rem; }
-  .wishlist-card-image { flex-basis: 300px; min-height: 300px; max-height: 300px; }
+  .wishlist-card-image { max-height: 620px; padding: .65rem; }
+  .wishlist-card-image img { max-height: 620px !important; }
   .wishlist-card-body { padding: .95rem; }
   .wishlist-card-body h2 { font-size: 1.15rem; line-height: 1.25; }
   .wishlist-card-actions { gap: .45rem; }
