@@ -151,6 +151,46 @@ export type DashboardStats = {
 
 export type ProductStatus = Product['status']
 
+export type ProductVisibilityTarget = 'STORE_ONLY' | 'PRODUCTS' | 'HOME' | 'HOME_AND_PRODUCTS'
+export type ProductVisibilityPaymentState = 'PENDING' | 'PAID' | 'EXPIRED' | 'CANCELLED' | 'REFUNDED' | 'REVOKED'
+
+export interface ProductVisibilityPlan {
+  id: string
+  code: string
+  name: string
+  description?: string | null
+  target: ProductVisibilityTarget
+  price_minor: number
+  currency: 'GHS'
+  duration_days: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface ProductVisibilityEntitlement {
+  id: string
+  seller_id: string
+  store_id: string
+  product_id: string
+  plan_id: string
+  target: ProductVisibilityTarget
+  status: ProductVisibilityPaymentState
+  amount_minor: number
+  currency: 'GHS'
+  duration_days: number
+  payment_reference?: string | null
+  paid_at?: string | null
+  starts_at?: string | null
+  expires_at?: string | null
+  revoked_at?: string | null
+  revoked_by?: string | null
+  revocation_reason?: string | null
+  payment_metadata?: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
 export interface CartItem extends Product {
   quantity: number
   selected_size?: string
