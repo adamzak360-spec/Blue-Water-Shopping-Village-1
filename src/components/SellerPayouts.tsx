@@ -41,6 +41,11 @@ type Payout = {
   gross_amount_minor: number
   commission_amount_minor: number
   seller_payout_amount_minor: number
+  payout_fee_minor: number | null
+  seller_amount_sent_minor: number | null
+  provider_total_debit_minor: number | null
+  minimum_transfer_minor: number | null
+  payout_method: string | null
   currency: string
   eligibility_status: string
   payout_status: string
@@ -98,6 +103,8 @@ export default function SellerPayouts({ businessIds, isAdmin = false }: { busine
   const [manualDrafts, setManualDrafts] = useState<Record<string, ManualDraft>>({})
   const [savingPayoutId, setSavingPayoutId] = useState<string | null>(null)
   const [orderDetails, setOrderDetails] = useState<Record<string, OrderDelivery>>({})
+
+  const payoutMethodLabel = (method: string | null) => method === 'mobile_money' ? 'Mobile Money' : method === 'bank' ? 'Bank' : 'Not verified'
 
   const load = async () => {
     if (!supabase) return
@@ -289,7 +296,7 @@ export default function SellerPayouts({ businessIds, isAdmin = false }: { busine
 
       <div className="payout-table-wrap">
         <table className="payout-table">
-          <thead><tr><th>Created / paid</th><th>Order / customer</th><th>Seller / Store</th><th>Delivery confirmation</th><th>Eligibility</th><th>Gross</th><th>Commission</th><th>Seller amount</th><th>Mode / transfer status</th><th>Transfer / manual record</th>{isAdmin && <th>Admin action</th>}</tr></thead>
+          <thead><tr><th>Created / paid</th><th>Order / customer</th><th>Seller / Store</th><th>Delivery confirmation</th><th>Eligibility</th><th>Gross</th><th>Commission</th><th>Seller allocation</th><th>Fee / actual sent</th><th>Provider debit</th><th>Mode / transfer status</th><th>Transfer / manual record</th>{isAdmin && <th>Admin action</th>}</tr></thead>
           <tbody>
             {visible.map((payout) => {
               const profile = payoutProfiles[`${payout.seller_id}:${payout.store_id}`]
@@ -308,7 +315,9 @@ export default function SellerPayouts({ businessIds, isAdmin = false }: { busine
                   <td><span className="payout-badge">{payout.eligibility_status}</span></td>
                   <td>{formatCurrency(payout.gross_amount_minor / 100)}</td>
                   <td>{formatCurrency(payout.commission_amount_minor / 100)}</td>
-                  <td><strong>{formatCurrency(payout.seller_payout_amount_minor / 100)}</strong></td>
+                  <td><strong>{formatCurrency(payout.seller_payout_amount_minor / 100)}</strong><small>{payoutMethodLabel(payout.payout_method)}</small></td>
+                  <td><small>Fee: {payout.payout_fee_minor == null ? 'Not verified' : formatCurrency(payout.payout_fee_minor / 100)}</small><small>Actual sent: {payout.seller_amount_sent_minor == null ? 'Not calculated' : formatCurrency(payout.seller_amount_sent_minor / 100)}</small></td>
+                  <td>{payout.provider_total_debit_minor == null ? 'Not calculated' : formatCurrency(payout.provider_total_debit_minor / 100)}</td>
                   <td><span className="payout-badge">{payout.payout_mode === 'MANUAL' ? 'Manual payout' : 'Automated Paystack'}</span><span className={`payout-badge payout-${payout.payout_status.toLowerCase()}`}>{statusLabel[payout.payout_status] || payout.payout_status}</span>{payout.failure_reason && <small>{payout.failure_reason}</small>}</td>
                   <td>{payout.payout_mode === 'MANUAL' ? <><small>{profile ? `${profile.country_code || 'Country not set'} · ${profile.currency || payout.currency} · ${profile.recipient_type}` : 'Payout profile not found'}</small><small>{profile?.account_name || 'Account name not confirmed'} · ****{profile?.account_number_last4 || '----'}</small><small>{profile?.bank_code ? `Bank code: ${profile.bank_code}` : 'Bank/mobile provider not set'}</small><small>{payout.manual_payout_reference || 'No transfer reference recorded'}</small></> : payout.paystack_transfer_reference ? <small>{payout.paystack_transfer_reference}</small> : 'Not initiated'}</td>
                   {isAdmin && <td><div className="payout-admin-actions">{canHold && <button className="btn-secondary btn-sm" onClick={() => performAdminAction(payout, 'hold')} disabled={savingPayoutId === payout.payout_id}>Hold</button>}{canRelease && <button className="btn-secondary btn-sm" onClick={() => performAdminAction(payout, 'release')} disabled={savingPayoutId === payout.payout_id}>Release</button>}{canRetry && <button className="btn-secondary btn-sm" onClick={() => performAdminAction(payout, 'retry')} disabled={savingPayoutId === payout.payout_id}>Retry</button>}{canMarkManualPaid ? <div className="manual-payout-form"><small>Use the saved profile above to send the transfer.</small><input aria-label="Manual payout reference" placeholder="Transfer reference" value={draft.reference} onChange={(event) => updateDraft(payout.payout_id, 'reference', event.target.value)} /><input aria-label="Manual payout notes" placeholder="Notes (optional)" value={draft.notes} onChange={(event) => updateDraft(payout.payout_id, 'notes', event.target.value)} /><button className="btn-primary btn-sm" onClick={() => markManualPaid(payout)} disabled={savingPayoutId === payout.payout_id}>{savingPayoutId === payout.payout_id ? 'Recording…' : 'Record manual payout'}</button></div> : payout.payout_mode === 'MANUAL' ? 'Completed or not ready' : 'Monitoring only'}</div></td>}

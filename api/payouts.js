@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const axios = require('axios');
 const { createClient } = require('@supabase/supabase-js');
+const { getPaystackFeeConfig, calculatePayoutAmounts } = require('./payout-fees');
 
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 
@@ -101,11 +102,41 @@ async function processQueue(admin, limit, singlePayoutId = null) {
   }
 
   for (const payout of payouts) {
-    const available = balanceByCurrency[payout.currency] ?? null;
-    if (available !== null && available < Number(payout.seller_payout_amount_minor)) {
+    const feeConfig = getPaystackFeeConfig({
+      country: payout.country_code || 'GH',
+      currency: payout.currency,
+      payoutMethod: payout.payout_method || payout.recipient_type,
+    });
+    if (!feeConfig) {
       await admin.rpc('release_payout_to_queued', {
         p_payout_id: payout.payout_id,
-        p_reason: 'Paystack balance is not currently sufficient; payout remains queued.',
+        p_reason: 'Payout method or fee configuration is not verified; payout remains queued.',
+      });
+      pending += 1;
+      continue;
+    }
+
+    const amounts = calculatePayoutAmounts({
+      sellerAmountBeforeFeeMinor: Number(payout.seller_payout_amount_minor),
+      feeMinor: feeConfig.feeMinor,
+      minimumTransferMinor: feeConfig.minimumTransferMinor,
+    });
+    if (!amounts.feeSufficient || !amounts.minimumTransferSatisfied || !amounts.providerTotalDebitMinor) {
+      await admin.rpc('release_payout_to_queued', {
+        p_payout_id: payout.payout_id,
+        p_reason: !amounts.feeSufficient
+          ? 'Seller amount is insufficient to cover the applicable payout transfer fee.'
+          : 'Calculated seller transfer is below the provider minimum; payout remains queued.',
+      });
+      pending += 1;
+      continue;
+    }
+
+    const available = balanceByCurrency[payout.currency] ?? null;
+    if (available !== null && available < amounts.providerTotalDebitMinor) {
+      await admin.rpc('release_payout_to_queued', {
+        p_payout_id: payout.payout_id,
+        p_reason: `Paystack available balance is insufficient for provider debit of ${amounts.providerTotalDebitMinor} minor units; payout remains queued.`,
       });
       pending += 1;
       continue;
@@ -140,7 +171,7 @@ async function processQueue(admin, limit, singlePayoutId = null) {
 
       const initiated = await axios.post(`${PAYSTACK_BASE_URL}/transfer`, {
         source: 'balance',
-        amount: Number(payout.seller_payout_amount_minor),
+        amount: amounts.sellerAmountSentMinor,
         recipient: payout.recipient_code,
         reference,
         reason: `Reliable seller payout for order ${payout.order_id}`,
