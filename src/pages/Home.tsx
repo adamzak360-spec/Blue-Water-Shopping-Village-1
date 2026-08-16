@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase, isSupabaseConfigured } from '../supabaseClient'
 import { validateEmail } from '../utils/validation'
-import { getAllProducts } from '../services/productService'
+import { getPublicCatalogProducts } from '../services/productService'
 import { shuffle } from '../utils/shuffle'
 import { getActivePromotedProducts, type ActivePromotedProduct } from '../services/promotionService'
 import type { Product } from '../types'
@@ -89,14 +89,15 @@ export default function Home() {
     bestSellers: useRef<HTMLDivElement>(null),
     newArrivals: useRef<HTMLDivElement>(null),
     sponsored: useRef<HTMLDivElement>(null),
-    flashDeals: useRef<HTMLDivElement>(null)
+    flashDeals: useRef<HTMLDivElement>(null),
+    featured: useRef<HTMLDivElement>(null)
   } as const
 
   useEffect(() => {
     const load = async () => {
       try {
         const [data, activePromotionData] = await Promise.all([
-          getAllProducts(),
+          getPublicCatalogProducts('HOME'),
           getActivePromotedProducts(),
         ])
         setAllProducts(shuffle(data))
@@ -154,6 +155,21 @@ export default function Home() {
   const flashDeals = organicProducts
     .filter(product => product.price < 50 && !usedBeforeFlashDeals.has(product.id))
     .slice(0, 8)
+
+  const [isFeaturedPaused, setIsFeaturedPaused] = useState(false)
+
+  // Keep the curated showcase moving gently from one end to the other.
+  useEffect(() => {
+    const rail = scrollRefs.featured.current
+    if (!rail || promotedProducts.length < 2 || isFeaturedPaused) return
+    const timer = window.setInterval(() => {
+      const maxScroll = rail.scrollWidth - rail.clientWidth
+      if (maxScroll <= 0) return
+      const nextPosition = rail.scrollLeft + 1
+      rail.scrollTo({ left: nextPosition >= maxScroll ? 0 : nextPosition, behavior: 'auto' })
+    }, 32)
+    return () => window.clearInterval(timer)
+  }, [promotedProducts.length, isFeaturedPaused])
 
   const scroll = (ref: React.RefObject<HTMLDivElement | null>, direction: 'left' | 'right') => {
     if (ref.current) {
@@ -376,6 +392,42 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* --- Managed Featured Showcase: intentionally between Call to Order and Newsletter --- */}
+      {promotedProducts.length > 0 && (
+        <section
+          className="section featured-showcase-section"
+          aria-label="Featured products"
+          onMouseEnter={() => setIsFeaturedPaused(true)}
+          onMouseLeave={() => setIsFeaturedPaused(false)}
+          onFocus={() => setIsFeaturedPaused(true)}
+          onBlur={() => setIsFeaturedPaused(false)}
+        >
+          <div className="container">
+            <div className="featured-showcase-heading">
+              <div>
+                <span className="featured-showcase-eyebrow">Selected for you</span>
+                <h3>Featured on Reliable</h3>
+                <p>Explore products selected by our marketplace team.</p>
+              </div>
+              <Link to="/products" className="featured-showcase-link">View all products <ArrowRight size={16} /></Link>
+            </div>
+            <div className="featured-showcase-rail" ref={scrollRefs.featured}>
+              {promotedProducts.slice(0, 12).map((product) => (
+                <div key={product.id} className="featured-showcase-card">
+                  <ProductCard
+                    product={product}
+                    featuredMedia
+                    showStock
+                    isSponsored
+                    promotionId={promotionIdByProductId.get(product.id)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* --- Newsletter --- */}
       <section className="section newsletter-section">

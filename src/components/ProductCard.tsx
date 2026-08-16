@@ -13,9 +13,10 @@ interface ProductCardProps {
   showStock?: boolean
   isSponsored?: boolean
   promotionId?: string
+  featuredMedia?: boolean
 }
 
-export default function ProductCard({ product, showStock = true, isSponsored = false, promotionId }: ProductCardProps) {
+export default function ProductCard({ product, showStock = true, isSponsored = false, promotionId, featuredMedia = false }: ProductCardProps) {
   const { addToCart } = useCart()
 
   useEffect(() => {
@@ -28,7 +29,18 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
     <div className="product-card">
       <Link to={`/product/${product.id}`} className="product-image-link">
         <div className="product-image-container">
-          {product.image_url ? (
+          {featuredMedia && product.video_urls?.[0] ? (
+            <video
+              src={product.video_urls[0]}
+              className="product-image featured-product-video"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-label={`${product.name} product video`}
+            />
+          ) : product.image_url ? (
             <img
               src={product.image_url}
               alt={product.name}
@@ -43,7 +55,7 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
               }}
             />
           ) : null}
-          <div className={`product-image-placeholder ${!product.image_url ? 'visible' : ''}`}>
+          <div className={`product-image-placeholder ${!product.image_url && !(featuredMedia && product.video_urls?.[0]) ? 'visible' : ''}`}>
             <span>No image</span>
           </div>
           <button

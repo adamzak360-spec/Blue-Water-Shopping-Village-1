@@ -373,6 +373,117 @@
   color: var(--color-text-secondary);
 }
 
+/* Managed featured showcase between Call to Order and Newsletter */
+.featured-showcase-section {
+  background: linear-gradient(180deg, #f0fdf9 0%, #ffffff 100%);
+  padding: var(--space-2xl) 0;
+  border-top: 1px solid rgba(16, 185, 129, 0.16);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.featured-showcase-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.featured-showcase-eyebrow {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #059669;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.featured-showcase-heading h3 {
+  margin: 0;
+  color: #062c5c;
+  font-size: clamp(1.65rem, 3vw, 2.2rem);
+  font-weight: 800;
+}
+
+.featured-showcase-heading p {
+  margin: 0.35rem 0 0;
+  color: var(--color-text-secondary);
+}
+
+.featured-showcase-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+  color: #062c5c;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.featured-showcase-link:hover {
+  color: #059669;
+}
+
+.featured-showcase-rail {
+  display: flex;
+  gap: var(--space-md);
+  overflow-x: auto;
+  padding: var(--space-sm) var(--space-md) var(--space-lg);
+  margin: 0 calc(-1 * var(--space-md));
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.featured-showcase-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.featured-showcase-card {
+  flex: 0 0 280px;
+  scroll-snap-align: start;
+}
+
+.featured-showcase-card .product-card {
+  height: 100%;
+  border: 1px solid rgba(6, 44, 92, 0.1);
+  box-shadow: 0 12px 28px rgba(6, 44, 92, 0.1);
+}
+
+.featured-product-video {
+  background: #062c5c;
+}
+
+@media (max-width: 768px) {
+  .featured-showcase-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .featured-showcase-link {
+    align-self: flex-start;
+  }
+
+  .featured-showcase-card {
+    flex-basis: 240px;
+  }
+}
+
+@media (max-width: 480px) {
+  .featured-showcase-rail {
+    gap: var(--space-sm);
+    padding-left: var(--space-sm);
+    padding-right: var(--space-sm);
+    margin-left: calc(-1 * var(--space-sm));
+    margin-right: calc(-1 * var(--space-sm));
+  }
+
+  .featured-showcase-card {
+    flex-basis: 220px;
+  }
+}
+
 /* Newsletter Section */
 .newsletter-card {
   background-color: black;
