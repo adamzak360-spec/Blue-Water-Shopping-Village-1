@@ -120,12 +120,25 @@ function getEmailWrapper(content: string, title: string): string {
             padding: 14px 20px 8px;
             text-align: center;
           }
-          .brand-banner img {
-            display: inline-block;
-            width: 64px;
-            height: 64px;
+          .brand-lockup {
+            border-collapse: collapse;
+            margin: 0 auto;
+          }
+          .brand-lockup-logo {
+            display: block;
+            width: 38px;
+            height: 38px;
             object-fit: contain;
-            border-radius: 12px;
+            border: 0;
+          }
+          .brand-lockup-name {
+            padding-left: 7px;
+            color: #1e3a8a;
+            font-size: 18px;
+            line-height: 38px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            white-space: nowrap;
           }
           .header h1 {
             font-size: 24px;
@@ -271,7 +284,12 @@ function getEmailWrapper(content: string, title: string): string {
       <body>
         <div class="email-container">
           <div class="brand-banner">
-            <img src="${EMAIL_LOGO_URL}" alt="${COMPANY_NAME} full shopping-bag logo" width="96" height="96" border="0" style="display:block;width:96px;height:96px;margin:0 auto;object-fit:contain;">
+            <table role="presentation" class="brand-lockup" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td valign="middle"><img src="${EMAIL_LOGO_URL}" alt="${COMPANY_NAME} shopping-bag logo" width="38" height="38" border="0" class="brand-lockup-logo" style="display:block;width:38px;height:38px;object-fit:contain;border:0;"></td>
+                <td valign="middle" class="brand-lockup-name" style="padding-left:7px;color:#1e3a8a;font-size:18px;line-height:38px;font-weight:800;letter-spacing:-0.02em;white-space:nowrap;">Reliable Premium Marketplace</td>
+              </tr>
+            </table>
           </div>
           ${content}
           <div class="footer">
