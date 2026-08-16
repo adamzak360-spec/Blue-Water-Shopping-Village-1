@@ -42,7 +42,7 @@
 }
 
 .stock-status.low-stock {
-  --stock-beacon-fill: linear-gradient(135deg, #dc2626 0 50%, #16a34a 50% 100%);
+  --stock-beacon-fill: #dc2626;
   --stock-beacon-ring: rgba(220, 38, 38, 0.42);
 }
 
