@@ -2,7 +2,7 @@ from pathlib import Path
 from PIL import Image
 
 root = Path('/home/ubuntu/Blue-Water-Shopping-Village-1')
-src = root / 'public/manual-assets/reliable-logo.png'
+src = root / 'public/manual-assets/reliable-logo-full-source.webp'
 out = root / 'public/manual-assets/reliable-email-logo.png'
 
 with Image.open(src) as image:

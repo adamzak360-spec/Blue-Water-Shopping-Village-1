@@ -271,7 +271,7 @@ function getEmailWrapper(content: string, title: string): string {
       <body>
         <div class="email-container">
           <div class="brand-banner">
-            <img src="${EMAIL_LOGO_URL}" alt="${COMPANY_NAME}" width="64" height="64" border="0" style="display:block;width:64px;height:64px;margin:0 auto;object-fit:contain;">
+            <img src="${EMAIL_LOGO_URL}" alt="${COMPANY_NAME} full shopping-bag logo" width="96" height="96" border="0" style="display:block;width:96px;height:96px;margin:0 auto;object-fit:contain;">
           </div>
           ${content}
           <div class="footer">
