@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getAllProducts } from '../services/productService'
+import { getPublicCatalogProducts } from '../services/productService'
 import { getMarketplaceProductCountVisibility } from '../services/businessService'
 import { shuffle } from '../utils/shuffle'
 import { getActivePromotedProducts, type ActivePromotedProduct } from '../services/promotionService'
@@ -18,6 +18,7 @@ interface SearchSuggestion {
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+  const [searchMatches, setSearchMatches] = useState<Product[] | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
@@ -50,7 +51,7 @@ export default function Products() {
     const loadProducts = async () => {
       try {
         const [data, shouldShowProductCount, activePromotionIds] = await Promise.all([
-          getAllProducts(),
+          getPublicCatalogProducts('PRODUCTS'),
           getMarketplaceProductCountVisibility(),
           getActivePromotedProducts(),
         ])
@@ -69,9 +70,24 @@ export default function Products() {
   }, [])
 
   useEffect(() => {
-    let result = showAll ? [...products] : products.filter(p => p.status === 'active')
+    const normalizedSearch = searchTerm.trim()
+    if (!normalizedSearch) {
+      setSearchMatches(null)
+      return
+    }
+    let cancelled = false
+    const timer = window.setTimeout(() => {
+      void getPublicCatalogProducts('PRODUCTS', normalizedSearch)
+        .then(data => { if (!cancelled) setSearchMatches(data.filter(p => p.status === 'active')) })
+        .catch(() => { if (!cancelled) setSearchMatches([]) })
+    }, 220)
+    return () => { cancelled = true; window.clearTimeout(timer) }
+  }, [searchTerm])
 
-    if (searchTerm) {
+  useEffect(() => {
+    let result = searchTerm.trim() && searchMatches ? [...searchMatches] : (showAll ? [...products] : products.filter(p => p.status === 'active'))
+
+    if (searchTerm && !searchMatches) {
       const lower = searchTerm.toLowerCase()
       result = result.filter(p =>
         p.name.toLowerCase().includes(lower) ||
@@ -85,7 +101,7 @@ export default function Products() {
     }
 
     setFilteredProducts(result)
-  }, [searchTerm, selectedCategory, showAll, products])
+  }, [searchTerm, selectedCategory, showAll, products, searchMatches])
 
   const categories = [...new Set(products.map(p => p.category))].sort()
   const activeCount = products.filter(p => p.status === 'active').length

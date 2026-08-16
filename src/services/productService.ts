@@ -57,6 +57,25 @@ export async function getAllProducts(businessId?: string): Promise<Product[]> {
   return products
 }
 
+export type PublicCatalogDestination = 'HOME' | 'PRODUCTS'
+
+export async function getPublicCatalogProducts(destination: PublicCatalogDestination, searchTerm = ''): Promise<Product[]> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  const { data, error } = await supabase.rpc('get_public_catalog_products', {
+    p_destination: destination,
+    p_search: searchTerm.trim() || null,
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return (data as Product[]) || []
+}
+
 export async function getActiveProducts(): Promise<Product[]> {
   if (isCacheValid() && activeProductsCache) {
     return activeProductsCache

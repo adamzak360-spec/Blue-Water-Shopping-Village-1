@@ -52,6 +52,8 @@ import './Admin.css'
   const AdminPromotions = lazy(() => import('../components/AdminPromotions'))
   const AdminAds = lazy(() => import('../components/AdminAds'))
   const SellerPromotions = lazy(() => import('../components/SellerPromotions'))
+  const ProductVisibilityManagement = lazy(() => import('../components/ProductVisibilityManagement'))
+  const SellerProductVisibility = lazy(() => import('../components/SellerProductVisibility'))
 
   // Prefetch functions for near-instant transitions
   const prefetchInventory = () => import('../components/InventoryManagement')
@@ -64,8 +66,10 @@ import './Admin.css'
   const prefetchAdminPromotions = () => import('../components/AdminPromotions')
   const prefetchAdminAds = () => import('../components/AdminAds')
   const prefetchSellerPromotions = () => import('../components/SellerPromotions')
+  const prefetchProductVisibility = () => import('../components/ProductVisibilityManagement')
+  const prefetchSellerProductVisibility = () => import('../components/SellerProductVisibility')
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts' | 'promotions' | 'ads' | 'settings' | 'delivery' | 'marketplace' | 'news'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts' | 'promotions' | 'ads' | 'settings' | 'delivery' | 'marketplace' | 'news' | 'visibility'
 
 interface ProductFormErrors {
   name?: string
@@ -1111,16 +1115,32 @@ export default function Admin() {
             >
               Ads / Advertising
             </button>
+            <button
+              className={`tab ${view === 'visibility' ? 'active' : ''}`}
+              onClick={() => setView('visibility')}
+              onMouseEnter={prefetchProductVisibility}
+            >
+              Product Visibility
+            </button>
           </>
         )}
         {isSellerRole && (
-          <button
-            className={`tab ${view === 'promotions' ? 'active' : ''}`}
-            onClick={() => setView('promotions')}
-            onMouseEnter={prefetchSellerPromotions}
-          >
-            Promote Products
-          </button>
+          <>
+            <button
+              className={`tab ${view === 'promotions' ? 'active' : ''}`}
+              onClick={() => setView('promotions')}
+              onMouseEnter={prefetchSellerPromotions}
+            >
+              Promote Products
+            </button>
+            <button
+              className={`tab ${view === 'visibility' ? 'active' : ''}`}
+              onClick={() => setView('visibility')}
+              onMouseEnter={prefetchSellerProductVisibility}
+            >
+              Product Visibility
+            </button>
+          </>
         )}
         <button
           className={`tab ${view === 'payouts' ? 'active' : ''}`}
@@ -1184,6 +1204,8 @@ export default function Admin() {
         {view === 'promotions' && canManageNews && <AdminPromotions />}
         {/* Standalone Reliable Ads management. */}
         {view === 'ads' && canManageNews && <AdminAds />}
+        {view === 'visibility' && isAdminRole && <ProductVisibilityManagement />}
+        {view === 'visibility' && isSellerRole && <SellerProductVisibility businessIds={sellerBusinessIds} />}
         {view === 'promotions' && isSellerRole && <SellerPromotions businessIds={sellerBusinessIds} />}
         {/* Marketplace Settings View */}
         {view === 'marketplace' && isAdminRole && (

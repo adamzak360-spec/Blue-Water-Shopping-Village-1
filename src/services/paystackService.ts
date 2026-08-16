@@ -92,6 +92,46 @@ export const confirmAdvertisingPayment = async (
   return data
 }
 
+export interface ProductVisibilityPaymentResponse {
+  status: boolean
+  message: string
+  data: {
+    authorization_url?: string
+    access_code?: string
+    visibility_entitlement_id: string
+    payment_reference: string
+    [key: string]: unknown
+  }
+}
+
+export const initializeProductVisibilityPayment = async (
+  payload: { business_id: string; product_id: string; plan_id: string; callback_url?: string },
+  accessToken: string,
+): Promise<ProductVisibilityPaymentResponse> => {
+  const response = await fetch('/api/paystack', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ action: 'initialize_product_visibility', ...payload, callback_url: payload.callback_url || window.location.href }),
+  })
+  const data = await response.json()
+  if (!response.ok || !data.status) throw new Error(data.error || data.message || 'Failed to start visibility payment')
+  return data as ProductVisibilityPaymentResponse
+}
+
+export const confirmProductVisibilityPayment = async (
+  payload: { visibility_entitlement_id: string; reference: string },
+  accessToken: string,
+): Promise<ProductVisibilityPaymentResponse> => {
+  const response = await fetch('/api/paystack', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ action: 'confirm_product_visibility', ...payload }),
+  })
+  const data = await response.json()
+  if (!response.ok || !data.status) throw new Error(data.error || data.message || 'Failed to confirm visibility payment')
+  return data as ProductVisibilityPaymentResponse
+}
+
 export interface PaystackVerifyPaymentResponse {
   status: boolean
   message: string
