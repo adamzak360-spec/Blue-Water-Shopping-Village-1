@@ -13,7 +13,7 @@ const SUPPORT_EMAIL = 'support@reliable.com'
 const PHONE = '+233 59 560 9966'
 const SUPPORT_WHATSAPP = '+233 20 335 5542'
 const COMPANY_LOCATION = 'Tamale, Ghana'
-const EMAIL_LOGO_URL = 'https://reliable-now.vercel.app/manual-assets/reliable-logo.png'
+const EMAIL_LOGO_URL = 'https://reliable-now.vercel.app/manual-assets/reliable-email-logo.png'
 
 function getSellerContext(order: Order): SellerOrderContext {
   return order.seller_context || {}
@@ -271,7 +271,7 @@ function getEmailWrapper(content: string, title: string): string {
       <body>
         <div class="email-container">
           <div class="brand-banner">
-            <img src="${EMAIL_LOGO_URL}" alt="${COMPANY_NAME}" width="64" height="64">
+            <img src="${EMAIL_LOGO_URL}" alt="${COMPANY_NAME}" width="64" height="64" border="0" style="display:block;width:64px;height:64px;margin:0 auto;object-fit:contain;">
           </div>
           ${content}
           <div class="footer">
