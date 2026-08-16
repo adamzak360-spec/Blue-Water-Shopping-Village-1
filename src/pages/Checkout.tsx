@@ -658,12 +658,22 @@ export default function Checkout() {
             <div className="summary-items">
               {cart.map((item, index) => (
                 <div key={`${item.id}-${item.selected_size || index}`} className="summary-item">
-                  <div className="summary-item-info">
-                    <span className="summary-item-name">{item.name}</span>
-                    {item.selected_size && (
-                      <span className="summary-item-variant">Size: {item.selected_size}</span>
-                    )}
-                    <span className="summary-item-qty">x {item.quantity}</span>
+                  <div className="summary-item-product">
+                    <div className="summary-item-image-wrap">
+                      <img
+                        src={item.image_url || '/placeholder-product.png'}
+                        alt={item.name}
+                        className="summary-item-image"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="summary-item-info">
+                      <span className="summary-item-name">{item.name}</span>
+                      {item.selected_size && (
+                        <span className="summary-item-variant">Size: {item.selected_size}</span>
+                      )}
+                      <span className="summary-item-qty">x {item.quantity}</span>
+                    </div>
                   </div>
                   <span className="summary-item-price">{formatCurrency(item.price * item.quantity, item.currency || 'GHS')}</span>
                 </div>

@@ -13,6 +13,7 @@ const SUPPORT_EMAIL = 'support@reliable.com'
 const PHONE = '+233 59 560 9966'
 const SUPPORT_WHATSAPP = '+233 20 335 5542'
 const COMPANY_LOCATION = 'Tamale, Ghana'
+const EMAIL_LOGO_URL = 'https://reliable-now.vercel.app/manual-assets/reliable-logo.png'
 
 function getSellerContext(order: Order): SellerOrderContext {
   return order.seller_context || {}
@@ -113,6 +114,18 @@ function getEmailWrapper(content: string, title: string): string {
             color: white;
             padding: 30px 20px;
             text-align: center;
+          }
+          .brand-banner {
+            background-color: #ffffff;
+            padding: 14px 20px 8px;
+            text-align: center;
+          }
+          .brand-banner img {
+            display: inline-block;
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            border-radius: 12px;
           }
           .header h1 {
             font-size: 24px;
@@ -257,6 +270,9 @@ function getEmailWrapper(content: string, title: string): string {
       </head>
       <body>
         <div class="email-container">
+          <div class="brand-banner">
+            <img src="${EMAIL_LOGO_URL}" alt="${COMPANY_NAME}" width="64" height="64">
+          </div>
           ${content}
           <div class="footer">
             <p><strong>${COMPANY_NAME}</strong></p>
