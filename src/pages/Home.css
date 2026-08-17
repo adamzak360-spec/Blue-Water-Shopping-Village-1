@@ -434,7 +434,11 @@
   scroll-snap-type: none;
   scroll-behavior: auto;
   overscroll-behavior-x: contain;
-  touch-action: pan-x;
+  overscroll-behavior-y: auto;
+  /* Let the browser detect gesture direction: horizontal swipes move the rail,
+     while vertical swipes continue scrolling the Home page. */
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
   cursor: grab;
   scrollbar-width: none;
 }
