@@ -289,10 +289,10 @@ export default function Checkout() {
       const paymentInit = await initializePayment({
         email: formData.email,
         amount: Math.round(total * 100), // Convert to kobo
-        currency: currency,
-        reference: reference,
-          callback_url: `${window.location.origin}/checkout`,
-          metadata: {
+        currency,
+        reference,
+        callback_url: `${window.location.origin}/checkout`,
+        metadata: {
           customer_name: formData.fullName,
           customer_phone: formData.phone,
           delivery_address: formData.address,
@@ -309,8 +309,8 @@ export default function Checkout() {
           payment_country: 'GH',
           payment_currency: currency,
           order_reservation_reference: reference,
-        }
-      })
+        },
+      }, accessToken)
 
       // Persist state before redirecting
       localStorage.setItem('checkout_state', JSON.stringify({
