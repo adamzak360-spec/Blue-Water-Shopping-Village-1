@@ -158,8 +158,16 @@ export default function Checkout() {
     script.async = true
     document.body.appendChild(script)
 
-    // Check for persisted checkout state after redirect
+    // Restore the checkout reference from local state or Paystack's mobile
+    // callback query. Some mobile money flows return with `reference`/`trxref`
+    // but the browser may have dropped the localStorage marker.
+    const returnedReference = new URLSearchParams(window.location.search).get('reference')
+      || new URLSearchParams(window.location.search).get('trxref')
     const persistedState = localStorage.getItem('checkout_state')
+    if (returnedReference && !persistedState) {
+      setPaymentReference(returnedReference)
+      setPaymentStep('payment')
+    }
     if (persistedState) {
       try {
         const { reference, formData: savedFormData, timestamp } = JSON.parse(persistedState)
@@ -186,7 +194,12 @@ export default function Checkout() {
   // receipt, leaving no durable order or dashboard notification.
   useEffect(() => {
     if (paymentStep !== 'payment' || !paymentReference || autoVerifyStarted) return
-    if (!localStorage.getItem('checkout_state')) return
+    const hasPersistedState = Boolean(localStorage.getItem('checkout_state'))
+    const hasPaystackCallbackReference = Boolean(
+      new URLSearchParams(window.location.search).get('reference')
+      || new URLSearchParams(window.location.search).get('trxref'),
+    )
+    if (!hasPersistedState && !hasPaystackCallbackReference) return
 
     setAutoVerifyStarted(true)
     void handlePaymentVerification()
