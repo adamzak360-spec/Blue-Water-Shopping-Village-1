@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#032D61" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Reliable" />
     <meta name="description" content="Reliable Premium Marketplace — quality products from trusted stores, delivered to your doorstep." />
 
@@ -33,6 +33,25 @@
     <meta name="twitter:image" content="https://reliable-now.vercel.app/logo-square.png" />
 
     <title>Reliable Premium Marketplace</title>
+    <style>
+      :root,
+      html,
+      body {
+        background: #032D61;
+      }
+
+      html,
+      body,
+      #root {
+        min-height: 100%;
+        margin: 0;
+      }
+
+      #root:empty {
+        min-height: 100vh;
+        background: #032D61;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
