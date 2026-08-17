@@ -49,6 +49,12 @@ export default function Checkout() {
   const [businessResolutionPending, setBusinessResolutionPending] = useState(false)
 
   useEffect(() => {
+    if (user?.email && !formData.email.trim()) {
+      setFormData(previous => ({ ...previous, email: user.email || '' }))
+    }
+  }, [user?.email, formData.email])
+
+  useEffect(() => {
     let isMounted = true
     const missingProductIds = Array.from(new Set(
       cart
@@ -258,6 +264,11 @@ export default function Checkout() {
         throw new Error('Your cart contains products from multiple stores. Please checkout one store at a time.')
       }
       
+      const customerEmail = (formData.email || user?.email || '').trim().toLowerCase()
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
+        throw new Error('Please enter a valid customer email address before continuing.')
+      }
+
       // Initialize payment with Paystack
       const reference = generatePaymentReference()
       setPaymentReference(reference)
@@ -270,7 +281,7 @@ export default function Checkout() {
       const accessToken = sessionResult?.data.session?.access_token
       await reserveOrderPayment(reference, {
         customer_name: formData.fullName,
-        customer_email: formData.email,
+        customer_email: customerEmail,
         customer_phone: formData.phone,
         delivery_address: formData.address,
         city: formData.city,
@@ -287,7 +298,7 @@ export default function Checkout() {
       }, accessToken)
 
       const paymentInit = await initializePayment({
-        email: formData.email,
+        email: customerEmail,
         amount: Math.round(total * 100), // Convert to kobo
         currency,
         reference,
