@@ -79,7 +79,7 @@ function normalizeReservationPayload(value) {
     throw new Error('A valid cart and order total are required for reservation');
   }
   const customerEmail = String(input.customer_email || '').trim();
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(customerEmail)) throw new Error('A valid customer email is required');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) throw new Error('A valid customer email is required');
   const currency = String(input.currency || 'GHS').trim().toUpperCase();
   if (!/^[A-Z]{3}$/.test(currency)) throw new Error('Invalid payment currency');
   return {
