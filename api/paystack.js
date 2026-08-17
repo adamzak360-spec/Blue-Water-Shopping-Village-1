@@ -148,6 +148,28 @@ function isActiveSubscription(business) {
   );
 }
 
+// The exact set of columns present on the orders table at runtime. If the
+// insert fails with a 42703 "column does not exist" error, the payload is
+// stripped to this list and retried once so a database schema that has not
+// yet picked up a recent migration never blocks a successful payment.
+const ORDERS_KNOWN_COLUMNS = new Set([
+  'user_id', 'business_id', 'customer_name', 'customer_email', 'customer_phone',
+  'delivery_address', 'city', 'region', 'notes', 'items', 'subtotal',
+  'delivery_fee', 'total', 'currency', 'status', 'payment_status',
+  'payment_method', 'paystack_reference', 'payment_provider', 'provider_reference',
+  'provider_transaction_id', 'payment_metadata', 'source', 'amount_paid',
+  'payment_date', 'paid_at', 'transaction_id',
+  'phone', 'delivery_method', 'metadata', 'webhook_received_at',
+]);
+
+function stripUnknownOrderColumns(payload) {
+  const cleaned = {};
+  for (const [key, value] of Object.entries(payload)) {
+    if (ORDERS_KNOWN_COLUMNS.has(key)) cleaned[key] = value;
+  }
+  return cleaned;
+}
+
 function normalizeReservationPayload(value) {
   const input = value && typeof value === 'object' ? value : {};
   const items = Array.isArray(input.items) ? input.items.slice(0, 100) : [];
@@ -246,16 +268,39 @@ async function finalizeReservedOrder(supabaseAdmin, transaction) {
       if (duplicateError) throw duplicateError;
       if (duplicateOrder) return { reservation, order: duplicateOrder, alreadyFinalized: true };
     }
+    // 42703 means a column in the payload does not exist on the orders
+    // table (e.g. schema cache or migration not yet applied). Strip any
+    // unknown columns and retry exactly once.
+    if (insertError.code === '42703') {
+      console.error('[PAYSTACK API] order insert referenced an unknown column, retrying with stripped payload:', insertError.message);
+      const strippedPayload = stripUnknownOrderColumns(orderPayload);
+      const retryResult = await supabaseAdmin.from('orders').insert(strippedPayload).select('*').single();
+      if (retryResult.error) {
+        if (retryResult.error.code === '23505') {
+          const { data: duplicateOrder, error: duplicateError } = await supabaseAdmin
+            .from('orders').select('*').eq('paystack_reference', referenceValue).maybeSingle();
+          if (duplicateError) throw duplicateError;
+          if (duplicateOrder) return { reservation, order: duplicateOrder, alreadyFinalized: true };
+        }
+        throw retryResult.error;
+      }
+      return finalizeAfterInsert(supabaseAdmin, reservation, retryResult.data, transaction, false);
+    }
     throw insertError;
   }
+  return finalizeAfterInsert(supabaseAdmin, reservation, insertedOrder, transaction, false);
+}
 
+async function finalizeAfterInsert(supabaseAdmin, reservation, insertedOrder, transaction, alreadyFinalized) {
   const { error: reservationUpdateError } = await supabaseAdmin
     .from('order_payment_reservations')
     .update({ status: 'paid', payment_status: 'paid', provider_transaction_id: transaction.id ? String(transaction.id) : null, paid_at: transaction.paid_at || new Date().toISOString(), finalized_order_id: insertedOrder.id })
     .eq('id', reservation.id).is('finalized_order_id', null);
   if (reservationUpdateError) throw reservationUpdateError;
-  return { reservation, order: insertedOrder, alreadyFinalized: false };
+  return { reservation, order: insertedOrder, alreadyFinalized };
 }
+
+
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
