@@ -63,7 +63,7 @@ const showDesktopOrderAlert = (notification: Notification) => {
 
 export default function NotificationBell() {
 
-  const { user } = useAuth()
+  const { user, role, isAdmin } = useAuth()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -158,7 +158,12 @@ export default function NotificationBell() {
       return
     }
     if (notification.order_id) {
-      navigate(`/customer/orders/${notification.order_id}`)
+      const target = isAdmin
+        ? `/admin?order=${notification.order_id}`
+        : role === 'seller'
+          ? `/dashboard?order=${notification.order_id}`
+          : `/customer/orders/${notification.order_id}`
+      navigate(target)
       setIsOpen(false)
     }
   }
