@@ -121,7 +121,7 @@ function AppShell() {
   const [searchQuery, setSearchQuery] = useState('')
   const [marketplaceLogoUrl, setMarketplaceLogoUrl] = useState('/logo-square.png')
   const [marketplaceLogoShape, setMarketplaceLogoShape] = useState<'wide' | 'tall' | 'square'>('square')
-  const [marketplaceFaviconUrl, setMarketplaceFaviconUrl] = useState('/favicon.ico')
+  const [marketplaceFaviconUrl, setMarketplaceFaviconUrl] = useState('/logo-square.png')
 
   const isAdminRoute = location.pathname.startsWith('/admin')
   const isCustomerRoute = location.pathname.startsWith('/customer')
@@ -149,7 +149,7 @@ function AppShell() {
     }
     const handleFaviconUpdate = (event: Event) => {
       const nextUrl = (event as CustomEvent<string | null>).detail
-      setMarketplaceFaviconUrl(nextUrl ? addCacheBuster(nextUrl) : addCacheBuster('/favicon.ico'))
+      setMarketplaceFaviconUrl(nextUrl ? addCacheBuster(nextUrl) : addCacheBuster('/logo-square.png'))
     }
     window.addEventListener('marketplace-logo-updated', handleLogoUpdate)
     window.addEventListener('marketplace-favicon-updated', handleFaviconUpdate)

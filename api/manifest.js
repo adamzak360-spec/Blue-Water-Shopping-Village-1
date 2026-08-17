@@ -1,6 +1,7 @@
 const { createClient } = require('@supabase/supabase-js')
 
-const DEFAULT_ICON = '/android-chrome-512x512.png'
+const DEFAULT_ICON = '/logo-square.png'
+const BRAND_BLUE = '#032D61'
 const MARKETPLACE_ID = '00000000-0000-0000-0000-000000000001'
 
 function getSupabase() {
@@ -12,7 +13,7 @@ function getSupabase() {
 module.exports = async function handler(req, res) {
   let icon = DEFAULT_ICON
   const requestedBackground = typeof req?.query?.bg === 'string' ? req.query.bg : ''
-  const backgroundColor = /^#[0-9a-fA-F]{6}$/.test(requestedBackground) ? requestedBackground : '#000000'
+  const backgroundColor = /^#[0-9a-fA-F]{6}$/.test(requestedBackground) ? requestedBackground : BRAND_BLUE
 
   try {
     const supabase = getSupabase()

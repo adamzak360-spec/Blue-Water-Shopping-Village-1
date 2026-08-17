@@ -52,7 +52,7 @@ const showDesktopOrderAlert = (notification: Notification) => {
     : (isStaffDashboard ? '/admin' : '/customer/orders')
   const alert = new window.Notification(notification.title, {
     body: notification.message,
-    icon: '/android-chrome-192x192.png',
+    icon: '/logo-square.png',
     tag: `reliable-order-${notification.order_id || notification.id}`,
     data: { url: target },
   })
