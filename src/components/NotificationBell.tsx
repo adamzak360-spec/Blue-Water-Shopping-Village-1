@@ -5,7 +5,9 @@ import {
   getNotifications, 
   markAsRead, 
   markAllAsRead, 
-  subscribeToNotifications
+  subscribeToNotifications,
+  getSellerMessageSimulations,
+  subscribeToSellerMessageSimulations
 } from '../services/notificationService'
 import { Notification } from '../types'
 import { useNavigate } from 'react-router-dom'
@@ -69,6 +71,7 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [soundAlertsEnabled, setSoundAlertsEnabled] = useState(() => localStorage.getItem(SOUND_PREFERENCE_KEY) === 'true')
   const [desktopAlertsEnabled, setDesktopAlertsEnabled] = useState(() => localStorage.getItem(DESKTOP_PREFERENCE_KEY) === 'true')
+  const [messageSimulations, setMessageSimulations] = useState<import('../types').SellerMessageSimulation[]>([])
   const dropdownRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
@@ -100,6 +103,22 @@ export default function NotificationBell() {
       if (subscription) subscription.unsubscribe()
     }
   }, [user, soundAlertsEnabled, desktopAlertsEnabled])
+
+  useEffect(() => {
+    if (!user || role !== 'seller') {
+      setMessageSimulations([])
+      return
+    }
+
+    getSellerMessageSimulations(user.id).then(setMessageSimulations)
+    const subscription = subscribeToSellerMessageSimulations(user.id, (simulation) => {
+      setMessageSimulations(prev => [simulation, ...prev.filter(item => item.id !== simulation.id)].slice(0, 20))
+    })
+
+    return () => {
+      if (subscription) subscription.unsubscribe()
+    }
+  }, [user, role])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -237,6 +256,20 @@ export default function NotificationBell() {
               ))
             )}
           </div>
+
+          {role === 'seller' && messageSimulations.length > 0 && (
+            <div className="notification-simulations" aria-label="Simulated message previews">
+              <div className="notification-simulation-heading">Message simulation previews</div>
+              {messageSimulations.slice(0, 4).map(simulation => (
+                <div key={simulation.id} className="notification-simulation-item">
+                  <strong>{simulation.channel === 'sms' ? 'SMS' : 'WhatsApp'} · Simulated</strong>
+                  <span>{simulation.message}</span>
+                  <small>{new Date(simulation.created_at).toLocaleString()}</small>
+                </div>
+              ))}
+              <small className="notification-simulation-note">No real SMS or WhatsApp message was sent.</small>
+            </div>
+          )}
         </div>
       )}
     </div>

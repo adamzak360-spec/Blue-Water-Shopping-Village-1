@@ -293,6 +293,17 @@ export interface Order {
   payout_currency?: string
 }
 
+export interface SellerMessageSimulation {
+  id: string
+  order_id: string
+  seller_id: string
+  channel: 'sms' | 'whatsapp'
+  recipient?: string | null
+  message: string
+  status: 'simulated'
+  created_at: string
+}
+
 export interface Notification {
   id: string
   user_id: string

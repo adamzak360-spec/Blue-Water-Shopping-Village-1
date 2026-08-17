@@ -1,5 +1,5 @@
 import { supabase } from '../supabaseClient'
-import { Notification } from '../types'
+import { Notification, SellerMessageSimulation } from '../types'
 
 export const getNotifications = async (userId: string): Promise<Notification[]> => {
   if (!supabase) return []
@@ -55,6 +55,42 @@ export const createNotification = async (notification: Omit<Notification, 'id' |
   if (error) {
     console.error('Error creating notification:', error)
   }
+}
+
+export const getSellerMessageSimulations = async (sellerId: string): Promise<SellerMessageSimulation[]> => {
+  if (!supabase) return []
+
+  const { data, error } = await supabase
+    .from('seller_message_simulations')
+    .select('*')
+    .eq('seller_id', sellerId)
+    .order('created_at', { ascending: false })
+    .limit(20)
+
+  if (error) {
+    console.error('Error fetching simulated seller messages:', error)
+    return []
+  }
+
+  return (data || []) as SellerMessageSimulation[]
+}
+
+export const subscribeToSellerMessageSimulations = (sellerId: string, callback: (simulation: SellerMessageSimulation) => void) => {
+  if (!supabase) return null
+
+  return supabase
+    .channel(`seller-message-simulations-${sellerId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'seller_message_simulations',
+        filter: `seller_id=eq.${sellerId}`
+      },
+      (payload) => callback(payload.new as SellerMessageSimulation)
+    )
+    .subscribe()
 }
 
 export const subscribeToNotifications = (userId: string, callback: (notification: Notification) => void) => {
