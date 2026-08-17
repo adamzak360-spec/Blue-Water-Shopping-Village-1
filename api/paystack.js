@@ -419,6 +419,35 @@ module.exports = async (req, res) => {
       if (!/^rlbl-[A-Za-z0-9-]{8,100}$/.test(reservationReference)) return res.status(400).json({ error: 'A valid payment reference is required' });
       const reservationPayload = normalizeReservationPayload(body.reservation);
       const supabaseAdmin = getSupabaseAdmin();
+      // Belt-and-suspenders: the client may hold a stale business id
+      // (for example a storage/assets id instead of a real business id).
+      // Validate against the businesses table and fall back to the owning
+      // business of the first cart item from the products table, then to
+      // the marketplace business, so a correct reservation is always made.
+      let candidateBusinessId = String(reservationPayload.business_id || '').trim();
+      if (!candidateBusinessId) {
+        const firstItem = Array.isArray(reservationPayload.items) && reservationPayload.items[0]
+          ? reservationPayload.items[0]
+          : null;
+        candidateBusinessId = firstItem && firstItem.business_id ? String(firstItem.business_id) : '00000000-0000-0000-0000-000000000001';
+        console.warn('[PAYSTACK API] Reservation had no business_id; defaulted to', candidateBusinessId);
+      } else {
+        const { data: businessCheck, error: businessCheckError } = await supabaseAdmin.from('businesses').select('id').eq('id', candidateBusinessId).maybeSingle();
+        if (businessCheckError) throw businessCheckError;
+        if (!businessCheck) {
+          let fallbackId = '00000000-0000-0000-0000-000000000001';
+          const firstItem = Array.isArray(reservationPayload.items) && reservationPayload.items[0]
+            ? reservationPayload.items[0]
+            : null;
+          if (firstItem && firstItem.id) {
+            const { data: productCheck, error: productCheckError } = await supabaseAdmin.from('products').select('id, business_id').eq('id', String(firstItem.id)).maybeSingle();
+            if (!productCheckError && productCheck && productCheck.business_id) fallbackId = String(productCheck.business_id);
+          }
+          console.warn('[PAYSTACK API] Reservation business_id', candidateBusinessId, 'is not a valid business; falling back to', fallbackId);
+          candidateBusinessId = fallbackId;
+        }
+      }
+      reservationPayload.business_id = candidateBusinessId;
       const { data: existing, error: existingError } = await supabaseAdmin.from('order_payment_reservations').select('*').eq('paystack_reference', reservationReference).maybeSingle();
       if (existingError) throw existingError;
       if (existing) return res.status(200).json({ status: true, data: existing, alreadyReserved: true });
