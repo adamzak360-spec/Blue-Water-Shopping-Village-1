@@ -20,11 +20,11 @@ const getSupabase = () => {
   return supabase
 }
 
-const enrichOrderWithSellerContext = async <T extends Order>(order: T): Promise<T> => {
+export const enrichOrderWithSellerContext = async <T extends Order>(order: T): Promise<T> => {
   if (!order.business_id) return order
   const { data: store, error } = await getSupabase()
     .from('businesses')
-    .select('name, business_name, location, contact_email, contact_phone, phone, whatsapp_url')
+    .select('name, business_name, location, contact_email, contact_phone, phone, whatsapp_url, owner_id')
     .eq('id', order.business_id)
     .maybeSingle()
   if (error) {
@@ -32,6 +32,18 @@ const enrichOrderWithSellerContext = async <T extends Order>(order: T): Promise<
     return order
   }
   if (!store) return order
+  let sellerEmail = store.contact_email || undefined
+  if (!sellerEmail && store.owner_id) {
+    const { data: ownerProfile, error: ownerError } = await getSupabase()
+      .from('profiles')
+      .select('email')
+      .eq('id', store.owner_id)
+      .maybeSingle()
+    if (ownerError) {
+      console.warn('[OrderService] Could not load seller owner email:', ownerError.message)
+    }
+    sellerEmail = ownerProfile?.email || undefined
+  }
   const deliveryNote = order.delivery_method
     ? `${order.delivery_method}${order.delivery_area ? ` for ${order.delivery_area}` : ''}. Please follow the store's instructions for this order.`
     : undefined
@@ -40,7 +52,7 @@ const enrichOrderWithSellerContext = async <T extends Order>(order: T): Promise<
     seller_context: {
       storeName: store.name || store.business_name || undefined,
       location: store.location || undefined,
-      contactEmail: store.contact_email || undefined,
+      contactEmail: sellerEmail,
       contactPhone: store.contact_phone || store.phone || undefined,
       whatsappUrl: store.whatsapp_url || undefined,
       deliveryNote,

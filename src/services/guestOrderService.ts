@@ -1,6 +1,7 @@
 import { supabase, isSupabaseConfigured } from '../supabaseClient'
 import { validateCartStock } from './inventoryService'
 import { sendNewOrderNotifications } from './emailNotifications'
+import { enrichOrderWithSellerContext } from './orderService'
 
 /**
  * Guest Order Service
@@ -213,12 +214,13 @@ export async function createGuestOrder(
     })
     console.log('[Guest Order] Stock reduction will be handled by database trigger.')
 
-    // Trigger email notifications in the background
-    if (createdOrder.customer_email) {
-      sendNewOrderNotifications(createdOrder, createdOrder.customer_email).catch(err => {
-        console.error('[GuestOrderService] Error sending new order notifications:', err);
-      });
-    }
+    // Trigger customer, admin, and seller notifications in the background.
+    // Seller context is resolved for both authenticated and guest checkout paths.
+    enrichOrderWithSellerContext(createdOrder).then((emailOrder) =>
+      sendNewOrderNotifications(emailOrder, emailOrder.customer_email || undefined)
+    ).catch(err => {
+      console.error('[GuestOrderService] Error sending new order notifications:', err);
+    });
 
     return createdOrder
   } catch (error: any) {

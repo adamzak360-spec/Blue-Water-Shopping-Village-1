@@ -14,6 +14,7 @@ import {
   getOrderStatusUpdateTemplate,
   getWelcomeTemplate,
   getAdminNewOrderTemplate,
+  getSellerNewOrderTemplate,
   getOrderApprovedTemplate,
   getPaymentConfirmedTemplate,
   getReadyForPickupTemplate,
@@ -159,26 +160,66 @@ export async function sendAdminNewOrderNotification(
 }
 
 /**
+ * Send seller notification for a new order
+ */
+export async function sendSellerNewOrderNotification(
+  order: Order & { id: string },
+  sellerEmail?: string,
+): Promise<{ success: boolean; error?: string }> {
+  if (!sellerEmail) {
+    console.warn('[EMAIL NOTIFICATIONS] Seller email is unavailable for order', order.id)
+    return { success: false, error: 'Seller email is unavailable' }
+  }
+
+  try {
+    const { html, text } = getSellerNewOrderTemplate(order)
+    const result = await emailService.sendEmail({
+      to: sellerEmail,
+      subject: `New Order for ${order.seller_context?.storeName || 'Your Store'} - #${order.id.slice(0, 8)}`,
+      html,
+      text,
+      replyTo: order.customer_email || import.meta.env.VITE_ADMIN_EMAIL || 'admin@reliable.com',
+    })
+
+    if (!result.success) {
+      console.error('[EMAIL NOTIFICATIONS] Failed to send seller notification:', result.error)
+      return { success: false, error: result.error }
+    }
+
+    console.log('[EMAIL NOTIFICATIONS] Seller notification sent to', sellerEmail)
+    return { success: true }
+  } catch (error: any) {
+    console.error('[EMAIL NOTIFICATIONS] Error sending seller notification:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
  * Send all notifications for a new order
  * - Customer confirmation email
  * - Admin notification
+ * - Seller notification for the store that owns the order
  */
 export async function sendNewOrderNotifications(
   order: Order & { id: string },
-  customerEmail: string
-): Promise<{ customerEmail: boolean; adminEmail: boolean }> {
+  customerEmail?: string,
+): Promise<{ customerEmail: boolean; adminEmail: boolean; sellerEmail: boolean }> {
   const results = {
     customerEmail: false,
     adminEmail: false,
+    sellerEmail: false,
   }
 
-  // Send customer confirmation
-  const customerResult = await sendOrderConfirmationEmail(order, customerEmail)
-  results.customerEmail = customerResult.success
+  if (customerEmail) {
+    const customerResult = await sendOrderConfirmationEmail(order, customerEmail)
+    results.customerEmail = customerResult.success
+  }
 
-  // Send admin notification
   const adminResult = await sendAdminNewOrderNotification(order)
   results.adminEmail = adminResult.success
+
+  const sellerResult = await sendSellerNewOrderNotification(order, order.seller_context?.contactEmail)
+  results.sellerEmail = sellerResult.success
 
   return results
 }

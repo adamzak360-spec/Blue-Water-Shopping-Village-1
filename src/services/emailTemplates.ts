@@ -661,6 +661,86 @@ Notes: ${order.notes || 'None'}
 }
 
 /**
+ * Seller Notification - New Order
+ */
+export function getSellerNewOrderTemplate(order: Order & { id: string }): { html: string; text: string } {
+  const sellerName = order.seller_context?.storeName || 'Your store'
+  const itemsHtml = order.items
+    .map((item: CartItem) => `
+      <div class="order-item">
+        <div class="item-name">${item.name}</div>
+        <div class="item-qty">x${item.quantity}</div>
+        <div class="item-price">GH₵${(item.price * item.quantity).toFixed(2)}</div>
+      </div>
+    `)
+    .join('')
+
+  const html = getEmailWrapper(
+    `
+      <div class="header">
+        <h1>New Order for ${sellerName}</h1>
+        <p>Seller Order Alert</p>
+      </div>
+      <div class="content">
+        <div class="section">
+          <h2>Someone ordered from your store</h2>
+          <p>A new paid order has been placed for products in your store. Please review it in your seller dashboard and prepare it for processing.</p>
+        </div>
+        <div class="section">
+          <h2>Order Information</h2>
+          <p><strong>Order ID:</strong> ${order.id}</p>
+          <p><strong>Customer:</strong> ${order.customer_name}</p>
+          <p><strong>Customer email:</strong> ${order.customer_email || 'Not provided'}</p>
+          <p><strong>Customer phone:</strong> ${order.customer_phone || 'Not provided'}</p>
+          <p><strong>Order total:</strong> GH₵${order.total.toFixed(2)}</p>
+          <p><strong>Status:</strong> <span class="status-badge status-${order.status}">${order.status}</span></p>
+        </div>
+        <div class="section">
+          <h2>Items to prepare</h2>
+          <div class="order-item" style="font-weight:bold;margin-bottom:10px;">
+            <div class="item-name">Product</div><div class="item-qty">Qty</div><div class="item-price">Total</div>
+          </div>
+          ${itemsHtml}
+        </div>
+        <div class="section">
+          <h2>Delivery details</h2>
+          <p>${order.delivery_address}<br>${order.city}, ${order.region}</p>
+          <p><strong>Delivery method:</strong> ${order.delivery_method || 'To be arranged'}</p>
+          ${order.delivery_area ? `<p><strong>Delivery area:</strong> ${order.delivery_area}</p>` : ''}
+          <p><strong>Customer notes:</strong> ${order.notes || 'None'}</p>
+        </div>
+      </div>
+    `,
+    `New Order for ${sellerName}`,
+  )
+
+  const text = `
+New Order for ${sellerName} - Seller Order Alert
+
+A new paid order has been placed for your store.
+Order ID: ${order.id}
+Customer: ${order.customer_name}
+Customer email: ${order.customer_email || 'Not provided'}
+Customer phone: ${order.customer_phone || 'Not provided'}
+Order total: GH₵${order.total.toFixed(2)}
+Status: ${order.status}
+
+Items:
+${order.items.map((item: CartItem) => `- ${item.name} x${item.quantity}: GH₵${(item.price * item.quantity).toFixed(2)}`).join('\n')}
+
+Delivery:
+${order.delivery_address}
+${order.city}, ${order.region}
+Method: ${order.delivery_method || 'To be arranged'}
+Notes: ${order.notes || 'None'}
+
+Review this order in your Reliable seller dashboard.
+  `
+
+  return { html, text }
+}
+
+/**
  * Low Stock Alert Email for Admin
  */
 export function getLowStockAlertTemplate(products: any[]): { html: string; text: string } {
