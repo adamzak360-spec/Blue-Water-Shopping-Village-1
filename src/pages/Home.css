@@ -431,8 +431,16 @@
   overflow-x: auto;
   padding: var(--space-sm) var(--space-md) var(--space-lg);
   margin: 0 calc(-1 * var(--space-md));
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: none;
+  scroll-behavior: auto;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
+  cursor: grab;
   scrollbar-width: none;
+}
+
+.featured-showcase-rail:active {
+  cursor: grabbing;
 }
 
 .featured-showcase-rail::-webkit-scrollbar {
@@ -441,7 +449,7 @@
 
 .featured-showcase-card {
   flex: 0 0 280px;
-  scroll-snap-align: start;
+  scroll-snap-align: none;
 }
 
 .featured-showcase-card .product-card {

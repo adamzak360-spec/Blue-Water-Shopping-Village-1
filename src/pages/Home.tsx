@@ -189,19 +189,72 @@ export default function Home() {
     .slice(0, 8)
 
   const [isFeaturedPaused, setIsFeaturedPaused] = useState(false)
+  const featuredDirectionRef = useRef<1 | -1>(1)
+  const featuredResumeTimerRef = useRef<number | null>(null)
 
-  // Keep the curated showcase moving gently from one end to the other.
+  const pauseFeaturedForInteraction = () => {
+    if (featuredResumeTimerRef.current !== null) {
+      window.clearTimeout(featuredResumeTimerRef.current)
+      featuredResumeTimerRef.current = null
+    }
+    setIsFeaturedPaused(true)
+  }
+
+  const resumeFeaturedAfterInteraction = () => {
+    if (featuredResumeTimerRef.current !== null) {
+      window.clearTimeout(featuredResumeTimerRef.current)
+    }
+    featuredResumeTimerRef.current = window.setTimeout(() => {
+      setIsFeaturedPaused(false)
+      featuredResumeTimerRef.current = null
+    }, 1200)
+  }
+
+  // Keep the curated showcase moving smoothly from one end to the other.
+  // requestAnimationFrame avoids the repeated scrollTo/reset jump that caused vibration.
   useEffect(() => {
     const rail = scrollRefs.featured.current
-    if (!rail || featuredProducts.length < 2 || isFeaturedPaused) return
-    const timer = window.setInterval(() => {
-      const maxScroll = rail.scrollWidth - rail.clientWidth
-      if (maxScroll <= 0) return
-      const nextPosition = rail.scrollLeft + 1
-      rail.scrollTo({ left: nextPosition >= maxScroll ? 0 : nextPosition, behavior: 'auto' })
-    }, 32)
-    return () => window.clearInterval(timer)
+    if (!rail || featuredProducts.length < 2) return
+
+    let animationFrame = 0
+    let previousTime = performance.now()
+    const pixelsPerSecond = 28
+
+    const animate = (time: number) => {
+      const elapsed = Math.min(time - previousTime, 50)
+      previousTime = time
+
+      if (!isFeaturedPaused) {
+        const maxScroll = Math.max(0, rail.scrollWidth - rail.clientWidth)
+        if (maxScroll > 0) {
+          const direction = featuredDirectionRef.current
+          const nextPosition = rail.scrollLeft + direction * pixelsPerSecond * (elapsed / 1000)
+          if (nextPosition >= maxScroll) {
+            rail.scrollLeft = maxScroll
+            featuredDirectionRef.current = -1
+          } else if (nextPosition <= 0) {
+            rail.scrollLeft = 0
+            featuredDirectionRef.current = 1
+          } else {
+            rail.scrollLeft = nextPosition
+          }
+        }
+      }
+
+      animationFrame = window.requestAnimationFrame(animate)
+    }
+
+    animationFrame = window.requestAnimationFrame(animate)
+    return () => window.cancelAnimationFrame(animationFrame)
   }, [featuredProducts.length, isFeaturedPaused])
+
+  useEffect(() => {
+    return () => {
+      if (featuredResumeTimerRef.current !== null) {
+        window.clearTimeout(featuredResumeTimerRef.current)
+      }
+    }
+  }, [])
 
   const scroll = (ref: React.RefObject<HTMLDivElement | null>, direction: 'left' | 'right') => {
     if (ref.current) {
@@ -430,8 +483,6 @@ export default function Home() {
         <section
           className="section featured-showcase-section"
           aria-label="Featured products"
-          onMouseEnter={() => setIsFeaturedPaused(true)}
-          onMouseLeave={() => setIsFeaturedPaused(false)}
           onFocus={() => setIsFeaturedPaused(true)}
           onBlur={() => setIsFeaturedPaused(false)}
         >
@@ -444,7 +495,16 @@ export default function Home() {
               </div>
               <Link to="/products" className="featured-showcase-link">View all products <ArrowRight size={16} /></Link>
             </div>
-            <div className="featured-showcase-rail" ref={scrollRefs.featured}>
+            <div
+              className="featured-showcase-rail"
+              ref={scrollRefs.featured}
+              onPointerDown={pauseFeaturedForInteraction}
+              onPointerUp={resumeFeaturedAfterInteraction}
+              onPointerCancel={resumeFeaturedAfterInteraction}
+              onPointerLeave={resumeFeaturedAfterInteraction}
+              onWheel={resumeFeaturedAfterInteraction}
+              aria-label="Featured products carousel. Swipe, drag, or select a product to view it."
+            >
               {featuredProducts.slice(0, 12).map((product) => (
                 <div key={product.id} className="featured-showcase-card">
                   <ProductCard
