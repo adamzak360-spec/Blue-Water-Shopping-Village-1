@@ -101,27 +101,38 @@ export const createOrder = async (orderData: Omit<Order, 'id' | 'created_at'>) =
 
   console.log('[OrderService] Order created successfully. Stock reduction will be handled by database trigger.');
   
-  // Trigger email and in-app notifications in the background
+  // Complete notification requests before checkout navigates away. Previously these
+  // were fire-and-forget promises, so the browser could unload the page immediately
+  // after payment success and terminate the email/API requests.
   const createdOrder = data[0];
-  
-  // Email notification: include the store that owns the purchased item.
-  enrichOrderWithSellerContext(createdOrder).then((emailOrder) =>
-    sendNewOrderNotifications(emailOrder, emailOrder.customer_email)
-  ).catch(err => {
-    console.error('[OrderService] Error sending new order notifications:', err);
-  });
 
-  // In-app notification for authenticated user
+  const notificationTasks: Promise<unknown>[] = [
+    enrichOrderWithSellerContext(createdOrder)
+      .then((emailOrder) => sendNewOrderNotifications(emailOrder, emailOrder.customer_email))
+      .catch((err) => {
+        console.error('[OrderService] Error sending new order notifications:', err);
+        return null;
+      }),
+  ];
+
+  // In-app notification for the authenticated customer. The database order trigger
+  // separately notifies the seller and admins; this row notifies the customer.
   if (createdOrder.user_id) {
-    createNotification({
-      user_id: createdOrder.user_id,
-      title: 'Order Placed',
-      message: `Your order #${createdOrder.id.slice(0, 8)} has been successfully placed.`,
-      type: 'order_update',
-      order_id: createdOrder.id
-    }).catch(err => console.error('[OrderService] Error creating notification:', err));
+    notificationTasks.push(
+      createNotification({
+        user_id: createdOrder.user_id,
+        title: 'Order Placed',
+        message: `Your order #${createdOrder.id.slice(0, 8)} has been successfully placed.`,
+        type: 'order_update',
+        order_id: createdOrder.id,
+      }).catch((err) => {
+        console.error('[OrderService] Error creating customer order notification:', err);
+        return null;
+      }),
+    );
   }
 
+  await Promise.all(notificationTasks);
   return createdOrder;
 }
 

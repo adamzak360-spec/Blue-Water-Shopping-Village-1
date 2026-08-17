@@ -214,13 +214,15 @@ export async function createGuestOrder(
     })
     console.log('[Guest Order] Stock reduction will be handled by database trigger.')
 
-    // Trigger customer, admin, and seller notifications in the background.
+    // Complete notification requests before the checkout page redirects. A
+    // fire-and-forget request can be terminated when the browser unloads.
     // Seller context is resolved for both authenticated and guest checkout paths.
-    enrichOrderWithSellerContext(createdOrder).then((emailOrder) =>
-      sendNewOrderNotifications(emailOrder, emailOrder.customer_email || undefined)
-    ).catch(err => {
-      console.error('[GuestOrderService] Error sending new order notifications:', err);
-    });
+    await enrichOrderWithSellerContext(createdOrder)
+      .then((emailOrder) => sendNewOrderNotifications(emailOrder, emailOrder.customer_email || undefined))
+      .catch((err) => {
+        console.error('[GuestOrderService] Error sending new order notifications:', err);
+        return null;
+      });
 
     return createdOrder
   } catch (error: any) {
