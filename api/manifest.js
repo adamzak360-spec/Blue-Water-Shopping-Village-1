@@ -1,36 +1,9 @@
-const { createClient } = require('@supabase/supabase-js')
-
-const DEFAULT_ICON = '/logo-square.png'
+const DEFAULT_ICON = '/logo-square.png?v=reliable-brand-v2'
 const BRAND_BLUE = '#032D61'
-const MARKETPLACE_ID = '00000000-0000-0000-0000-000000000001'
-
-function getSupabase() {
-  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://iwouhwizzwwykchgflyk.supabase.co'
-  const key = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY
-  return url && key ? createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } }) : null
-}
-
 module.exports = async function handler(req, res) {
   let icon = DEFAULT_ICON
   const requestedBackground = typeof req?.query?.bg === 'string' ? req.query.bg : ''
   const backgroundColor = /^#[0-9a-fA-F]{6}$/.test(requestedBackground) ? requestedBackground : BRAND_BLUE
-
-  try {
-    const supabase = getSupabase()
-    if (supabase) {
-      const { data } = await supabase
-        .from('businesses')
-        .select('favicon_url')
-        .eq('id', MARKETPLACE_ID)
-        .maybeSingle()
-      if (data?.favicon_url) {
-        const separator = data.favicon_url.includes('?') ? '&' : '?'
-        icon = `${data.favicon_url}${separator}v=${Date.now()}`
-      }
-    }
-  } catch (error) {
-    console.error('[MANIFEST] Falling back to default icon:', error?.message || error)
-  }
 
   const manifest = {
     name: 'Reliable Premium Marketplace',
