@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
@@ -27,6 +27,7 @@ export default function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [paymentStep, setPaymentStep] = useState<'form' | 'payment' | 'verifying'>('form')
   const [paymentReference, setPaymentReference] = useState<string>('')
+  const [autoVerifyStarted, setAutoVerifyStarted] = useState(false)
   const [formData, setFormData] = useState({
     fullName: user?.user_metadata?.full_name || user?.email?.split('@')[0] || '',
     email: user?.email || '',
@@ -180,6 +181,17 @@ export default function Checkout() {
     }
   }, [])
 
+  // When Paystack sends a mobile customer back to checkout, immediately verify
+  // the persisted reference. Previously the customer could stop at the Paystack
+  // receipt, leaving no durable order or dashboard notification.
+  useEffect(() => {
+    if (paymentStep !== 'payment' || !paymentReference || autoVerifyStarted) return
+    if (!localStorage.getItem('checkout_state')) return
+
+    setAutoVerifyStarted(true)
+    void handlePaymentVerification()
+  }, [paymentStep, paymentReference, autoVerifyStarted])
+
   if (cart.length === 0) {
     return (
       <div className="checkout-page empty">
@@ -243,7 +255,8 @@ export default function Checkout() {
         amount: Math.round(total * 100), // Convert to kobo
         currency: currency,
         reference: reference,
-        metadata: {
+          callback_url: `${window.location.origin}/checkout`,
+          metadata: {
           customer_name: formData.fullName,
           customer_phone: formData.phone,
           delivery_address: formData.address,
