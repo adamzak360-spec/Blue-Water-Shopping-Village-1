@@ -55,6 +55,85 @@ async function verifyPaystackTransaction(reference, secret) {
   return response.data;
 }
 
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'\"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '\"': '&quot;' })[char]);
+}
+
+function getEmailProviderConfig() {
+  return {
+    brevoApiKey: process.env.BREVO_API_KEY,
+    resendApiKey: process.env.RESEND_API_KEY,
+    fromEmail: process.env.BREVO_FROM_EMAIL || process.env.VITE_FROM_EMAIL || process.env.FROM_EMAIL || 'onboarding@resend.dev',
+    fromName: process.env.BREVO_FROM_NAME || 'Reliable Premium Marketplace',
+    adminEmail: process.env.ADMIN_EMAIL || process.env.VITE_ADMIN_EMAIL || process.env.BREVO_ADMIN_EMAIL || 'adamzak360@gmail.com',
+  };
+}
+
+function orderEmailContent(order, recipientType, storeName) {
+  const shortId = String(order.id).slice(0, 8);
+  const items = Array.isArray(order.items) ? order.items : [];
+  const itemLines = items.map((item) => `${escapeHtml(item.name || item.product_name || 'Item')} × ${Number(item.quantity || 1)}`).join('<br>') || 'Order items are available in the dashboard.';
+  const audience = recipientType === 'customer' ? 'Your order has been confirmed.' : recipientType === 'seller' ? `A new order has been placed for ${escapeHtml(storeName || 'your store')}.` : 'A new paid order has been received.';
+  const subject = recipientType === 'customer' ? `Reliable order confirmation #${shortId}` : recipientType === 'seller' ? `New order for ${storeName || 'your store'} #${shortId}` : `New paid order #${shortId}`;
+  const text = [audience, `Order: #${shortId}`, `Customer: ${order.customer_name || ''} (${order.customer_email || ''})`, `Items: ${items.map((item) => `${item.name || item.product_name || 'Item'} x${Number(item.quantity || 1)}`).join(', ')}`, `Total: ${order.currency || 'GHS'} ${Number(order.total || 0).toFixed(2)}`, `Payment status: ${order.payment_status || 'paid'}`, `Delivery: ${order.delivery_address || 'See dashboard'}`].join('\n');
+  const html = `<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#1f2937"><div style="background:#032D61;color:#fff;padding:22px"><strong style="font-size:22px">Reliable</strong><span style="margin-left:8px;color:#b7e4c7">Premium Marketplace</span></div><div style="padding:24px;border:1px solid #e5e7eb"><h2>${escapeHtml(audience)}</h2><p><strong>Order #${escapeHtml(shortId)}</strong></p><p>${itemLines}</p><p><strong>Total:</strong> ${escapeHtml(order.currency || 'GHS')} ${Number(order.total || 0).toFixed(2)}<br><strong>Payment:</strong> ${escapeHtml(order.payment_status || 'paid')}<br><strong>Customer:</strong> ${escapeHtml(order.customer_name)} (${escapeHtml(order.customer_email)})</p><p><strong>Delivery:</strong> ${escapeHtml(order.delivery_address || 'See dashboard')}</p></div></div>`;
+  return { subject, text, html };
+}
+
+async function sendThroughConfiguredProvider({ to, subject, html, text }) {
+  const { brevoApiKey, resendApiKey, fromEmail, fromName } = getEmailProviderConfig();
+  if (!brevoApiKey && !resendApiKey) throw new Error('provider_not_configured');
+  if (brevoApiKey) {
+    const response = await axios.post('https://api.brevo.com/v3/smtp/email', { sender: { name: fromName, email: fromEmail }, to: [{ email: to }], subject, htmlContent: html, textContent: text }, { headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'api-key': brevoApiKey } });
+    return { provider: 'brevo', messageId: response.data?.messageId || null };
+  }
+  const response = await axios.post('https://api.resend.com/emails', { from: fromEmail, to: [to], subject, html, text, reply_to: fromEmail }, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${resendApiKey}` } });
+  return { provider: 'resend', messageId: response.data?.id || null };
+}
+
+async function deliverOrderEmail(supabaseAdmin, order, recipientType, recipientEmail, storeName) {
+  const email = String(recipientEmail || '').trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { skipped: true, reason: 'invalid_recipient' };
+  const content = orderEmailContent(order, recipientType, storeName);
+  const { data: existing, error: existingError } = await supabaseAdmin.from('order_email_deliveries').select('id,status,attempts').eq('order_id', order.id).eq('recipient_type', recipientType).eq('recipient_email', email).maybeSingle();
+  if (existingError) throw existingError;
+  if (existing?.status === 'sent') return { skipped: true, reason: 'already_sent' };
+  const { data: delivery, error: upsertError } = await supabaseAdmin.from('order_email_deliveries').upsert({ order_id: order.id, recipient_type: recipientType, recipient_email: email, subject: content.subject, payload: { store_name: storeName || null }, status: 'pending', last_attempt_at: new Date().toISOString(), attempts: Number(existing?.attempts || 0) + 1 }, { onConflict: 'order_id,recipient_type,recipient_email' }).select('id').single();
+  if (upsertError) throw upsertError;
+  try {
+    const providerResult = await sendThroughConfiguredProvider({ to: email, ...content });
+    await supabaseAdmin.from('order_email_deliveries').update({ status: 'sent', provider: providerResult.provider, provider_message_id: providerResult.messageId, sent_at: new Date().toISOString(), last_error: null }).eq('id', delivery.id);
+    console.log(`[order-email] ${recipientType} accepted for order ${order.id}`);
+    return { sent: true, provider: providerResult.provider };
+  } catch (error) {
+    const safeError = String(error?.response?.data?.message || error?.message || 'email_delivery_failed').slice(0, 500);
+    await supabaseAdmin.from('order_email_deliveries').update({ status: 'failed', last_error: safeError }).eq('id', delivery.id);
+    console.error(`[order-email] ${recipientType} failed for order ${order.id}: ${safeError}`);
+    return { sent: false, error: safeError };
+  }
+}
+
+async function dispatchPostPaymentNotifications(supabaseAdmin, order) {
+  if (!order?.id) return { skipped: true, reason: 'missing_order' };
+  const { data: store } = order.business_id ? await supabaseAdmin.from('businesses').select('name,contact_email,owner_id').eq('id', order.business_id).maybeSingle() : { data: null };
+  let sellerEmail = store?.contact_email || '';
+  if (!sellerEmail && store?.owner_id) {
+    const { data: ownerData } = await supabaseAdmin.auth.admin.getUserById(store.owner_id);
+    sellerEmail = ownerData?.user?.email || '';
+  }
+  const { adminEmail } = getEmailProviderConfig();
+  const recipients = [['customer', order.customer_email], ['admin', adminEmail], ['seller', sellerEmail]];
+  const results = await Promise.all(recipients.map(([type, email]) => deliverOrderEmail(supabaseAdmin, order, type, email, store?.name)));
+  if (order.user_id) {
+    const { data: existingCustomerNotice } = await supabaseAdmin.from('notifications').select('id').eq('user_id', order.user_id).eq('order_id', order.id).eq('type', 'order_update').limit(1);
+    if (!existingCustomerNotice?.length) {
+      const { error: noticeError } = await supabaseAdmin.from('notifications').insert({ user_id: order.user_id, title: 'Order Confirmed', message: `Your order #${String(order.id).slice(0, 8)} has been received.`, type: 'order_update', order_id: order.id, is_read: false });
+      if (noticeError) console.error('[order-notification] customer notification failed:', noticeError.message);
+    }
+  }
+  return { results };
+}
+
 function addOneMonth(value) {
   const next = new Date(value);
   next.setMonth(next.getMonth() + 1);
@@ -222,6 +301,11 @@ module.exports = async (req, res) => {
       const supabaseAdmin = getSupabaseAdmin();
       const reservationFinalization = await finalizeReservedOrder(supabaseAdmin, transaction);
       if (reservationFinalization.order) {
+        try {
+          await dispatchPostPaymentNotifications(supabaseAdmin, reservationFinalization.order);
+        } catch (notificationError) {
+          console.error('[PAYSTACK WEBHOOK] Post-payment notification dispatch failed:', notificationError.message);
+        }
         return res.status(200).json({ received: true, event: body.event, reference: referenceValue, updated: reservationFinalization.alreadyFinalized ? 0 : 1, order_id: reservationFinalization.order.id });
       }
       const { data: byPaystackReference, error: paystackReferenceError } = await supabaseAdmin
@@ -306,6 +390,11 @@ module.exports = async (req, res) => {
       const supabaseAdmin = getSupabaseAdmin();
       const result = await finalizeReservedOrder(supabaseAdmin, transaction);
       if (!result.order) return res.status(404).json({ error: 'No server-side reservation exists for this payment reference' });
+      try {
+        await dispatchPostPaymentNotifications(supabaseAdmin, result.order);
+      } catch (notificationError) {
+        console.error('[PAYSTACK API] Post-payment notification dispatch failed:', notificationError.message);
+      }
       return res.status(200).json({ status: true, data: result.order, alreadyFinalized: Boolean(result.alreadyFinalized) });
     }
 

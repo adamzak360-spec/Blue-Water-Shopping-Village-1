@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
-import { createOrder, enrichOrderWithSellerContext } from '../services/orderService'
+import { createOrder } from '../services/orderService'
 import { createGuestOrder } from '../services/guestOrderService'
-import { sendNewOrderNotifications } from '../services/emailNotifications'
 import { createOrUpdateCustomerProfile } from '../services/customerProfileService'
 import {
   initializePayment, 
@@ -379,12 +378,9 @@ export default function Checkout() {
         const finalized = await finalizeReservedOrder(paymentReference)
         const result = finalized.data as any
         const finalizedOrder = result
-        try {
-          const emailOrder = await enrichOrderWithSellerContext(finalizedOrder)
-          await sendNewOrderNotifications(emailOrder, emailOrder.customer_email)
-        } catch (notificationError) {
-          console.error('[Checkout] Order was finalized but notification delivery failed:', notificationError)
-        }
+        // Post-payment emails and in-app notifications are dispatched server-side
+        // by the idempotent finalization endpoint. This remains recoverable if the
+        // browser closes immediately after Paystack confirms payment.
 
         // Save customer profile
         if (user) {
