@@ -159,6 +159,50 @@ export interface PaystackVerifyPaymentResponse {
  * @param payload Payment initialization data
  * @returns Authorization URL and payment reference
  */
+export interface OrderReservationPayload {
+  customer_name: string
+  customer_email: string
+  customer_phone?: string
+  delivery_address?: string
+  city?: string
+  region?: string
+  notes?: string
+  items: Record<string, unknown>[]
+  subtotal: number
+  delivery_fee: number
+  total: number
+  currency: string
+  delivery_method?: string
+  delivery_area?: string
+  business_id?: string
+}
+
+export const reserveOrderPayment = async (
+  reference: string,
+  reservation: OrderReservationPayload,
+  accessToken?: string,
+): Promise<{ status: boolean; data: Record<string, unknown>; alreadyReserved?: boolean }> => {
+  const response = await fetch('/api/paystack', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+    body: JSON.stringify({ action: 'reserve_order', reference, reservation }),
+  })
+  const data = await response.json()
+  if (!response.ok || !data.status) throw new Error(data.error || 'Unable to reserve the order before payment')
+  return data
+}
+
+export const finalizeReservedOrder = async (reference: string): Promise<{ status: boolean; data: Record<string, unknown>; alreadyFinalized?: boolean }> => {
+  const response = await fetch('/api/paystack', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'finalize_reserved_order', reference }),
+  })
+  const data = await response.json()
+  if (!response.ok || !data.status) throw new Error(data.error || data.message || 'Unable to finalize the reserved order')
+  return data
+}
+
 export const initializePayment = async (
   payload: PaystackInitializePaymentPayload,
   accessToken?: string,

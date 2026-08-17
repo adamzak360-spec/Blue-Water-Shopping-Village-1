@@ -69,6 +69,115 @@ function isActiveSubscription(business) {
   );
 }
 
+function normalizeReservationPayload(value) {
+  const input = value && typeof value === 'object' ? value : {};
+  const items = Array.isArray(input.items) ? input.items.slice(0, 100) : [];
+  const total = Number(input.total);
+  const subtotal = Number(input.subtotal);
+  const deliveryFee = Number(input.delivery_fee || 0);
+  if (!items.length || !Number.isFinite(total) || total <= 0 || !Number.isFinite(subtotal) || subtotal < 0 || !Number.isFinite(deliveryFee) || deliveryFee < 0) {
+    throw new Error('A valid cart and order total are required for reservation');
+  }
+  const customerEmail = String(input.customer_email || '').trim();
+  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(customerEmail)) throw new Error('A valid customer email is required');
+  const currency = String(input.currency || 'GHS').trim().toUpperCase();
+  if (!/^[A-Z]{3}$/.test(currency)) throw new Error('Invalid payment currency');
+  return {
+    customer_name: String(input.customer_name || '').trim().slice(0, 160),
+    customer_email: customerEmail.slice(0, 255),
+    customer_phone: input.customer_phone ? String(input.customer_phone).slice(0, 60) : null,
+    delivery_address: input.delivery_address ? String(input.delivery_address).slice(0, 500) : null,
+    city: input.city ? String(input.city).slice(0, 120) : null,
+    region: input.region ? String(input.region).slice(0, 120) : null,
+    notes: input.notes ? String(input.notes).slice(0, 1000) : null,
+    items,
+    subtotal,
+    delivery_fee: deliveryFee,
+    total,
+    currency,
+    delivery_method: input.delivery_method ? String(input.delivery_method).slice(0, 160) : null,
+    delivery_area: input.delivery_area ? String(input.delivery_area).slice(0, 160) : null,
+    business_id: input.business_id ? String(input.business_id) : null,
+  };
+}
+
+async function finalizeReservedOrder(supabaseAdmin, transaction) {
+  const referenceValue = String(transaction?.reference || '').trim();
+  const amountMinor = Number(transaction?.amount);
+  if (!referenceValue || !Number.isFinite(amountMinor)) throw new Error('Payment reference or amount is missing');
+
+  const { data: reservation, error: reservationError } = await supabaseAdmin
+    .from('order_payment_reservations')
+    .select('*')
+    .eq('paystack_reference', referenceValue)
+    .maybeSingle();
+  if (reservationError) throw reservationError;
+  if (!reservation) return { reservation: null, order: null, reason: 'reservation_not_found' };
+
+  const expectedAmountMinor = Math.round(Number(reservation.total) * 100);
+  if (!Number.isFinite(expectedAmountMinor) || expectedAmountMinor !== amountMinor) {
+    throw new Error('Verified payment amount does not match the reserved order total');
+  }
+
+  if (reservation.finalized_order_id) {
+    const { data: existingOrder, error: existingOrderError } = await supabaseAdmin
+      .from('orders').select('*').eq('id', reservation.finalized_order_id).maybeSingle();
+    if (existingOrderError) throw existingOrderError;
+    return { reservation, order: existingOrder, alreadyFinalized: true };
+  }
+
+  const orderPayload = {
+    user_id: reservation.user_id,
+    business_id: reservation.business_id,
+    customer_name: reservation.customer_name,
+    customer_email: reservation.customer_email,
+    customer_phone: reservation.customer_phone,
+    delivery_address: reservation.delivery_address,
+    city: reservation.city,
+    region: reservation.region,
+    notes: reservation.notes,
+    items: reservation.items,
+    subtotal: reservation.subtotal,
+    delivery_fee: reservation.delivery_fee,
+    delivery_method: reservation.delivery_method,
+    delivery_area: reservation.delivery_area,
+    currency: reservation.currency,
+    total: reservation.total,
+    status: 'pending',
+    payment_status: 'paid',
+    payment_method: 'paystack',
+    paystack_reference: referenceValue,
+    payment_provider: 'paystack',
+    provider_reference: referenceValue,
+    provider_transaction_id: transaction.id ? String(transaction.id) : null,
+    payment_metadata: { ...(reservation.payment_metadata || {}), verification_source: 'paystack_server_finalize', payment_attempt_status: 'paid' },
+    source: 'ONLINE',
+    amount_paid: amountMinor / 100,
+    payment_date: transaction.paid_at || new Date().toISOString(),
+    paid_at: transaction.paid_at || new Date().toISOString(),
+    transaction_id: transaction.id ? String(transaction.id) : null,
+  };
+
+  const { data: insertedOrder, error: insertError } = await supabaseAdmin
+    .from('orders').insert(orderPayload).select('*').single();
+  if (insertError) {
+    if (insertError.code === '23505') {
+      const { data: duplicateOrder, error: duplicateError } = await supabaseAdmin
+        .from('orders').select('*').eq('paystack_reference', referenceValue).maybeSingle();
+      if (duplicateError) throw duplicateError;
+      if (duplicateOrder) return { reservation, order: duplicateOrder, alreadyFinalized: true };
+    }
+    throw insertError;
+  }
+
+  const { error: reservationUpdateError } = await supabaseAdmin
+    .from('order_payment_reservations')
+    .update({ status: 'paid', payment_status: 'paid', provider_transaction_id: transaction.id ? String(transaction.id) : null, paid_at: transaction.paid_at || new Date().toISOString(), finalized_order_id: insertedOrder.id })
+    .eq('id', reservation.id).is('finalized_order_id', null);
+  if (reservationUpdateError) throw reservationUpdateError;
+  return { reservation, order: insertedOrder, alreadyFinalized: false };
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -111,6 +220,10 @@ module.exports = async (req, res) => {
       }
 
       const supabaseAdmin = getSupabaseAdmin();
+      const reservationFinalization = await finalizeReservedOrder(supabaseAdmin, transaction);
+      if (reservationFinalization.order) {
+        return res.status(200).json({ received: true, event: body.event, reference: referenceValue, updated: reservationFinalization.alreadyFinalized ? 0 : 1, order_id: reservationFinalization.order.id });
+      }
       const { data: byPaystackReference, error: paystackReferenceError } = await supabaseAdmin
         .from('orders')
         .select('id, total, status, payment_status, payment_metadata')
@@ -162,6 +275,38 @@ module.exports = async (req, res) => {
       }
 
       return res.status(200).json({ received: true, event: body.event, reference: referenceValue, updated });
+    }
+
+    if (action === 'reserve_order') {
+      const token = getBearerToken(req);
+      let userId = null;
+      if (token) {
+        const supabaseAdmin = getSupabaseAdmin();
+        const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(token);
+        if (authError || !authData?.user) return res.status(401).json({ error: 'Authentication expired. Please sign in again.' });
+        userId = authData.user.id;
+      }
+      const reservationReference = String(reference || '').trim();
+      if (!/^rlbl-[A-Za-z0-9-]{8,100}$/.test(reservationReference)) return res.status(400).json({ error: 'A valid payment reference is required' });
+      const reservationPayload = normalizeReservationPayload(body.reservation);
+      const supabaseAdmin = getSupabaseAdmin();
+      const { data: existing, error: existingError } = await supabaseAdmin.from('order_payment_reservations').select('*').eq('paystack_reference', reservationReference).maybeSingle();
+      if (existingError) throw existingError;
+      if (existing) return res.status(200).json({ status: true, data: existing, alreadyReserved: true });
+      const { data: reservation, error: reservationError } = await supabaseAdmin.from('order_payment_reservations').insert({ ...reservationPayload, paystack_reference: reservationReference, user_id: userId, payment_metadata: { payment_attempt_status: 'reserved', reserved_at: new Date().toISOString() } }).select('*').single();
+      if (reservationError) throw reservationError;
+      return res.status(200).json({ status: true, data: reservation, alreadyReserved: false });
+    }
+
+    if (action === 'finalize_reserved_order') {
+      if (!reference) return res.status(400).json({ error: 'Reference is required for finalization' });
+      const transactionResponse = await verifyPaystackTransaction(String(reference), PAYSTACK_SECRET_KEY);
+      const transaction = transactionResponse?.data || {};
+      if (String(transaction.status || '').toLowerCase() !== 'success') return res.status(409).json({ error: 'Payment is not successful yet', status: transaction.status || 'unknown' });
+      const supabaseAdmin = getSupabaseAdmin();
+      const result = await finalizeReservedOrder(supabaseAdmin, transaction);
+      if (!result.order) return res.status(404).json({ error: 'No server-side reservation exists for this payment reference' });
+      return res.status(200).json({ status: true, data: result.order, alreadyFinalized: Boolean(result.alreadyFinalized) });
     }
 
     if (action === 'initialize_advertising_payment') {
@@ -305,6 +450,101 @@ module.exports = async (req, res) => {
       const { data: advertisement, error: activationError } = await supabaseAdmin.from('advertisements').update({ status: nextStatus, revenue_minor: payment.amount_minor, updated_at: new Date().toISOString() }).eq('id', payment.advertisement_id).select('id, status, starts_at, ends_at').single();
       if (activationError) throw activationError;
       return res.status(200).json({ status: true, message: 'Advertising payment confirmed. Campaign submitted for approval.', data: { ...advertisement, payment_reference: paymentReference } });
+    }
+
+    if (action === 'initialize_product_visibility') {
+      const token = getBearerToken(req);
+      const businessId = String(body.business_id || '').trim();
+      const productId = String(body.product_id || '').trim();
+      const planId = String(body.plan_id || '').trim();
+      if (!token || !businessId || !productId || !planId) return res.status(400).json({ error: 'Authenticated store, product, and visibility package are required.' });
+
+      const supabaseAdmin = getSupabaseAdmin();
+      const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(token);
+      if (authError || !authData?.user) return res.status(401).json({ error: 'Authentication expired. Please sign in again.' });
+
+      const [{ data: business, error: businessError }, { data: product, error: productError }, { data: plan, error: planError }] = await Promise.all([
+        supabaseAdmin.from('businesses').select('id, owner_id').eq('id', businessId).maybeSingle(),
+        supabaseAdmin.from('products').select('id, business_id, name').eq('id', productId).maybeSingle(),
+        supabaseAdmin.from('product_visibility_plans').select('id, name, target, price_minor, currency, duration_days, is_active').eq('id', planId).maybeSingle(),
+      ]);
+      if (businessError) throw businessError;
+      if (productError) throw productError;
+      if (planError) throw planError;
+      if (!business || business.owner_id !== authData.user.id) return res.status(403).json({ error: 'You are not allowed to publish products for this store.' });
+      if (!product || product.business_id !== businessId) return res.status(400).json({ error: 'The selected product does not belong to this store.' });
+      if (!plan || !plan.is_active) return res.status(400).json({ error: 'The selected visibility package is not available.' });
+
+      const paymentReference = `rlbl-visibility-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      const { data: entitlement, error: entitlementError } = await supabaseAdmin.from('product_visibility_entitlements').insert({
+        seller_id: authData.user.id,
+        store_id: businessId,
+        product_id: productId,
+        plan_id: plan.id,
+        target: plan.target,
+        status: 'PENDING',
+        amount_minor: plan.price_minor,
+        currency: 'GHS',
+        duration_days: plan.duration_days,
+        payment_reference: paymentReference,
+        payment_metadata: { type: 'product_visibility', product_id: productId, store_id: businessId, plan_id: plan.id },
+      }).select('id, payment_reference, amount_minor, currency, target, duration_days').single();
+      if (entitlementError) throw entitlementError;
+
+      try {
+        const response = await axios.post(`${PAYSTACK_BASE_URL}/transaction/initialize`, {
+          email: authData.user.email || String(email || ''),
+          amount: Number(plan.price_minor),
+          currency: 'GHS',
+          reference: paymentReference,
+          callback_url,
+          metadata: { type: 'product_visibility', visibility_entitlement_id: entitlement.id, product_id: productId, store_id: businessId, plan_id: plan.id },
+        }, { headers: paystackHeaders(PAYSTACK_SECRET_KEY) });
+        return res.status(200).json({ ...response.data, data: { ...response.data.data, visibility_entitlement_id: entitlement.id, payment_reference: paymentReference } });
+      } catch (paymentInitError) {
+        await supabaseAdmin.from('product_visibility_entitlements').update({ status: 'CANCELLED', updated_at: new Date().toISOString() }).eq('id', entitlement.id).eq('status', 'PENDING');
+        throw paymentInitError;
+      }
+    }
+
+    if (action === 'confirm_product_visibility') {
+      const token = getBearerToken(req);
+      const entitlementId = String(body.visibility_entitlement_id || '').trim();
+      const paymentReference = String(reference || '').trim();
+      if (!token || !entitlementId || !paymentReference) return res.status(400).json({ error: 'Authenticated visibility entitlement and payment reference are required.' });
+
+      const supabaseAdmin = getSupabaseAdmin();
+      const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(token);
+      if (authError || !authData?.user) return res.status(401).json({ error: 'Authentication expired. Please sign in again.' });
+      const { data: entitlement, error: entitlementError } = await supabaseAdmin.from('product_visibility_entitlements')
+        .select('id, seller_id, amount_minor, currency, status, payment_reference, duration_days, target, starts_at, expires_at')
+        .eq('id', entitlementId).maybeSingle();
+      if (entitlementError) throw entitlementError;
+      if (!entitlement || entitlement.seller_id !== authData.user.id || entitlement.payment_reference !== paymentReference) return res.status(404).json({ error: 'Visibility payment was not found.' });
+      if (entitlement.status === 'PAID') return res.status(200).json({ status: true, message: 'Visibility payment already confirmed.', data: entitlement });
+      if (entitlement.status !== 'PENDING') return res.status(409).json({ error: 'This visibility payment is no longer pending.' });
+
+      const verified = await verifyPaystackTransaction(paymentReference, PAYSTACK_SECRET_KEY);
+      const transaction = verified?.data;
+      const transactionMetadata = transaction?.metadata || {};
+      const valid = verified?.status && transaction?.status === 'success' && String(transaction?.reference) === paymentReference && Number(transaction?.amount) === Number(entitlement.amount_minor) && String(transaction?.currency || '').toUpperCase() === String(entitlement.currency).toUpperCase() && transactionMetadata.type === 'product_visibility';
+      if (!valid) {
+        await supabaseAdmin.from('product_visibility_entitlements').update({ status: 'CANCELLED', payment_metadata: transactionMetadata, updated_at: new Date().toISOString() }).eq('id', entitlementId).eq('status', 'PENDING');
+        return res.status(400).json({ error: 'Paystack payment could not be verified for this visibility package.' });
+      }
+
+      const start = new Date(transaction?.paid_at || new Date().toISOString());
+      const end = new Date(start.getTime() + Number(entitlement.duration_days) * 86400000);
+      const { data: activated, error: activationError } = await supabaseAdmin.from('product_visibility_entitlements').update({
+        status: 'PAID',
+        paid_at: transaction?.paid_at || start.toISOString(),
+        starts_at: start.toISOString(),
+        expires_at: end.toISOString(),
+        payment_metadata: transactionMetadata,
+        updated_at: new Date().toISOString(),
+      }).eq('id', entitlementId).eq('seller_id', authData.user.id).eq('status', 'PENDING').select('*').maybeSingle();
+      if (activationError) throw activationError;
+      return res.status(200).json({ status: true, message: 'Product visibility payment confirmed.', data: activated || { ...entitlement, status: 'PAID', starts_at: start.toISOString(), expires_at: end.toISOString() } });
     }
 
     if (action === 'initialize') {

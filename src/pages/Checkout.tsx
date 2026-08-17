@@ -2,17 +2,21 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
-import { createOrder } from '../services/orderService'
+import { createOrder, enrichOrderWithSellerContext } from '../services/orderService'
 import { createGuestOrder } from '../services/guestOrderService'
+import { sendNewOrderNotifications } from '../services/emailNotifications'
 import { createOrUpdateCustomerProfile } from '../services/customerProfileService'
 import {
   initializePayment, 
-  verifyPayment, 
+  verifyPayment,
+  reserveOrderPayment,
+  finalizeReservedOrder,
   generatePaymentReference,
 } from '../services/paystackService'
 import { formatCurrency } from '../utils/currency'
 import { getDeliveryMethodsForBusiness, getProductDeliveryMethods, DELIVERY_CONTROL_MODE, type DeliveryMethod } from '../services/deliveryService'
 import { getProductById } from '../services/productService'
+import { supabase } from '../supabaseClient'
 import './Checkout.css'
 
 const GUEST_CHECKOUT_ENABLED = true
@@ -258,10 +262,29 @@ export default function Checkout() {
       const reference = generatePaymentReference()
       setPaymentReference(reference)
 
-      console.log('[Checkout] Initializing Paystack payment with reference:', reference)
+      console.log('[Checkout] Reserving order context before Paystack payment:', reference)
 
       // Get currency from the first item (or default to GHS)
-        const currency = cart[0]?.currency || 'GHS'
+      const currency = cart[0]?.currency || 'GHS'
+      const sessionResult = supabase ? await supabase.auth.getSession() : null
+      const accessToken = sessionResult?.data.session?.access_token
+      await reserveOrderPayment(reference, {
+        customer_name: formData.fullName,
+        customer_email: formData.email,
+        customer_phone: formData.phone,
+        delivery_address: formData.address,
+        city: formData.city,
+        region: formData.region,
+        notes: formData.notes,
+        items: cart as unknown as Record<string, unknown>[],
+        subtotal: cartSubtotal,
+        delivery_fee: deliveryFee,
+        total,
+        currency,
+        delivery_method: selectedDeliveryMethod?.name,
+        delivery_area: selectedDeliveryMethod?.coverage_area,
+        business_id: checkoutBusinessId,
+      }, accessToken)
 
       const paymentInit = await initializePayment({
         email: formData.email,
@@ -285,6 +308,7 @@ export default function Checkout() {
           payment_provider: 'paystack',
           payment_country: 'GH',
           payment_currency: currency,
+          order_reservation_reference: reference,
         }
       })
 
@@ -339,8 +363,36 @@ export default function Checkout() {
       ) {
         console.log('[Checkout] Payment verified successfully')
 
-        // Create order with payment details
-        const orderPayload = {
+        // Finalize the server-held reservation. This is idempotent and creates
+        // the durable order only after Paystack has verified the payment.
+        const finalized = await finalizeReservedOrder(paymentReference)
+        const result = finalized.data as any
+        const finalizedOrder = result
+        try {
+          const emailOrder = await enrichOrderWithSellerContext(finalizedOrder)
+          await sendNewOrderNotifications(emailOrder, emailOrder.customer_email)
+        } catch (notificationError) {
+          console.error('[Checkout] Order was finalized but notification delivery failed:', notificationError)
+        }
+
+        // Save customer profile
+        if (user) {
+          try {
+            await createOrUpdateCustomerProfile(user.id, {
+              full_name: formData.fullName,
+              phone_number: formData.phone,
+              delivery_address: formData.address,
+              city: formData.city,
+              region: formData.region,
+            })
+          } catch (profileError) {
+            console.warn('[Checkout] Failed to save customer profile:', profileError)
+          }
+        }
+
+        /* Legacy browser-side order construction intentionally removed. The
+           server reservation is now the single source of truth. */
+        /* const orderPayload = {
           customer_name: formData.fullName,
           customer_email: formData.email,
           customer_phone: formData.phone,
@@ -374,7 +426,8 @@ export default function Checkout() {
           transaction_id: verification.data.id.toString(),
         }
 
-        let result;
+        */
+        /* let result;
         if (user) {
           console.log('[Checkout] Creating order for authenticated user')
           result = await createOrder({
@@ -400,9 +453,9 @@ export default function Checkout() {
           result = await createGuestOrder(orderPayload)
         } else {
           throw new Error('Guest checkout is disabled. Please log in to place an order.')
-        }
+        } */
 
-        console.log('[Checkout] Order created successfully:', result.id)
+        console.log('[Checkout] Order finalized successfully:', finalizedOrder.id)
         
         localStorage.removeItem('checkout_state')
         clearCart()
