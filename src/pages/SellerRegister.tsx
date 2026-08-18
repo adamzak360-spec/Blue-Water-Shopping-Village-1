@@ -268,7 +268,7 @@ export default function SellerRegister() {
               <div className="form-group">
                 <label htmlFor="storeSlug">Store URL</label>
                 <div className="slug-input-wrapper">
-                  <span>reliable-now.vercel.app/store/</span>
+                  <span>www.reliablepremiummarketplace.com/store/</span>
                   <input
                     type="text"
                     id="storeSlug"

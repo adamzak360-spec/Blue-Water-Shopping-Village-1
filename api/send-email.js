@@ -2,7 +2,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 
-const APP_ORIGIN = (process.env.APP_ORIGIN || 'https://reliable-now.vercel.app').replace(/\/$/, '');
+const APP_ORIGIN = (process.env.APP_ORIGIN || 'https://www.reliablepremiummarketplace.com').replace(/\/$/, '');
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://iwouhwizzwwykchgflyk.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;

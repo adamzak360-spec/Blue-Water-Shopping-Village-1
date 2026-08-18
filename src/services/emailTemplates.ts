@@ -8,12 +8,12 @@
 import { Order, CartItem, SellerOrderContext } from '../types'
 
 const COMPANY_NAME = 'Reliable'
-const COMPANY_WEBSITE = 'https://reliable-now.vercel.app'
+const COMPANY_WEBSITE = 'https://www.reliablepremiummarketplace.com'
 const SUPPORT_EMAIL = 'support@reliable.com'
 const PHONE = '+233 59 560 9966'
 const SUPPORT_WHATSAPP = '+233 20 335 5542'
 const COMPANY_LOCATION = 'Tamale, Ghana'
-const EMAIL_LOGO_URL = 'https://reliable-now.vercel.app/manual-assets/reliable-email-logo-full-v2.png'
+const EMAIL_LOGO_URL = 'https://www.reliablepremiummarketplace.com/manual-assets/reliable-email-logo-full-v2.png'
 
 function getSellerContext(order: Order): SellerOrderContext {
   return order.seller_context || {}

@@ -5,7 +5,7 @@ const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 
 function requestOrigin(req) {
   const origin = req.headers.origin;
-  const configured = String(process.env.APP_ORIGIN || process.env.VITE_APP_URL || 'https://reliable-now.vercel.app')
+  const configured = String(process.env.APP_ORIGIN || process.env.VITE_APP_URL || 'https://www.reliablepremiummarketplace.com')
     .split(',')
     .map(value => value.trim())
     .filter(Boolean);

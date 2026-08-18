@@ -177,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: new Error('Supabase not configured') }
     }
 
-    const publicAppUrl = (import.meta.env.VITE_PUBLIC_APP_URL || 'https://reliable-now.vercel.app').replace(/\/$/, '')
+    const publicAppUrl = (import.meta.env.VITE_PUBLIC_APP_URL || 'https://www.reliablepremiummarketplace.com').replace(/\/$/, '')
     const safeRedirect = redirectPath.startsWith('/') && !redirectPath.startsWith('//') ? redirectPath : ''
     const callbackUrl = `${publicAppUrl}/login${safeRedirect ? `?redirect=${encodeURIComponent(safeRedirect)}` : ''}`
     const { error } = await supabase.auth.signInWithOAuth({
@@ -245,7 +245,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // links generated during local development (localhost:3000) from being
     // emailed to customers and makes the production flow independent of the
     // browser origin that submitted the request.
-    const publicAppUrl = (import.meta.env.VITE_PUBLIC_APP_URL || 'https://reliable-now.vercel.app').replace(/\/$/, '')
+    const publicAppUrl = (import.meta.env.VITE_PUBLIC_APP_URL || 'https://www.reliablepremiummarketplace.com').replace(/\/$/, '')
     const redirectTo = `${publicAppUrl}/reset-password`
 
     const { error } = await supabase!.auth.resetPasswordForEmail(email, {
