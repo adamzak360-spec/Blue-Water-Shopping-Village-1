@@ -75,7 +75,14 @@ export default function Login() {
     const { error: signInError } = await signIn(email, password)
 
     if (signInError) {
-      setError(signInError.message || 'Invalid email or password.')
+      const msg = signInError.message?.trim()
+      if (!msg || /503|connect error|transport failure|upstream/i.test(msg)) {
+        setError('Login is temporarily unavailable due to a service provider issue. Please try again in a few minutes. If it keeps failing, contact support.')
+      } else if (/invalid login credentials/i.test(msg)) {
+        setError('Invalid email or password.')
+      } else {
+        setError(msg)
+      }
       setIsLoading(false)
       return
     }
