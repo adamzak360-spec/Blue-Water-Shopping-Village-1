@@ -75,6 +75,18 @@ export default function AuthOutageNotice() {
   if (!visible) return null
 
   return (
+    <>
+    <div
+      aria-hidden="true"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9998,
+        background: 'rgba(5, 20, 35, 0.35)',
+        animation: 'authNoticeFadeIn 0.45s ease-out',
+      }}
+      onClick={dismiss}
+    />
     <button
       type="button"
       onClick={dismiss}
@@ -82,9 +94,9 @@ export default function AuthOutageNotice() {
       aria-label="Dismiss maintenance notice"
       style={{
         position: 'fixed',
-        bottom: 22,
+        top: '50%',
         left: '50%',
-        transform: 'translateX(-50%)',
+        transform: 'translate(-50%, -50%)',
         zIndex: 9999,
         maxWidth: 'min(92vw, 460px)',
         width: 'max-content',
@@ -93,7 +105,7 @@ export default function AuthOutageNotice() {
         border: '1px solid rgba(255,255,255,0.18)',
         borderRadius: 14,
         boxShadow: '0 8px 30px rgba(0,0,0,0.35)',
-        padding: '12px 38px 12px 16px',
+        padding: '14px 38px 14px 16px',
         fontSize: 13.5,
         lineHeight: 1.45,
         fontFamily: 'inherit',
@@ -126,15 +138,17 @@ export default function AuthOutageNotice() {
           sorry for the inconvenience!
         </span>
       </div>
-      <style>{`
-        @keyframes authNoticeIn {
-          from { opacity: 0; transform: translate(-50%, 18px); }
-          to { opacity: 1; transform: translate(-50%, 0); }
-        }
-        @media (max-width: 480px) {
-          /* keep the fixed banner above the Install Reliable PWA prompt */
-        }
-      `}</style>
     </button>
+    </>
+    <style>{`
+      @keyframes authNoticeIn {
+        from { opacity: 0; transform: translate(-50%, -46%); }
+        to { opacity: 1; transform: translate(-50%, -50%); }
+      }
+      @keyframes authNoticeFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+    `}</style>
   )
 }
