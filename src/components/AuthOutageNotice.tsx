@@ -139,7 +139,6 @@ export default function AuthOutageNotice() {
         </span>
       </div>
     </button>
-    </>
     <style>{`
       @keyframes authNoticeIn {
         from { opacity: 0; transform: translate(-50%, -46%); }
@@ -150,5 +149,6 @@ export default function AuthOutageNotice() {
         to { opacity: 1; }
       }
     `}</style>
+    </>
   )
 }
