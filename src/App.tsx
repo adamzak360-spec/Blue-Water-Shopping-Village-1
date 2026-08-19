@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import './App.css'
 import { lazy, Suspense, useLayoutEffect } from 'react'
+import AuthOutageNotice from './components/AuthOutageNotice'
 import Footer from './components/Footer'
 import NotificationBell from './components/NotificationBell'
 import NProgress from 'nprogress'
@@ -311,6 +312,7 @@ function AppShell() {
 
       <TermsPopup />
       <InstallAppPrompt />
+      <AuthOutageNotice />
       <main className="app-main">
         <Suspense fallback={
           <div className="loading-screen" aria-label="Loading Reliable">
