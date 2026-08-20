@@ -120,9 +120,9 @@ export default function Terms() {
               change before an order is accepted.
             </p>
             <p>
-              Available payment options may include online card or mobile-money payments and cash on
-              delivery, depending on the order, location, seller, currency, and current platform
-              settings. You confirm that you are authorised to use the payment method supplied. Online
+              Available payment options include online payments by card, mobile money, or bank
+              transfer through our payment provider Paystack, depending on the order, location,
+              seller, and currency. You confirm that you are authorised to use the payment method supplied. Online
               payment processing may be handled by a third-party payment provider, and payment may be
               subject to that provider’s terms, exchange rates, limits, and verification process. A
               payment attempt does not by itself guarantee order acceptance until the order is
@@ -247,6 +247,42 @@ export default function Terms() {
               proceedings, please contact us so that we can investigate and attempt to resolve the
               issue in good faith. Nothing in this section prevents a person from using a lawful
               regulatory, consumer, or court process that cannot be waived.
+            </p>
+          </section>
+
+          <section className="content-section">
+            <h2>13A. Payment Methods, Supported Countries, and Seller Payouts</h2>
+            <p>
+              Online payments on Reliable are processed through Paystack, a third-party payment
+              provider. Depending on the order, location, seller, and current platform settings,
+              available online payment options include card payments, mobile-money payments, and
+              bank transfer. Paystack’s own terms, fees, exchange
+              rates, limits, and verification requirements apply to online transactions, and
+              payment information is handled directly by the payment provider rather than stored
+              in full on Reliable’s systems.
+            </p>
+            <p>
+              Reliable is open to sellers across West Africa. Seller registration is currently
+              available in all West African countries where sellers have registered and opened
+              live stores, with expansion to additional countries and regions as the marketplace
+              grows. Online checkout by card, mobile money, or bank transfer is powered by Paystack, whose payment
+              processing is currently available in <strong>Ghana (GHS), Nigeria (NGN),
+              Kenya (KES), South Africa (ZAR), the United States, the United Arab Emirates,
+              and Côte d'Ivoire</strong>, with USD and GBP accepted for card payments where
+              enabled. The currency of each store is shown on the storefront and
+              at checkout, and the checkout total is the controlling amount for the order.
+            </p>
+            <p>
+              After an order is delivered and the customer confirms receipt, the settlement for
+              that order is processed under the marketplace settlement workflow. Sellers
+              registered in Ghana with a GHS store who have completed their payout profile
+              (account name, bank account or mobile-money details, and any required international
+              details such as SWIFT/IBAN) and business verification may qualify for automated
+              Paystack payouts once approved. Verified sellers may also receive higher payout
+              limits and a verified-store status. Sellers in other supported countries are
+              currently settled through a manual payout process until an approved automated route
+              becomes available for their location. A marketplace commission may be retained from
+              seller-side settlements as described in these Terms.
             </p>
           </section>
 

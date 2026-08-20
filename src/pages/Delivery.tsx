@@ -76,6 +76,35 @@ export default function Delivery() {
           </section>
 
           <section className="content-section">
+            <h2>Order Processing and Customer Confirmation</h2>
+            <p>
+              Every order follows a clear chain between the customer, the seller, and the Reliable
+              administration team, so that everyone knows exactly where an order stands at any time.
+              Orders are placed through a customer account: to complete checkout you register a free
+              customer account (or sign in to an existing one), which then lets you track the order,
+              communicate with the seller, and confirm receipt. When you complete checkout and your online payment (card, mobile money, or bank
+              transfer) is verified by Paystack, the order is created and the relevant seller is
+              immediately notified through their seller dashboard.
+            </p>
+            <p>
+              The seller then reviews the order in their dashboard, prepares the products, and moves
+              the order from <strong>Processing</strong> to a dispatch stage. The seller or the
+              Reliable administration team coordinates dispatch through the selected delivery method.
+              Progress is visible in your customer account through the order stages — Processing,
+              Dispatch / Out for Delivery or Ready for Pickup, and Delivered — and updates may also
+              appear in the notification bell and be sent by email where enabled.
+            </p>
+            <p>
+              Once the order arrives, the customer is asked to inspect the package and
+              <strong> confirm receipt in their account</strong>. This confirmation step is important:
+              it closes the order loop, releases the settled funds to the seller according to the
+              payout process, and helps keep the marketplace fair for both sides. If anything is
+              wrong with the delivery, report it under the Return &amp; Refund Policy instead of
+              confirming.
+            </p>
+          </section>
+
+          <section className="content-section">
             <h2>How Delivery Works</h2>
             <ol className="steps-list">
               <li>

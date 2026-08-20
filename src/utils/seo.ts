@@ -88,6 +88,7 @@ export function applyProductSeo(product: Product, averageRating: number, totalRe
     category: product.category,
     ...(product.brand ? { brand: { '@type': 'Brand', name: product.brand } } : {}),
     ...(product.sku || product.product_code ? { sku: product.sku || product.product_code } : {}),
+    ...(product.product_code ? { identifier: product.product_code } : product.sku ? { identifier: product.sku } : { identifier: product.id }),
     offers: {
       '@type': 'Offer',
       url: productUrl,
@@ -98,6 +99,41 @@ export function applyProductSeo(product: Product, averageRating: number, totalRe
       seller: {
         '@type': 'Organization',
         name: 'Reliable Premium Marketplace',
+      },
+      hasMerchantReturnPolicy: {
+        '@type': 'MerchantReturnPolicy',
+        applicableCountry: 'GH',
+        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+        merchantReturnDays: 7,
+        returnMethod: 'https://schema.org/ReturnByMail',
+        returnFees: 'https://schema.org/FreeReturn',
+      },
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingRate: {
+          '@type': 'MonetaryAmount',
+          value: '0.00',
+          currency: currency,
+        },
+        shippingDestination: {
+          '@type': 'DefinedRegion',
+          addressCountry: 'GH',
+        },
+        deliveryTime: {
+          '@type': 'ShippingDeliveryTime',
+          handlingTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 2,
+            unitCode: 'DAY',
+          },
+          transitTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 5,
+            unitCode: 'DAY',
+          },
+        },
       },
     },
   }

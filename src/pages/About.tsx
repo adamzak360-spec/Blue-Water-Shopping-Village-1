@@ -5,14 +5,15 @@ const customerSteps = [
   { number: '1', title: 'Discover', text: 'Browse products, categories, and registered stores on Reliable.' },
   { number: '2', title: 'Explore Stores', text: 'Visit a seller storefront and explore the products they offer.' },
   { number: '3', title: 'Choose Products', text: 'Review specifications, sizes, variants, stock, delivery options, and seller information before adding products to your cart.' },
-  { number: '4', title: 'Order', text: 'Complete checkout, receive status updates, confirm delivery when appropriate, and follow the order in your account.' },
+  { number: '4', title: 'Pay &amp; Order', text: 'Complete checkout with secure online payment through Paystack by card, mobile money, or bank transfer. Once payment is verified, the seller is notified and your order is recorded in your account.' },
+  { number: '5', title: 'Track &amp; Confirm', text: 'Watch the order progress (Processing, Dispatch, Out for Delivery, Delivered) in your account, chat with the seller if you have questions, and confirm receipt once your order arrives.' },
 ]
 
 const businessSteps = [
   { number: '1', title: 'Register', text: 'Create a business account on Reliable.' },
   { number: '2', title: 'Create Store', text: 'Set up your public storefront with your business information.' },
   { number: '3', title: 'Add Products', text: 'Upload products, images, prices, categories, specifications, variants, delivery settings, and stock information.' },
-  { number: '4', title: 'Manage & Grow', text: 'Use the seller dashboard, optional POS subscription, delivery tools, notifications, and payout workflow to operate your store.' },
+  { number: '4', title: 'Manage &amp; Grow', text: 'Use the seller dashboard to manage products, orders, delivery settings, payouts, and promotions. Complete your business verification and payout profile so you can receive settled funds.' },
 ]
 
 const benefits = [
@@ -45,8 +46,8 @@ export default function About() {
             Reliable is a global multi-vendor marketplace connecting customers with independent businesses and giving sellers practical tools to build, operate, and grow their digital stores.
           </p>
           <div className="hero-cta">
-            <Link to="/stores" className="cta-primary">Browse Stores</Link>
-            <Link to="/seller/register" className="cta-secondary">Start Selling</Link>
+            <Link to="/stores" className="about-cta-primary">Browse Stores</Link>
+            <Link to="/seller/register" className="about-cta-secondary">Start Selling</Link>
           </div>
         </div>
       </section>
@@ -199,10 +200,53 @@ export default function About() {
           </div>
           <div className="section-content">
             <p>
-              Our goal is to make it easier for customers to find trustworthy businesses online and easier for businesses to establish a practical digital presence. Reliable brings marketplace discovery, independent stores, flexible seller tools, supported international payments, delivery choices, and customer order visibility into one connected experience.
+              Our goal is to make it easier for customers to find trustworthy businesses online and easier for businesses to establish a practical digital presence. Reliable brings marketplace discovery, independent stores, flexible seller tools, supported international payments, delivery choices, and customer order visibility into one connected experience. In-app chat lets customers talk directly with sellers about products and orders, verified stores carry a visible Verified badge, and every order is traceable from payment to delivery confirmation in your account.
             </p>
             <p>
               We are focused on building useful tools, clear customer experiences, and dependable processes—from product discovery and checkout to delivery confirmation, notifications, and seller settlement—that can grow with the businesses and communities we serve.
+            </p>
+          </div>
+        </section>
+
+        {/* Payments & Countries */}
+        <section className="about-section">
+          <div className="section-header">
+            <h2>Payments, Supported Countries &amp; Currencies</h2>
+            <p>Secure online checkout powered by Paystack</p>
+          </div>
+          <div className="section-content">
+            <p>
+              Online payments on Reliable are processed securely through Paystack, a trusted
+              pan-African payment provider. When you check out, you can pay by <strong>card,
+              mobile money, or bank transfer</strong> in the currency shown for your order.
+            </p>
+            <p>
+              Reliable is expanding across West Africa. Today we serve all West African countries
+              where registered sellers have live stores, and we are adding more countries and
+              stores as sellers join each new market. For payments specifically, our payment
+              partner Paystack currently operates in <strong>Ghana, Nigeria, Kenya, South
+              Africa, the United States, the United Arab Emirates, and Côte d'Ivoire</strong>,
+              so online checkout by card, mobile money, or bank transfer is fully supported
+              in those markets, with the options shown at checkout applying to your order.
+            </p>
+            <div className="info-grid">
+              <div className="info-card">
+                <h4>Supported countries</h4>
+                <p><strong>All West African countries where registered sellers have live stores</strong></p>
+                <p className="info-note">Our primary operations are based in Tamale, Ghana, and we are expanding store by store across West Africa as sellers register in each market. Other regions will follow as we grow.</p>
+              </div>
+              <div className="info-card">
+                <h4>Supported currencies</h4>
+                <p><strong>GHS, NGN, KES, ZAR (plus USD and GBP card payments)</strong></p>
+                <p className="info-note">Paystack's payment processing currently covers GHS (Ghana), NGN (Nigeria), KES (Kenya), and ZAR (South Africa), with USD and GBP card payments; each store's currency is shown on its storefront and at checkout.</p>
+              </div>
+            </div>
+            <p>
+              For sellers, funds from completed orders are settled through the payout workflow.
+              Verified sellers registered in Ghana with a GHS (cedi) store can qualify for
+              automated Paystack payouts once their payout profile and business verification are
+              approved. Sellers in other supported countries are currently settled manually until
+              an approved payout route is available for their location.
             </p>
           </div>
         </section>

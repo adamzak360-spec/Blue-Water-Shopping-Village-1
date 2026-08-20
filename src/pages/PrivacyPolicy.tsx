@@ -50,9 +50,10 @@ export default function PrivacyPolicy() {
             </ul>
             <h4>Verification, POS, and settlement information</h4>
             <ul className="content-list">
-              <li>Seller verification information and documents submitted to establish or protect a business account, where required.</li>
+              <li>Seller business verification information submitted to complete seller verification: business registration number, tax identification number (TIN), registration documents, and proof-of-address documents. Verified status may unlock benefits such as automated payouts, higher payout limits, and a verified-store badge.</li>
+              <li>Seller payout profile information submitted for payment setup: account name, bank account or mobile-money details (network and number), and where required international details such as SWIFT or IBAN.</li>
               <li>POS subscription, receipt, sales, inventory, and device-related information generated when a seller uses the POS feature.</li>
-              <li>Seller payout profile, recipient, settlement, commission, refund-processing, and transfer information needed to administer seller payouts.</li>
+              <li>Seller payout recipient, settlement, commission, refund-processing, and transfer information needed to administer seller payouts.</li>
             </ul>
             <h4>Technical and usage information</h4>
             <p>

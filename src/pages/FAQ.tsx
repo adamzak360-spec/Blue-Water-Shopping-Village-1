@@ -35,15 +35,19 @@ export default function FAQ() {
                 <h4>How do I place an order?</h4>
                 <p>
                   Browse products or visit a seller storefront, add products to your cart, review the
-                  seller, delivery details, fees, and total, and proceed to checkout. You may check out
-                  as a guest or create an account for easier future access.
+                  seller, delivery details, fees, and total, then register or sign in to a customer
+                  account to complete checkout. Your account is required to place the order, track
+                  its delivery progress, and confirm receipt once your order arrives.
                 </p>
               </div>
               <div className="faq-item">
-                <h4>Do I need an account to shop?</h4>
+                <h4>Do I need an account to order?</h4>
                 <p>
-                  No. Guest checkout may be available for eligible orders. Creating an account helps
-                  you access order history, account tools, and other features that require sign-in.
+                  Yes, for placing orders. You can browse all stores, products, and prices freely
+                  without an account, but to complete checkout you must register a free customer
+                  account (or sign in to an existing one). Your customer account is how you track
+                  your order's progress, communicate with the seller, and confirm delivery — and it
+                  is also what unlocks the payout to the seller once your order is confirmed.
                 </p>
               </div>
               <div className="faq-item">
@@ -101,8 +105,8 @@ export default function FAQ() {
               <div className="faq-item">
                 <h4>When am I charged?</h4>
                 <p>
-                  Online payment may be charged during checkout after the payment provider verifies the
-                  transaction. For cash on delivery, payment is collected when the order is received.
+                  All orders on Reliable are paid online at checkout through Paystack (card, mobile
+                  money, or bank transfer), and the payment is verified before the order is recorded.
                   A payment attempt does not guarantee acceptance until the order is verified and
                   recorded.
                 </p>
@@ -110,8 +114,9 @@ export default function FAQ() {
               <div className="faq-item">
                 <h4>What payment methods are available?</h4>
                 <p>
-                  Depending on the order and location, available options may include online card or
-                  mobile-money payments and cash on delivery. The methods shown at checkout control the
+                  All payments are collected online at checkout through Paystack, and the available
+                  options for your order include <strong>card, mobile money, and bank transfer</strong>
+                  depending on your order and location. The methods shown at checkout control the
                   available options for that order.
                 </p>
               </div>
@@ -127,6 +132,40 @@ export default function FAQ() {
                 <p>
                   Checkout may require products from different seller stores to be placed in separate
                   orders so that each seller can manage fulfilment and attribution correctly.
+                </p>
+              </div>
+              <div className="faq-item">
+                <h4>What happens after I pay? How is my order processed?</h4>
+                <p>
+                  Once your online payment is verified by Paystack, the order is created and the
+                  seller is immediately notified in their
+                  seller dashboard. The seller then prepares the products, the order moves from
+                  Processing to dispatch, and you can follow each stage — Processing, Out for
+                  Delivery / Ready for Pickup, Delivered — in your account, with updates in the
+                  notification bell and by email where enabled. When the order arrives, you are
+                  asked to inspect it and confirm receipt in your account, which completes the
+                  order and releases the funds to the seller.
+                </p>
+              </div>
+              <div className="faq-item">
+                <h4>Which payment methods, countries, and currencies are supported?</h4>
+                <p>
+                  Online checkout is powered by Paystack, supporting secure <strong>card, mobile
+                  money, and bank transfer</strong> payments. Paystack's
+                  payment processing currently covers <strong>Ghana (GHS), Nigeria (NGN), Kenya
+                  (KES), South Africa (ZAR), the United States, the United Arab Emirates, and
+                  Côte d'Ivoire</strong>, with USD and GBP card payments where enabled. Reliable itself is open to sellers across all West African countries
+                  where registered sellers have live stores, expanding to more countries as we
+                  grow. The currency for each store is shown on its storefront and at checkout.
+                </p>
+              </div>
+              <div className="faq-item">
+                <h4>Can I chat with a seller before or after ordering?</h4>
+                <p>
+                  Yes. Reliable includes a built-in chat feature that lets you message a seller
+                  directly from a product page or your account to ask about products, sizing,
+                  stock, or your order. Keep conversations about orders inside Reliable so that
+                  everything stays documented and protected by our marketplace safeguards.
                 </p>
               </div>
             </div>
@@ -216,6 +255,41 @@ export default function FAQ() {
                   Yes. Reliable may restrict or remove stores, listings, or accounts for safety, fraud,
                   legal, quality, operational, or Terms-related reasons. We may also ask a seller to
                   correct information before restoring access.
+                </p>
+              </div>
+              <div className="faq-item">
+                <h4>What can a seller do in their dashboard?</h4>
+                <p>
+                  A seller dashboard lets a seller manage their storefront and products (names,
+                  images, descriptions, specifications, sizes, variants, stock, and prices), review
+                  and update order stages, configure delivery methods, areas, and fees, run
+                  promotions, manage payout settings, track notifications, and (with an active POS
+                  subscription) use in-person point-of-sale tools. Orders appear in the seller
+                  dashboard only when a customer purchases from that seller’s store.
+                </p>
+              </div>
+              <div className="faq-item">
+                <h4>How do I complete seller verification and set up my payout information?</h4>
+                <p>
+                  After registering your store, go to your seller dashboard and complete two things:
+                  your <strong>payout profile</strong> (account name, bank account or mobile-money
+                  network and number, and where required SWIFT/IBAN details) and your
+                  <strong> business verification</strong> (business registration number, tax ID/TIN,
+                  and supporting documents such as a registration certificate and proof of address).
+                  Verified sellers in Ghana with a GHS store can qualify for automated Paystack
+                  payouts once approved, and verification can unlock higher payout limits and a
+                  visible verified-store badge that builds customer trust.
+                </p>
+              </div>
+              <div className="faq-item">
+                <h4>How does a seller get paid?</h4>
+                <p>
+                  After an order is delivered and the customer confirms receipt, the order settles
+                  through the marketplace settlement process. The marketplace commission is
+                  accounted for, and the remaining amount is paid out to the seller through their
+                  payout profile. Verified Ghana (GHS) sellers may receive automated Paystack
+                  payouts; sellers in other supported countries are currently settled manually
+                  until an approved automated route is available.
                 </p>
               </div>
             </div>

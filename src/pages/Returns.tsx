@@ -86,8 +86,10 @@ export default function Returns() {
               where practical and lawful.
             </p>
             <p>
-              For cash-on-delivery orders, we will contact you to agree on a reasonable refund method
-              and may require verification of the recipient. A refund may cover the affected product
+              For online payments, refunds are returned to the original payment method (card, mobile
+              money, or bank transfer account) used at checkout; where a refund to the original
+              method is not possible, we will contact you to agree on a reasonable refund method and
+              may require verification of the recipient. A refund may cover the affected product
               and applicable delivery charges where the issue was caused by Reliable, the seller, or
               delivery handling. Original delivery fees may not be refundable for a change of mind or
               an issue not caused by us or the seller.
