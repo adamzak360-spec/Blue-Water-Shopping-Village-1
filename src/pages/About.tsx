@@ -35,19 +35,74 @@ const benefits = [
   }
 ]
 
+// Critical first-paint styles, mirrored from About.css. They render the hero and
+// its buttons correctly even when the lazy About.css chunk has not arrived yet.
+// Once About.css loads, the stylesheet rules take over (same values), so there
+// is no style flicker — and the buttons are never "missing" on first visit.
+const HERO_INLINE_STYLES: React.CSSProperties = {
+  color: '#ffffff',
+  textAlign: 'center',
+  background: 'linear-gradient(135deg, #0A2E5C 0%, #087B7F 100%)',
+  marginBottom: 0,
+  padding: '4rem 1.5rem',
+}
+const HERO_CONTENT_INLINE_STYLES: React.CSSProperties = {
+  maxWidth: 700,
+  margin: '0 auto',
+}
+const HERO_SUBTITLE_INLINE_STYLES: React.CSSProperties = {
+  fontSize: '1.1rem',
+  lineHeight: 1.6,
+  margin: '0 0 2rem 0',
+  opacity: 0.95,
+  fontWeight: 400,
+  textTransform: 'none',
+  letterSpacing: 'normal',
+  display: 'block',
+}
+const CTA_PRIMARY_INLINE_STYLES: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '0.9rem 1.8rem',
+  borderRadius: 8,
+  fontWeight: 600,
+  textDecoration: 'none',
+  fontSize: '1rem',
+  minHeight: 44,
+  border: '2px solid transparent',
+  background: '#ffffff',
+  color: '#0A2E5C',
+}
+const CTA_SECONDARY_INLINE_STYLES: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '0.9rem 1.8rem',
+  borderRadius: 8,
+  fontWeight: 600,
+  textDecoration: 'none',
+  fontSize: '1rem',
+  minHeight: 44,
+  border: '2px solid #ffffff',
+  background: 'transparent',
+  color: '#ffffff',
+}
+
 export default function About() {
   return (
     <div className="about-page">
-      {/* Hero Section */}
-      <section className="about-hero">
-        <div className="about-hero-content">
+      {/* Hero Section (critical styles inlined so the hero + buttons are always
+          visible on first paint, even before the lazy About.css chunk arrives) */}
+      <section className="about-hero" style={HERO_INLINE_STYLES}>
+        <div className="about-hero-content" style={HERO_CONTENT_INLINE_STYLES}>
           <h1>About Reliable</h1>
-          <p className="hero-subtitle">
+          <p className="about-hero-subtitle" style={HERO_SUBTITLE_INLINE_STYLES}>
             Reliable is a global multi-vendor marketplace connecting customers with independent businesses and giving sellers practical tools to build, operate, and grow their digital stores.
           </p>
           <div className="hero-cta">
-            <Link to="/stores" className="about-cta-primary">Browse Stores</Link>
-            <Link to="/seller/register" className="about-cta-secondary">Start Selling</Link>
+            <Link to="/stores" className="about-cta-primary" style={CTA_PRIMARY_INLINE_STYLES}>Browse Stores</Link>
+            <Link to="/seller/register" className="about-cta-secondary" style={CTA_SECONDARY_INLINE_STYLES}>Start Selling</Link>
           </div>
         </div>
       </section>
