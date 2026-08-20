@@ -5,6 +5,7 @@ import { shuffle } from '../utils/shuffle'
 import { getActivePromotedProducts, type ActivePromotedProduct } from '../services/promotionService'
 import type { Product } from '../types'
 import ProductCard from '../components/ProductCard'
+import { applyCatalogSeo } from '../utils/seo'
 import AdSlot from '../components/AdSlot'
 import { ArrowRight, Search, X } from 'lucide-react'
 import './Products.css'
@@ -68,6 +69,24 @@ export default function Products() {
     }
     loadProducts()
   }, [])
+
+  // Catalog page SEO: rich titles + ItemList schema so the whole listing ranks for shopping queries
+  useEffect(() => {
+    const visible = filteredProducts.length > 0 ? filteredProducts : products.filter(p => p.status === 'active')
+    let title = 'Products'
+    let description = `Browse ${products.length} products from trusted seller stores on Reliable Premium Marketplace — pay securely online by card, Mobile Money, or bank transfer.`
+    if (selectedCategory) {
+      title = `${selectedCategory} Products`
+      description = `Shop ${selectedCategory.toLowerCase()} products from trusted seller stores on Reliable Premium Marketplace. Browse prices, specifications, and sellers, and pay securely online by card, Mobile Money, or bank transfer.`
+    }
+    if (searchTerm.trim()) {
+      title = `Search results for "${searchTerm.trim()}"`
+    }
+    applyCatalogSeo(title, description, visible)
+    return () => {
+      document.head.querySelector<HTMLScriptElement>('script#reliable-catalog-jsonld')?.remove()
+    }
+  }, [filteredProducts, products, selectedCategory, searchTerm])
 
   useEffect(() => {
     const normalizedSearch = searchTerm.trim()

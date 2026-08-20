@@ -161,6 +161,53 @@ export function applyProductSeo(product: Product, averageRating: number, totalRe
   })
 }
 
+// Catalog page SEO: gives Google a rich description of the whole product listing,
+// with an ItemList schema and social tags so /products ranks for shopping queries.
+export function applyCatalogSeo(pageTitle: string, pageDescription: string, products: Product[]) {
+  const origin = window.location.origin
+  document.title = `${pageTitle} | Reliable Premium Marketplace`
+  setMeta('meta[name="description"]', { name: 'description' }, cleanDescription(pageDescription))
+  setLink('canonical', `${origin}/products`)
+  setMeta('meta[property="og:title"]', { property: 'og:title' }, document.title)
+  setMeta('meta[property="og:description"]', { property: 'og:description' }, cleanDescription(pageDescription))
+  setMeta('meta[property="og:url"]', { property: 'og:url' }, `${origin}/products`)
+  setMeta('meta[property="og:type"]', { property: 'og:type' }, 'website')
+  setMeta('meta[property="og:site_name"]', { property: 'og:site_name' }, 'Reliable Premium Marketplace')
+  if (products.length > 0) {
+    setMeta('meta[property="og:image"]', { property: 'og:image' }, absoluteUrl(products[0].image_url, origin))
+    setMeta('meta[property="og:image:alt"]', { property: 'og:image:alt' }, products[0].name)
+  }
+  const itemList: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: pageTitle,
+    description: cleanDescription(pageDescription),
+    url: `${origin}/products`,
+    itemListElement: products.slice(0, 100).map((product, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'Product',
+        name: product.name,
+        url: `${origin}/product/${encodeURIComponent(product.id)}`,
+        image: absoluteUrl(product.image_url, origin),
+        ...(product.brand ? { brand: { '@type': 'Brand', name: product.brand } } : {}),
+        ...(product.sku || product.product_code ? { sku: product.sku || product.product_code } : {}),
+        ...(product.product_code ? { identifier: product.product_code } : product.sku ? { identifier: product.sku } : { identifier: product.id }),
+        offers: {
+          '@type': 'Offer',
+          priceCurrency: product.currency || 'GHS',
+          price: Number(product.price).toFixed(2),
+          availability: product.status === 'active' && Number(product.stock_quantity) > 0
+            ? 'https://schema.org/InStock'
+            : 'https://schema.org/OutOfStock',
+        },
+      },
+    })),
+  }
+  setJsonLd('reliable-catalog-jsonld', itemList)
+}
+
 export function resetProductSeo() {
   document.title = 'Reliable Premium Marketplace'
   setMeta('meta[name="description"]', { name: 'description' }, DEFAULT_DESCRIPTION)
