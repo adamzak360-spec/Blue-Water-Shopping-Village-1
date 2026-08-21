@@ -1,4 +1,4 @@
-import { Navigate, Routes, Route, Link, useLocation } from 'react-router-dom'
+import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuth } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -34,6 +34,7 @@ import 'nprogress/nprogress.css'
 NProgress.configure({ showSpinner: false, speed: 400, minimum: 0.2 })
 
 // Lazy load pages for faster initial load
+const Home = lazy(() => import('./pages/Home'))
 const Admin = lazy(() => import('./pages/Admin'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
@@ -319,7 +320,7 @@ function AppShell() {
           </div>
         }>
           <Routes>
-            <Route path="/" element={<Navigate to="/products" replace />} />
+            <Route path="/" element={<Home />} />
             <Route path="/stores" element={<StoresDirectory />} />
             <Route path="/store/:slug" element={<BusinessStorefront />} />
             <Route path="/products" element={<Products />} />
