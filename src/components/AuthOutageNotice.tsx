@@ -76,17 +76,6 @@ export default function AuthOutageNotice() {
 
   return (
     <>
-    <div
-      aria-hidden="true"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9998,
-        background: 'rgba(5, 20, 35, 0.35)',
-        animation: 'authNoticeFadeIn 0.45s ease-out',
-      }}
-      onClick={dismiss}
-    />
     <button
       type="button"
       onClick={dismiss}
@@ -94,12 +83,13 @@ export default function AuthOutageNotice() {
       aria-label="Dismiss maintenance notice"
       style={{
         position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 9999,
+        top: 82,
+        right: 12,
+        left: 'auto',
+        transform: 'none',
+        zIndex: 1200,
         maxWidth: 'min(92vw, 460px)',
-        width: 'max-content',
+        width: 'min(92vw, 460px)',
         background: 'linear-gradient(135deg, #0f2b46 0%, #123a5f 100%)',
         color: '#eaf2fb',
         border: '1px solid rgba(255,255,255,0.18)',
@@ -141,12 +131,8 @@ export default function AuthOutageNotice() {
     </button>
     <style>{`
       @keyframes authNoticeIn {
-        from { opacity: 0; transform: translate(-50%, -46%); }
-        to { opacity: 1; transform: translate(-50%, -50%); }
-      }
-      @keyframes authNoticeFadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
       }
     `}</style>
     </>
