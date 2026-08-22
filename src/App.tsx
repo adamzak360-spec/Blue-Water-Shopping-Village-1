@@ -21,6 +21,7 @@ import {
   Phone,
   Info,
   Newspaper,
+  Clock3,
   Store as StoreIcon
 } from 'lucide-react'
 import './App.css'
@@ -121,6 +122,7 @@ function AppShell() {
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [currentTime, setCurrentTime] = useState(() => new Date())
   const [searchQuery, setSearchQuery] = useState('')
   const [marketplaceLogoUrl, setMarketplaceLogoUrl] = useState('/logo-square.png')
   const [marketplaceLogoShape, setMarketplaceLogoShape] = useState<'wide' | 'tall' | 'square'>('square')
@@ -136,6 +138,11 @@ function AppShell() {
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(new Date()), 30_000)
+    return () => window.clearInterval(timer)
   }, [])
 
   useEffect(() => {
@@ -257,6 +264,10 @@ function AppShell() {
               {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
             </button>
           </div>
+          <span className="marketplace-time" aria-label={`Local time ${currentTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`}>
+            <Clock3 size={12} aria-hidden="true" />
+            <span>{currentTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span>
+          </span>
         </div>
       </header>
 
