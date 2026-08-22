@@ -335,13 +335,15 @@
 }
 
 .horizontal-product-wrapper {
-  flex: 0 0 280px;
+  /* Three cards are visible at once; additional products remain horizontally scrollable. */
+  flex: 0 0 calc((100% - (2 * var(--space-md))) / 3);
+  min-width: 0;
   scroll-snap-align: start;
 }
 
 @media (max-width: 480px) {
   .horizontal-product-wrapper {
-    flex: 0 0 220px;
+    flex-basis: calc((100% - (2 * var(--space-sm))) / 3);
   }
 }
 
