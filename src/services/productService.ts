@@ -9,6 +9,9 @@ let productsCache: Product[] | null = null
 let activeProductsCache: Product[] | null = null
 let cacheTimestamp = 0
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+const PUBLIC_CATALOG_CACHE_DURATION = 60 * 1000 // 1 minute
+const publicCatalogCache = new Map<string, { data: Product[]; timestamp: number }>()
+const publicCatalogRequests = new Map<string, Promise<Product[]>>()
 
 function isCacheValid() {
   return productsCache !== null && (Date.now() - cacheTimestamp) < CACHE_DURATION
@@ -64,16 +67,30 @@ export async function getPublicCatalogProducts(destination: PublicCatalogDestina
     throw new Error('Supabase not configured')
   }
 
-  const { data, error } = await supabase.rpc('get_public_catalog_products', {
-    p_destination: destination,
-    p_search: searchTerm.trim() || null,
-  })
-
-  if (error) {
-    throw new Error(error.message)
+  const normalizedSearch = searchTerm.trim().toLowerCase()
+  const cacheKey = `${destination}:${normalizedSearch}`
+  const cached = publicCatalogCache.get(cacheKey)
+  if (cached && Date.now() - cached.timestamp < PUBLIC_CATALOG_CACHE_DURATION) {
+    return cached.data
   }
 
-  return (data as Product[]) || []
+  const existingRequest = publicCatalogRequests.get(cacheKey)
+  if (existingRequest) return existingRequest
+
+  const request = Promise.resolve(supabase.rpc('get_public_catalog_products', {
+    p_destination: destination,
+    p_search: normalizedSearch || null,
+  })).then(({ data, error }) => {
+    if (error) throw new Error(error.message)
+    const products = (data as Product[]) || []
+    publicCatalogCache.set(cacheKey, { data: products, timestamp: Date.now() })
+    return products
+  }).finally(() => {
+    publicCatalogRequests.delete(cacheKey)
+  })
+
+  publicCatalogRequests.set(cacheKey, request)
+  return request
 }
 
 export async function getActiveProducts(): Promise<Product[]> {
@@ -187,12 +204,13 @@ export async function uploadProductImage(file: File): Promise<string> {
     throw new Error('Supabase not configured')
   }
 
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${file.name}`
+  const uploadFile = await compressProductImage(file)
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${uploadFile.name}`
 
   const { data, error } = await supabase.storage
     .from(STORAGE_BUCKET)
-    .upload(fileName, file, {
-      cacheControl: '3600',
+    .upload(fileName, uploadFile, {
+      cacheControl: '31536000',
       upsert: false,
     })
 
@@ -205,6 +223,32 @@ export async function uploadProductImage(file: File): Promise<string> {
     .getPublicUrl(data.path)
 
   return urlData.publicUrl
+}
+
+async function compressProductImage(file: File): Promise<File> {
+  if (!file.type.startsWith('image/') || file.type === 'image/svg+xml' || typeof createImageBitmap !== 'function') {
+    return file
+  }
+
+  try {
+    const bitmap = await createImageBitmap(file)
+    const maxDimension = 1600
+    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height))
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale))
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale))
+    const context = canvas.getContext('2d')
+    if (!context) return file
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+    bitmap.close()
+
+    const compressed = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/webp', 0.82))
+    if (!compressed || compressed.size >= file.size) return file
+    const baseName = file.name.replace(/\.[^.]+$/, '') || 'product-image'
+    return new File([compressed], `${baseName}.webp`, { type: 'image/webp', lastModified: Date.now() })
+  } catch {
+    return file
+  }
 }
 
 export async function deleteProductImage(storagePath: string): Promise<void> {

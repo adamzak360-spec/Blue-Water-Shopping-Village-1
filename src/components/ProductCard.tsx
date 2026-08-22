@@ -46,6 +46,8 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
               alt={product.name}
               className="product-image"
               loading="lazy"
+              decoding="async"
+              referrerPolicy="no-referrer"
               style={{ objectFit: 'contain' }}
               onError={(e) => {
                 const target = e.target as HTMLImageElement
