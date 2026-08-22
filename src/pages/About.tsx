@@ -100,7 +100,7 @@ export default function About() {
           <p className="about-hero-subtitle" style={HERO_SUBTITLE_INLINE_STYLES}>
             Reliable is a global multi-vendor marketplace connecting customers with independent businesses and giving sellers practical tools to build, operate, and grow their digital stores.
           </p>
-          <div className="hero-cta">
+          <div className="about-hero-cta">
             <Link to="/stores" className="about-cta-primary" style={CTA_PRIMARY_INLINE_STYLES}>Browse Stores</Link>
             <Link to="/seller/register" className="about-cta-secondary" style={CTA_SECONDARY_INLINE_STYLES}>Start Selling</Link>
           </div>
