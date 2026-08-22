@@ -830,7 +830,7 @@
   }
 }
 
-/* Latest Products: a clean first-view rail with consistent card rhythm. */
+/* Latest Products: three cards visible initially; the rail remains swipeable. */
 .latest-products-section {
   padding-top: var(--space-lg);
   padding-bottom: var(--space-xl);
@@ -854,15 +854,25 @@
   gap: 16px;
   padding-top: 6px;
   padding-bottom: 18px;
+  scroll-snap-type: x proximity;
 }
 
-.latest-products-section .horizontal-product-wrapper {
-  flex-basis: 260px;
+.latest-products-section .horizontal-product-wrapper,
+.product-horizontal-section .horizontal-product-wrapper {
+  /* Three cards plus two gaps fill the first viewport, with later cards off-canvas. */
+  flex: 0 0 calc((100% - 32px) / 3);
+  min-width: 0;
+  scroll-snap-align: start;
 }
 
 @media (max-width: 480px) {
-  .latest-products-section .horizontal-product-wrapper {
-    flex-basis: min(78vw, 280px);
+  .latest-products-section .horizontal-scroll-container {
+    gap: 10px;
+  }
+
+  .latest-products-section .horizontal-product-wrapper,
+  .product-horizontal-section .horizontal-product-wrapper {
+    flex-basis: calc((100% - 20px) / 3);
   }
 
   .latest-products-section .scroll-controls {

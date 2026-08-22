@@ -361,6 +361,7 @@ export default function Home() {
         onScroll={(dir) => scroll(scrollRefs.latest, dir)}
         isLoading={isLoading}
         showStock
+        autoPlay={false}
         className="latest-products-section"
       />
 
@@ -562,9 +563,10 @@ interface ProductSectionProps {
   isSponsored?: boolean
   promotionIdByProductId?: Map<string, string>
   showStock?: boolean
+  autoPlay?: boolean
 }
 
-function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading, className = '', isSponsored = false, promotionIdByProductId, showStock = false }: ProductSectionProps) {
+function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading, className = '', isSponsored = false, promotionIdByProductId, showStock = false, autoPlay = true }: ProductSectionProps) {
   const [isPaused, setIsPaused] = useState(false)
   const directionRef = useRef<1 | -1>(1)
   const resumeTimerRef = useRef<number | null>(null)
@@ -584,7 +586,7 @@ function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading,
 
   useEffect(() => {
     const rail = scrollRef.current
-    if (!rail || products.length < 2 || isLoading) return
+    if (!autoPlay || !rail || products.length < 2 || isLoading) return
 
     let animationFrame = 0
     let previousTime = performance.now()
@@ -613,7 +615,7 @@ function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading,
 
     animationFrame = window.requestAnimationFrame(animate)
     return () => window.cancelAnimationFrame(animationFrame)
-  }, [isLoading, isPaused, products.length, scrollRef])
+  }, [autoPlay, isLoading, isPaused, products.length, scrollRef])
 
   useEffect(() => () => {
     if (resumeTimerRef.current !== null) window.clearTimeout(resumeTimerRef.current)
