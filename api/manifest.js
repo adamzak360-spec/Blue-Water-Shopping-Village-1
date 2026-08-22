@@ -1,4 +1,4 @@
-const DEFAULT_ICON = '/logo-square.png?v=reliable-brand-v2'
+const DEFAULT_ICON = '/logo-square.png'
 const BRAND_BLUE = '#032D61'
 module.exports = async function handler(req, res) {
   let icon = DEFAULT_ICON
