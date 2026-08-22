@@ -261,7 +261,7 @@ export default function OrderDetails() {
                   <div key={item.id} className="item-row">
                     <div className="item-image">
                       {item.image_url && (
-                        <img src={item.image_url} alt={item.name} />
+                        <img src={item.image_url} alt={item.name} loading="lazy" decoding="async" />
                       )}
                     </div>
                     <div className="item-details">

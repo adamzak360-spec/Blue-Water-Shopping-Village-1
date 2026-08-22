@@ -427,6 +427,8 @@ export default function ProductDetails() {
                       src={mainMedia.url}
                       alt={product.name}
                       className="main-product-image"
+                      decoding="async"
+                      fetchPriority="high"
                     />
                     <button className="lightbox-btn" aria-label="Zoom image">
                       <ZoomIn size={20} />
@@ -438,6 +440,7 @@ export default function ProductDetails() {
                     controls
                     className="main-product-video"
                     style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#000' }}
+                    preload="metadata"
                   />
                 )}
               </div>
@@ -459,10 +462,10 @@ export default function ProductDetails() {
                   style={{ position: 'relative' }}
                 >
                   {media.type === 'image' ? (
-                    <img src={media.url} alt={`${product.name} thumbnail ${index + 1}`} />
+                    <img src={media.url} alt={`${product.name} thumbnail ${index + 1}`} loading="lazy" decoding="async" />
                   ) : (
                     <>
-                      <video src={media.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <video src={media.url} preload="none" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       <div style={{
                         position: 'absolute',
                         top: '50%',

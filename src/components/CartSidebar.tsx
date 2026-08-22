@@ -51,7 +51,7 @@ export const CartSidebar: React.FC = () => {
               <div key={`${item.id}-${item.selected_size || index}`} className="cart-item">
                 <div className="item-image">
                   {item.image_url ? (
-                    <img src={item.image_url} alt={item.name} />
+                    <img src={item.image_url} alt={item.name} loading="lazy" decoding="async" />
                   ) : (
                     <div className="thumb-placeholder">No image</div>
                   )}

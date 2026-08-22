@@ -54,6 +54,7 @@ export default function BusinessStorefront() {
         .eq('business_id', biz.id)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
+        .limit(60)
 
       if (productsError) {
         console.error('Error loading store products:', productsError)
