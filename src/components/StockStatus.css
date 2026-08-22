@@ -46,6 +46,8 @@
   --stock-beacon-ring: rgba(220, 38, 38, 0.42);
 }
 
+.stock-status.low-stock::before,
+.stock-status.low-stock::after,
 .stock-status.out-of-stock::before,
 .stock-status.out-of-stock::after {
   display: none;
@@ -70,7 +72,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stock-status::before { animation: none; opacity: 0.35; }
+  .stock-status.in-stock::before { animation: none; opacity: 0.35; }
 }
 
 .stock-status.in-stock {
