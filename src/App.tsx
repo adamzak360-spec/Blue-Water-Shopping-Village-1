@@ -1,4 +1,4 @@
-import { Routes, Route, Link, useLocation } from 'react-router-dom'
+import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuth } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -117,6 +117,7 @@ function AppShell() {
   const { cartCount, setIsCartOpen } = useCart()
   const { wishlistCount } = useWishlist()
   const location = useLocation()
+  const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -126,6 +127,7 @@ function AppShell() {
 
   const isAdminRoute = location.pathname.startsWith('/admin')
   const isCustomerRoute = location.pathname.startsWith('/customer')
+  const isHomeRoute = location.pathname === '/'
 
   useEffect(() => {
     const handleScroll = () => {
@@ -256,6 +258,26 @@ function AppShell() {
           </div>
         </div>
       </header>
+
+      {isHomeRoute && isScrolled && (
+        <div className="mobile-sticky-search" role="search">
+          <form className="mobile-sticky-search-form" onSubmit={(event) => {
+            event.preventDefault()
+            const query = searchQuery.trim()
+            navigate(query ? `/products?search=${encodeURIComponent(query)}` : '/products')
+          }}>
+            <Search className="mobile-sticky-search-icon" size={19} aria-hidden="true" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search products, brands, categories…"
+              aria-label="Search products, brands, categories"
+            />
+            <button type="submit">Search</button>
+          </form>
+        </div>
+      )}
 
       {/* --- Side Drawer Menu --- */}
       <aside className={`side-drawer ${isMenuOpen ? 'open' : ''}`}>
