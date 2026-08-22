@@ -34,6 +34,23 @@ const CATEGORY_ICONS: Record<string, string> = {
   'Health & Beauty': '💄',
 }
 
+function getProductIdentity(product: Product): string {
+  const normalizedName = (product.name || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+  return normalizedName || product.id
+}
+
+function takeDisjointProducts(products: Product[], usedKeys: Set<string>, limit: number): Product[] {
+  const selected: Product[] = []
+  for (const product of products) {
+    const key = getProductIdentity(product)
+    if (usedKeys.has(key)) continue
+    usedKeys.add(key)
+    selected.push(product)
+    if (selected.length >= limit) break
+  }
+  return selected
+}
+
 function getCategoryIcon(name: string): string {
   if (CATEGORY_ICONS[name]) return CATEGORY_ICONS[name]
   const lower = name.toLowerCase()
@@ -128,36 +145,22 @@ export default function Home() {
   const featuredProducts = !showcaseEnabled
     ? []
     : showcaseMode === 'FREE' ? freeShowcaseProducts : promotedProducts
-  const organicProducts = activeProducts.filter(product => !promotedProductIdSet.has(product.id))
 
-  // Reserve each homepage section from one shared shuffled pool so products do not repeat.
-  // Featured/sponsored products are kept separate from organic sections.
-  const latestProducts = organicProducts.slice(0, 6)
-  const usedAfterLatest = new Set(latestProducts.map(product => product.id))
-  const trendingProducts = organicProducts
-    .filter(product => !usedAfterLatest.has(product.id))
-    .slice(0, 8)
-  const usedAfterTrending = new Set([
-    ...usedAfterLatest,
-    ...trendingProducts.map(product => product.id),
-  ])
-  const newArrivals = organicProducts
-    .filter(product => !usedAfterTrending.has(product.id))
-    .slice(0, 6)
-  const usedAfterNewArrivals = new Set([
-    ...usedAfterTrending,
-    ...newArrivals.map(product => product.id),
-  ])
-  const bestSellers = organicProducts
-    .filter(product => !usedAfterNewArrivals.has(product.id))
-    .slice(0, 8)
-  const usedBeforeFlashDeals = new Set([
-    ...usedAfterNewArrivals,
-    ...bestSellers.map(product => product.id),
-  ])
-  const flashDeals = organicProducts
-    .filter(product => product.price < 50 && !usedBeforeFlashDeals.has(product.id))
-    .slice(0, 8)
+  // Reserve each homepage section from one shared identity pool so duplicate
+  // database rows with the same product name do not repeat across the page.
+  const usedProductKeys = new Set(featuredProducts.map(getProductIdentity))
+  const organicProducts = activeProducts.filter(product =>
+    !promotedProductIdSet.has(product.id) && !usedProductKeys.has(getProductIdentity(product)),
+  )
+  const latestProducts = takeDisjointProducts(organicProducts, usedProductKeys, 6)
+  const trendingProducts = takeDisjointProducts(organicProducts, usedProductKeys, 8)
+  const newArrivals = takeDisjointProducts(organicProducts, usedProductKeys, 6)
+  const bestSellers = takeDisjointProducts(organicProducts, usedProductKeys, 8)
+  const flashDeals = takeDisjointProducts(
+    organicProducts.filter(product => product.price < 50),
+    usedProductKeys,
+    8,
+  )
 
   const [isFeaturedPaused, setIsFeaturedPaused] = useState(false)
   const featuredDirectionRef = useRef<1 | -1>(1)
