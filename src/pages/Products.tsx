@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getPublicCatalogProducts } from '../services/productService'
+import { getBoundedPublicCatalogProducts } from '../services/productService'
 import { getMarketplaceProductCountVisibility } from '../services/businessService'
 import { shuffle } from '../utils/shuffle'
 import { getActivePromotedProducts, type ActivePromotedProduct } from '../services/promotionService'
@@ -52,7 +52,7 @@ export default function Products() {
     const loadProducts = async () => {
       try {
         const [data, shouldShowProductCount, activePromotionIds] = await Promise.all([
-          getPublicCatalogProducts('PRODUCTS'),
+          getBoundedPublicCatalogProducts('PRODUCTS', { limit: 60 }),
           getMarketplaceProductCountVisibility(),
           getActivePromotedProducts(),
         ])
@@ -89,19 +89,23 @@ export default function Products() {
   }, [filteredProducts, products, selectedCategory, searchTerm])
 
   useEffect(() => {
-    const normalizedSearch = searchTerm.trim()
-    if (!normalizedSearch) {
+    const trimmedSearch = searchTerm.trim()
+    if (trimmedSearch.length < 2) {
       setSearchMatches(null)
       return
     }
     let cancelled = false
     const timer = window.setTimeout(() => {
-      void getPublicCatalogProducts('PRODUCTS', normalizedSearch)
+      void getBoundedPublicCatalogProducts('PRODUCTS', {
+        searchTerm: trimmedSearch,
+        category: selectedCategory || undefined,
+        limit: 60,
+      })
         .then(data => { if (!cancelled) setSearchMatches(data.filter(p => p.status === 'active')) })
         .catch(() => { if (!cancelled) setSearchMatches([]) })
-    }, 220)
+    }, 320)
     return () => { cancelled = true; window.clearTimeout(timer) }
-  }, [searchTerm])
+  }, [searchTerm, selectedCategory])
 
   useEffect(() => {
     let result = searchTerm.trim() && searchMatches ? [...searchMatches] : (showAll ? [...products] : products.filter(p => p.status === 'active'))

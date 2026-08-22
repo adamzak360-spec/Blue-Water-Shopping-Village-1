@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import type { Business } from '../services/businessService'
-import { getProductById, getAllProducts, getProductVariants } from '../services/productService'
+import { getProductById, getBoundedPublicCatalogProducts, getProductVariants } from '../services/productService'
 import { getApprovedReviewsByProductId, submitReview, getProductRatingStats } from '../services/reviewService'
 import type { Product, Review, ProductVariant } from '../types'
 import { useCart } from '../context/CartContext'
@@ -137,12 +137,14 @@ export default function ProductDetails() {
 
         setVariants(normalizedVariants)
 
-        getAllProducts().then(allProducts => {
-          const related = allProducts
-            .filter(p => p.category === productData.category && p.id !== productId && p.status === 'active')
-            .slice(0, 4)
-          setRelatedProducts(related)
-        }).catch(err => console.error('Failed to load related products:', err))
+        getBoundedPublicCatalogProducts('PRODUCTS', { category: productData.category, limit: 8 })
+          .then(categoryProducts => {
+            const related = categoryProducts
+              .filter(p => p.id !== productId)
+              .slice(0, 4)
+            setRelatedProducts(related)
+          })
+          .catch(err => console.error('Failed to load related products:', err))
 
         getApprovedReviewsByProductId(productId)
           .then(setReviews)

@@ -37,7 +37,7 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
               muted
               loop
               playsInline
-              preload="metadata"
+              preload="none"
               aria-label={`${product.name} product video`}
             />
           ) : product.image_url ? (
@@ -47,6 +47,7 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
               className="product-image"
               loading="lazy"
               decoding="async"
+              sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 220px"
               referrerPolicy="no-referrer"
               style={{ objectFit: 'contain' }}
               onError={(e) => {
