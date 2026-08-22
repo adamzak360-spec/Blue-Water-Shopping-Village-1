@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase, isSupabaseConfigured } from '../supabaseClient'
 import { validateEmail } from '../utils/validation'
-import { getPublicCatalogProducts } from '../services/productService'
+import { getBoundedPublicCatalogProducts } from '../services/productService'
 import { shuffle } from '../utils/shuffle'
 import { getActivePromotedProducts, type ActivePromotedProduct } from '../services/promotionService'
 import type { Product } from '../types'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import CallToOrderBanner from '../components/CallToOrderBanner'
 import AdSlot from '../components/AdSlot'
@@ -17,36 +17,6 @@ type NewsUpdate = {
   title: string
   message: string
 }
-
-const HERO_BANNERS = [
-  {
-    id: 1,
-    title: 'Premium Collection 2026',
-    subtitle: 'Experience Excellence',
-    description: 'Discover our curated selection of high-end products designed for the modern lifestyle.',
-    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1200&fm=webp',
-    cta: 'Shop Now',
-    color: '#000000'
-  },
-  {
-    id: 2,
-    title: 'Flash Deals',
-    subtitle: 'Limited Time Only',
-    description: 'Up to 50% off on selected electronics and home appliances. Grab them before they are gone!',
-    image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&q=80&w=1200&fm=webp',
-    cta: 'View Deals',
-    color: '#2563eb'
-  },
-  {
-    id: 3,
-    title: 'Fresh Arrivals',
-    subtitle: 'New This Week',
-    description: 'Check out our latest arrivals in fashion and accessories. Stay ahead of the trend.',
-    image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=1200&fm=webp',
-    cta: 'Explore New',
-    color: '#059669'
-  }
-]
 
 const CATEGORY_ICONS: Record<string, string> = {
   'New Cars Collection': '🚗',
@@ -81,12 +51,13 @@ export default function Home() {
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const [newsUpdates, setNewsUpdates] = useState<NewsUpdate[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [currentBanner, setCurrentBanner] = useState(0)
   const [activePromotions, setActivePromotions] = useState<ActivePromotedProduct[]>([])
   const [showcaseMode, setShowcaseMode] = useState<'FREE' | 'PAID'>('PAID')
   const [showcaseEnabled, setShowcaseEnabled] = useState(true)
   const [freeShowcaseProductIds, setFreeShowcaseProductIds] = useState<string[]>([])
   const [freeShowcaseProductsOverride, setFreeShowcaseProductsOverride] = useState<Product[]>([])
+  const [searchValue, setSearchValue] = useState('')
+  const navigate = useNavigate()
   
   const scrollRefs = {
     trending: useRef<HTMLDivElement>(null),
@@ -101,7 +72,7 @@ export default function Home() {
     const load = async () => {
       try {
         const [data, activePromotionData] = await Promise.all([
-          getPublicCatalogProducts('HOME'),
+          getBoundedPublicCatalogProducts('HOME', { limit: 12 }),
           getActivePromotedProducts(),
         ])
         setAllProducts(shuffle(data))
@@ -144,14 +115,6 @@ export default function Home() {
       }
     }
     load()
-  }, [])
-
-  // Auto-slide hero banner
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentBanner((prev) => (prev + 1) % HERO_BANNERS.length)
-    }, 5000)
-    return () => clearInterval(timer)
   }, [])
 
   const activeProducts = allProducts.filter(p => p.status === 'active')
@@ -291,32 +254,29 @@ export default function Home() {
 
   return (
     <div className="home-page">
-      {/* --- Hero Carousel --- */}
-      <section className="hero-carousel">
-        {HERO_BANNERS.map((banner, index) => (
-          <div 
-            key={banner.id} 
-            className={`hero-slide ${index === currentBanner ? 'active' : ''}`}
-            style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${banner.image})` }}
-          >
-            <div className="container hero-content">
-              <span className="hero-subtitle animate-up">{banner.subtitle}</span>
-              <h2 className="hero-title animate-up">{banner.title}</h2>
-              <p className="hero-description animate-up">{banner.description}</p>
-              <Link to="/products" className="hero-cta animate-up">
-                {banner.cta} <ArrowRight size={20} />
-              </Link>
-            </div>
-          </div>
-        ))}
-        <div className="carousel-dots">
-          {HERO_BANNERS.map((_, index) => (
-            <button 
-              key={index} 
-              className={`dot ${index === currentBanner ? 'active' : ''}`}
-              onClick={() => setCurrentBanner(index)}
+      <section className="home-discovery-section" aria-labelledby="home-discovery-title">
+        <div className="container home-discovery-content">
+          <p className="home-discovery-kicker">Reliable Premium Marketplace</p>
+          <h1 id="home-discovery-title">Shop trusted products from independent sellers.</h1>
+          <p className="home-discovery-description">Browse quality products, discover local stores, and find what you need faster.</p>
+          <form className="home-search-form" onSubmit={(event) => {
+            event.preventDefault()
+            const query = searchValue.trim()
+            navigate(query ? `/products?search=${encodeURIComponent(query)}` : '/products')
+          }}>
+            <input
+              type="search"
+              value={searchValue}
+              onChange={(event) => setSearchValue(event.target.value)}
+              placeholder="Search products, categories and stores…"
+              aria-label="Search products, categories and stores"
             />
-          ))}
+            <button type="submit">Search</button>
+          </form>
+          <div className="home-discovery-actions">
+            <Link to="/products" className="home-primary-action">View all products <ArrowRight size={18} /></Link>
+            <Link to="/stores" className="home-secondary-action">Browse stores</Link>
+          </div>
         </div>
       </section>
 
@@ -380,6 +340,24 @@ export default function Home() {
       </section>
 
       <AdSlot placement="HOME_TOP" />
+
+      {/* --- Limited homepage product preview --- */}
+      <section className="section home-products-preview" aria-labelledby="home-products-title">
+        <div className="container">
+          <div className="section-header home-products-header">
+            <div>
+              <p className="section-eyebrow">Fresh from Reliable</p>
+              <h2 id="home-products-title" className="section-title">Latest Products</h2>
+            </div>
+            <Link to="/products" className="view-all-link">View all products <ArrowRight size={16} /></Link>
+          </div>
+          <div className="home-products-grid">
+            {isLoading ? [...Array(6)].map((_, index) => <div key={index} className="product-card-skeleton" />) : activeProducts.slice(0, 12).map(product => (
+              <ProductCard key={product.id} product={product} showStock />
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* --- Horizontal Product Sections --- */}
       {promotedProducts.length > 0 && (

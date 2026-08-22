@@ -93,6 +93,46 @@ export async function getPublicCatalogProducts(destination: PublicCatalogDestina
   return request
 }
 
+export async function getBoundedPublicCatalogProducts(
+  destination: PublicCatalogDestination,
+  options: { searchTerm?: string; category?: string; limit?: number; offset?: number } = {},
+): Promise<Product[]> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  const normalizedSearch = options.searchTerm?.trim().toLowerCase() || ''
+  const normalizedCategory = options.category?.trim() || ''
+  const limit = Math.min(Math.max(options.limit ?? 12, 1), 60)
+  const offset = Math.max(options.offset ?? 0, 0)
+  const cacheKey = `bounded:${destination}:${normalizedSearch}:${normalizedCategory}:${limit}:${offset}`
+  const cached = publicCatalogCache.get(cacheKey)
+  if (cached && Date.now() - cached.timestamp < PUBLIC_CATALOG_CACHE_DURATION) {
+    return cached.data
+  }
+
+  const existingRequest = publicCatalogRequests.get(cacheKey)
+  if (existingRequest) return existingRequest
+
+  const request = Promise.resolve(supabase.rpc('get_public_catalog_products_bounded', {
+    p_destination: destination,
+    p_search: normalizedSearch || null,
+    p_category: normalizedCategory || null,
+    p_limit: limit,
+    p_offset: offset,
+  })).then(({ data, error }) => {
+    if (error) throw new Error(error.message)
+    const products = (data as Product[]) || []
+    publicCatalogCache.set(cacheKey, { data: products, timestamp: Date.now() })
+    return products
+  }).finally(() => {
+    publicCatalogRequests.delete(cacheKey)
+  })
+
+  publicCatalogRequests.set(cacheKey, request)
+  return request
+}
+
 export async function getActiveProducts(): Promise<Product[]> {
   if (isCacheValid() && activeProductsCache) {
     return activeProductsCache
