@@ -76,8 +76,11 @@ export default function Login() {
 
     if (signInError) {
       const msg = signInError.message?.trim()
-      if (!msg || /503|connect error|transport failure|upstream/i.test(msg)) {
-        setError('Login is temporarily unavailable due to a service provider issue. Please try again in a few minutes. If it keeps failing, contact support.')
+      const isEmptyProviderError = !msg || msg === '{}' || msg === '[]'
+      if (isEmptyProviderError || /503|connect error|transport failure|upstream/i.test(msg)) {
+        setError(isEmptyProviderError
+          ? 'The authentication service returned an empty response. Please verify the account details and try again. If the problem continues, contact support.'
+          : 'Login is temporarily unavailable due to a service provider issue. Please try again in a few minutes. If it keeps failing, contact support.')
       } else if (/invalid login credentials/i.test(msg)) {
         setError('Invalid email or password.')
       } else {
