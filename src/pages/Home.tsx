@@ -5,7 +5,7 @@ import { getBoundedPublicCatalogProducts } from '../services/productService'
 import { shuffle } from '../utils/shuffle'
 import { getActivePromotedProducts, type ActivePromotedProduct } from '../services/promotionService'
 import type { Product } from '../types'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import CallToOrderBanner from '../components/CallToOrderBanner'
 import AdSlot from '../components/AdSlot'
@@ -16,22 +16,6 @@ type NewsUpdate = {
   id: string
   title: string
   message: string
-}
-
-const CATEGORY_ICONS: Record<string, string> = {
-  'New Cars Collection': '🚗',
-  'Motorcycle': '🏍️',
-  'Fruits': '🍎',
-  'Fruit': '🍌',
-  'Sponge': '🧽',
-  'Flask': '🧪',
-  'Software Developer/Engineer': '💻',
-  'Groceries': '🌾',
-  'Electronics': '💻',
-  'Fashion': '👗',
-  'Home & Garden': '🏡',
-  'Sports': '⚽',
-  'Health & Beauty': '💄',
 }
 
 function getProductIdentity(product: Product): string {
@@ -51,23 +35,11 @@ function takeDisjointProducts(products: Product[], usedKeys: Set<string>, limit:
   return selected
 }
 
-function getCategoryIcon(name: string): string {
-  if (CATEGORY_ICONS[name]) return CATEGORY_ICONS[name]
-  const lower = name.toLowerCase()
-  if (lower.includes('fruit') || lower.includes('food')) return '🍎'
-  if (lower.includes('car') || lower.includes('vehicle') || lower.includes('bike') || lower.includes('motor')) return '🚗'
-  if (lower.includes('electronics') || lower.includes('tech') || lower.includes('soft')) return '💻'
-  if (lower.includes('fashion') || lower.includes('cloth')) return '👗'
-  if (lower.includes('home') || lower.includes('garden')) return '🏡'
-  if (lower.includes('sport')) return '⚽'
-  if (lower.includes('health') || lower.includes('beauty')) return '💄'
-  return '🌟'
-}
-
 export default function Home() {
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const [newsUpdates, setNewsUpdates] = useState<NewsUpdate[]>([])
-  const [isNewsOpen, setIsNewsOpen] = useState(false)
+  const [searchParams] = useSearchParams()
+  const showNewsView = searchParams.get('view') === 'news'
   const [isLoading, setIsLoading] = useState(true)
   const [activePromotions, setActivePromotions] = useState<ActivePromotedProduct[]>([])
   const [showcaseMode, setShowcaseMode] = useState<'FREE' | 'PAID'>('PAID')
@@ -241,31 +213,6 @@ export default function Home() {
     }
   }
 
-  const categoryCounts: Record<string, number> = {}
-  activeProducts.forEach(p => {
-    categoryCounts[p.category] = (categoryCounts[p.category] || 0) + 1
-  })
-  const dynamicCategories = Object.entries(categoryCounts)
-    .filter(([, count]) => count > 0)
-    .sort((a, b) => b[1] - a[1])
-    .map(([name, count]) => ({
-      name,
-      icon: getCategoryIcon(name),
-      count,
-    }))
-
-  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
-  const categoryDropdownRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
-        setIsCategoryDropdownOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
 
   return (
     <div className="home-page">
@@ -293,73 +240,28 @@ export default function Home() {
         </div>
       </section>
 
-      {newsUpdates.length > 0 && (
-        <section className={`news-updates-section ${isNewsOpen ? 'is-open' : ''}`} aria-label="News updates">
+      {showNewsView && newsUpdates.length > 0 && (
+        <section className="news-updates-section is-open" aria-labelledby="marketplace-news-title">
           <div className="container">
-            <button
-              type="button"
-              className="news-updates-toggle"
-              aria-expanded={isNewsOpen}
-              onClick={() => setIsNewsOpen((open) => !open)}
-            >
-              <span><span className="news-updates-toggle-icon">!</span> Marketplace News</span>
-              <ChevronRight size={20} className={isNewsOpen ? 'rotate-90' : ''} />
-            </button>
-            {isNewsOpen && (
-              <div className="news-updates-strip">
-                {newsUpdates.map((update) => (
-                  <article className="public-news-update" key={update.id}>
-                    <span className="public-news-label">News Update</span>
-                    <h3>{update.title}</h3>
-                    <p>{update.message}</p>
-                  </article>
-                ))}
+            <div className="section-header news-page-header">
+              <div>
+                <span className="section-eyebrow">Reliable updates</span>
+                <h1 id="marketplace-news-title" className="section-title">Marketplace News</h1>
               </div>
-            )}
+              <Link to="/" className="text-link">Back to Home</Link>
+            </div>
+            <div className="news-updates-strip">
+              {newsUpdates.map((update) => (
+                <article className="public-news-update" key={update.id}>
+                  <span className="public-news-label">News Update</span>
+                  <h2>{update.title}</h2>
+                  <p>{update.message}</p>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
       )}
-
-      {/* --- Featured Categories --- */}
-      <section className="section categories-section">
-        <div className="container">
-          <div className="category-dropdown-wrapper" ref={categoryDropdownRef}>
-            <button 
-              className={`category-dropdown-btn ${isCategoryDropdownOpen ? 'active' : ''}`}
-              onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-            >
-              <span>Shop by Category</span>
-              <ChevronRight size={20} className={isCategoryDropdownOpen ? 'rotate-90' : ''} />
-            </button>
-            
-            {isCategoryDropdownOpen && (
-              <div className="category-dropdown-menu">
-                {dynamicCategories.map(category => (
-                  <Link
-                    key={category.name}
-                    to={`/products?category=${encodeURIComponent(category.name)}`}
-                    className="category-dropdown-item"
-                    onClick={() => setIsCategoryDropdownOpen(false)}
-                  >
-                    <span className="category-icon">{category.icon}</span>
-                    <span className="category-name">{category.name}</span>
-                    <span className="category-count">{category.count} items</span>
-                  </Link>
-                ))}
-                <Link 
-                  to="/products" 
-                  className="category-dropdown-item view-all-item"
-                  onClick={() => setIsCategoryDropdownOpen(false)}
-                >
-                  <span className="category-icon">📂</span>
-                  <span className="category-name">View All Products</span>
-                  <ArrowRight size={16} />
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
 
       <AdSlot placement="HOME_TOP" />
 

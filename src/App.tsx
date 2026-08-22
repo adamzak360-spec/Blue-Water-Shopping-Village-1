@@ -20,6 +20,7 @@ import {
   HelpCircle,
   Phone,
   Info,
+  Newspaper,
   Store as StoreIcon
 } from 'lucide-react'
 import './App.css'
@@ -314,6 +315,7 @@ function AppShell() {
             </>
           )}
           <div className="drawer-divider"></div>
+          <Link to="/?view=news" className="drawer-item"><Newspaper size={20} /> Marketplace News</Link>
           <Link to="/about" className="drawer-item" onMouseEnter={prefetchAbout}><Info size={20} /> About</Link>
           <Link to="/contact" className="drawer-item" onMouseEnter={prefetchContact}><Phone size={20} /> Contact</Link>
           <Link to="/faq" className="drawer-item" onMouseEnter={prefetchFAQ}><HelpCircle size={20} /> Support</Link>
