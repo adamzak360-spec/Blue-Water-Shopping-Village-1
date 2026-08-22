@@ -113,10 +113,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const applySession = async (nextSession: Session | null) => {
       if (!active) return
+
+      // Keep route guards and Login in a loading state until the role profile
+      // has been fetched. Supabase emits the auth event before this profile
+      // lookup completes; exposing `user` first caused Admin/Seller users to
+      // be redirected to /customer and require a manual refresh.
+      setIsLoading(true)
       setSession(nextSession)
       const nextUser = nextSession?.user ?? null
       setUser(nextUser)
-      await fetchProfile(nextUser)
+      try {
+        await fetchProfile(nextUser)
+      } finally {
+        if (active) setIsLoading(false)
+      }
     }
 
     const initializeAuth = async () => {
@@ -148,8 +158,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error('Authentication initialization failed:', error)
         await applySession(null)
-      } finally {
-        if (active) setIsLoading(false)
       }
     }
 
@@ -160,7 +168,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (event === 'SIGNED_IN') {
         void reportSuccessfulLogin(nextSession)
       }
-      if (active) setIsLoading(false)
     })
 
     void initializeAuth()
