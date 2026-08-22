@@ -67,6 +67,7 @@ function getCategoryIcon(name: string): string {
 export default function Home() {
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const [newsUpdates, setNewsUpdates] = useState<NewsUpdate[]>([])
+  const [isNewsOpen, setIsNewsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [activePromotions, setActivePromotions] = useState<ActivePromotedProduct[]>([])
   const [showcaseMode, setShowcaseMode] = useState<'FREE' | 'PAID'>('PAID')
@@ -293,17 +294,28 @@ export default function Home() {
       </section>
 
       {newsUpdates.length > 0 && (
-        <section className="section news-updates-section" aria-label="News updates">
+        <section className={`news-updates-section ${isNewsOpen ? 'is-open' : ''}`} aria-label="News updates">
           <div className="container">
-            <div className="news-updates-strip">
-              {newsUpdates.map((update) => (
-                <article className="public-news-update" key={update.id}>
-                  <span className="public-news-label">News Update</span>
-                  <h3>{update.title}</h3>
-                  <p>{update.message}</p>
-                </article>
-              ))}
-            </div>
+            <button
+              type="button"
+              className="news-updates-toggle"
+              aria-expanded={isNewsOpen}
+              onClick={() => setIsNewsOpen((open) => !open)}
+            >
+              <span><span className="news-updates-toggle-icon">!</span> Marketplace News</span>
+              <ChevronRight size={20} className={isNewsOpen ? 'rotate-90' : ''} />
+            </button>
+            {isNewsOpen && (
+              <div className="news-updates-strip">
+                {newsUpdates.map((update) => (
+                  <article className="public-news-update" key={update.id}>
+                    <span className="public-news-label">News Update</span>
+                    <h3>{update.title}</h3>
+                    <p>{update.message}</p>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}
