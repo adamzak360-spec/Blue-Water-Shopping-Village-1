@@ -559,6 +559,60 @@ interface ProductSectionProps {
 }
 
 function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading, className = '', isSponsored = false, promotionIdByProductId }: ProductSectionProps) {
+  const [isPaused, setIsPaused] = useState(false)
+  const directionRef = useRef<1 | -1>(1)
+  const resumeTimerRef = useRef<number | null>(null)
+
+  const pauseForInteraction = () => {
+    if (resumeTimerRef.current !== null) window.clearTimeout(resumeTimerRef.current)
+    setIsPaused(true)
+  }
+
+  const resumeAfterInteraction = () => {
+    if (resumeTimerRef.current !== null) window.clearTimeout(resumeTimerRef.current)
+    resumeTimerRef.current = window.setTimeout(() => {
+      setIsPaused(false)
+      resumeTimerRef.current = null
+    }, 1400)
+  }
+
+  useEffect(() => {
+    const rail = scrollRef.current
+    if (!rail || products.length < 2 || isLoading) return
+
+    let animationFrame = 0
+    let previousTime = performance.now()
+    const pixelsPerSecond = 24
+
+    const animate = (time: number) => {
+      const elapsed = Math.min(time - previousTime, 50)
+      previousTime = time
+      if (!isPaused) {
+        const maxScroll = Math.max(0, rail.scrollWidth - rail.clientWidth)
+        if (maxScroll > 0) {
+          const nextPosition = rail.scrollLeft + directionRef.current * pixelsPerSecond * (elapsed / 1000)
+          if (nextPosition >= maxScroll) {
+            rail.scrollLeft = maxScroll
+            directionRef.current = -1
+          } else if (nextPosition <= 0) {
+            rail.scrollLeft = 0
+            directionRef.current = 1
+          } else {
+            rail.scrollLeft = nextPosition
+          }
+        }
+      }
+      animationFrame = window.requestAnimationFrame(animate)
+    }
+
+    animationFrame = window.requestAnimationFrame(animate)
+    return () => window.cancelAnimationFrame(animationFrame)
+  }, [isLoading, isPaused, products.length, scrollRef])
+
+  useEffect(() => () => {
+    if (resumeTimerRef.current !== null) window.clearTimeout(resumeTimerRef.current)
+  }, [])
+
   if (!isLoading && products.length === 0) return null
 
   return (
@@ -575,7 +629,16 @@ function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading,
           </div>
         </div>
         
-        <div className="horizontal-scroll-container" ref={scrollRef}>
+        <div
+          className="horizontal-scroll-container"
+          ref={scrollRef}
+          onPointerDown={pauseForInteraction}
+          onPointerUp={resumeAfterInteraction}
+          onPointerCancel={resumeAfterInteraction}
+          onPointerLeave={resumeAfterInteraction}
+          onWheel={resumeAfterInteraction}
+          aria-label={`${title} carousel. Swipe, drag, or select a product to view it.`}
+        >
           {isLoading ? (
             [...Array(6)].map((_, i) => <div key={i} className="product-card-skeleton horizontal" />)
           ) : (

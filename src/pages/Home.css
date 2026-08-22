@@ -306,7 +306,13 @@
   overflow-x: auto;
   padding: var(--space-sm) var(--space-md) var(--space-lg) var(--space-md);
   margin: 0 calc(-1 * var(--space-md));
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: none;
+  scroll-behavior: auto;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
   scrollbar-width: none; /* Hide scrollbar for Firefox */
 }
 
@@ -319,6 +325,10 @@
 }
 
 
+
+.horizontal-scroll-container:active {
+  cursor: grabbing;
+}
 
 .horizontal-scroll-container::-webkit-scrollbar {
   display: none; /* Hide scrollbar for Chrome/Safari */
