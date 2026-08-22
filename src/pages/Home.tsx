@@ -9,7 +9,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import CallToOrderBanner from '../components/CallToOrderBanner'
 import AdSlot from '../components/AdSlot'
-import { ChevronLeft, ChevronRight, ArrowRight, Zap, TrendingUp, Star, Package, Award, Heart } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ArrowRight, Zap, TrendingUp, Star, Package, Award, Heart, Search } from 'lucide-react'
 import './Home.css'
 
 type NewsUpdate = {
@@ -152,6 +152,9 @@ export default function Home() {
   const organicProducts = activeProducts.filter(product =>
     !promotedProductIdSet.has(product.id) && !usedProductKeys.has(getProductIdentity(product)),
   )
+  const homeFeaturedProducts = featuredProducts.length > 0
+    ? featuredProducts.slice(0, 6)
+    : takeDisjointProducts(organicProducts, usedProductKeys, 6)
   const latestProducts = takeDisjointProducts(organicProducts, usedProductKeys, 6)
   const trendingProducts = takeDisjointProducts(organicProducts, usedProductKeys, 8)
   const newArrivals = takeDisjointProducts(organicProducts, usedProductKeys, 6)
@@ -265,29 +268,27 @@ export default function Home() {
 
   return (
     <div className="home-page">
-      <section className="home-discovery-section" aria-labelledby="home-discovery-title">
-        <div className="container home-discovery-content">
-          <p className="home-discovery-kicker">Reliable Premium Marketplace</p>
-          <h1 id="home-discovery-title">Shop trusted products from independent sellers.</h1>
-          <p className="home-discovery-description">Browse quality products, discover local stores, and find what you need faster.</p>
+      {/* The storefront opens with the same compact shopping flow as the reference: call strip, search, category, then products. */}
+      <CallToOrderBanner />
+
+      <section className="home-storefront-controls" aria-labelledby="home-storefront-title">
+        <div className="container">
+          <h1 id="home-storefront-title" className="visually-hidden">Reliable Premium Marketplace</h1>
           <form className="home-search-form" onSubmit={(event) => {
             event.preventDefault()
             const query = searchValue.trim()
             navigate(query ? `/products?search=${encodeURIComponent(query)}` : '/products')
           }}>
+            <Search className="home-search-icon" size={22} aria-hidden="true" />
             <input
               type="search"
               value={searchValue}
               onChange={(event) => setSearchValue(event.target.value)}
-              placeholder="Search products, categories and stores…"
-              aria-label="Search products, categories and stores"
+              placeholder="Search products, brands, categories…"
+              aria-label="Search products, brands, categories"
             />
             <button type="submit">Search</button>
           </form>
-          <div className="home-discovery-actions">
-            <Link to="/products" className="home-primary-action">View all products <ArrowRight size={18} /></Link>
-            <Link to="/stores" className="home-secondary-action">Browse stores</Link>
-          </div>
         </div>
       </section>
 
@@ -306,8 +307,6 @@ export default function Home() {
           </div>
         </section>
       )}
-      {/* --- Call To Order Banner --- */}
-      <CallToOrderBanner />
 
       {/* --- Featured Categories --- */}
       <section className="section categories-section">
@@ -351,6 +350,28 @@ export default function Home() {
       </section>
 
       <AdSlot placement="HOME_TOP" />
+
+      {homeFeaturedProducts.length > 0 && (
+        <section className="section home-products-preview" aria-labelledby="home-products-title">
+          <div className="container">
+            <div className="section-header home-products-header">
+              <div className="section-title-wrapper">
+                <Package size={20} />
+                <div>
+                  <span className="section-eyebrow">Reliable marketplace</span>
+                  <h2 id="home-products-title" className="section-title">Featured Products</h2>
+                </div>
+              </div>
+              <Link to="/products" className="view-all-link">View All <ArrowRight size={18} /></Link>
+            </div>
+            <div className="home-products-grid">
+              {homeFeaturedProducts.map((product) => (
+                <ProductCard key={product.id} product={product} showStock />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* --- Latest products: one polished, swipeable, autoplaying row --- */}
       <ProductSection
