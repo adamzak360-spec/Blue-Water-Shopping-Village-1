@@ -65,7 +65,8 @@ export default function Home() {
     newArrivals: useRef<HTMLDivElement>(null),
     sponsored: useRef<HTMLDivElement>(null),
     flashDeals: useRef<HTMLDivElement>(null),
-    featured: useRef<HTMLDivElement>(null)
+    featured: useRef<HTMLDivElement>(null),
+    latest: useRef<HTMLDivElement>(null)
   } as const
 
   useEffect(() => {
@@ -128,11 +129,18 @@ export default function Home() {
     ? []
     : showcaseMode === 'FREE' ? freeShowcaseProducts : promotedProducts
   const organicProducts = activeProducts.filter(product => !promotedProductIdSet.has(product.id))
-  
-  // Use disjoint organic pools so homepage sections do not repeatedly show the same products.
-  // The shuffled catalog still changes the products shown after each fresh page load.
-  const trendingProducts = organicProducts.slice(0, 8)
-  const usedAfterTrending = new Set(trendingProducts.map(product => product.id))
+
+  // Reserve each homepage section from one shared shuffled pool so products do not repeat.
+  // Featured/sponsored products are kept separate from organic sections.
+  const latestProducts = organicProducts.slice(0, 6)
+  const usedAfterLatest = new Set(latestProducts.map(product => product.id))
+  const trendingProducts = organicProducts
+    .filter(product => !usedAfterLatest.has(product.id))
+    .slice(0, 8)
+  const usedAfterTrending = new Set([
+    ...usedAfterLatest,
+    ...trendingProducts.map(product => product.id),
+  ])
   const newArrivals = organicProducts
     .filter(product => !usedAfterTrending.has(product.id))
     .slice(0, 6)
@@ -341,23 +349,17 @@ export default function Home() {
 
       <AdSlot placement="HOME_TOP" />
 
-      {/* --- Limited homepage product preview --- */}
-      <section className="section home-products-preview" aria-labelledby="home-products-title">
-        <div className="container">
-          <div className="section-header home-products-header">
-            <div>
-              <p className="section-eyebrow">Fresh from Reliable</p>
-              <h2 id="home-products-title" className="section-title">Latest Products</h2>
-            </div>
-            <Link to="/products" className="view-all-link">View all products <ArrowRight size={16} /></Link>
-          </div>
-          <div className="home-products-grid">
-            {isLoading ? [...Array(6)].map((_, index) => <div key={index} className="product-card-skeleton" />) : activeProducts.slice(0, 12).map(product => (
-              <ProductCard key={product.id} product={product} showStock />
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* --- Latest products: one polished, swipeable, autoplaying row --- */}
+      <ProductSection
+        title="Latest Products"
+        icon={<Package size={20} />}
+        products={latestProducts}
+        scrollRef={scrollRefs.latest}
+        onScroll={(dir) => scroll(scrollRefs.latest, dir)}
+        isLoading={isLoading}
+        showStock
+        className="latest-products-section"
+      />
 
       {/* --- Horizontal Product Sections --- */}
       {promotedProducts.length > 0 && (
@@ -556,9 +558,10 @@ interface ProductSectionProps {
   className?: string
   isSponsored?: boolean
   promotionIdByProductId?: Map<string, string>
+  showStock?: boolean
 }
 
-function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading, className = '', isSponsored = false, promotionIdByProductId }: ProductSectionProps) {
+function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading, className = '', isSponsored = false, promotionIdByProductId, showStock = false }: ProductSectionProps) {
   const [isPaused, setIsPaused] = useState(false)
   const directionRef = useRef<1 | -1>(1)
   const resumeTimerRef = useRef<number | null>(null)
@@ -647,6 +650,7 @@ function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading,
                   <ProductCard
                     product={product}
                     isSponsored={isSponsored}
+                    showStock={showStock}
                     promotionId={isSponsored ? promotionIdByProductId?.get(product.id) : undefined}
                   />
               </div>

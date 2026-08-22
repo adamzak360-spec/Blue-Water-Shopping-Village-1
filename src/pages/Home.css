@@ -829,3 +829,48 @@
     gap: var(--space-sm);
   }
 }
+
+/* Latest Products: a clean first-view rail with consistent card rhythm. */
+.latest-products-section {
+  padding-top: var(--space-lg);
+  padding-bottom: var(--space-xl);
+}
+
+.latest-products-section .section-header {
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+.latest-products-section .section-title-wrapper {
+  gap: 10px;
+}
+
+.latest-products-section .section-title-wrapper svg {
+  color: var(--color-accent);
+  flex: 0 0 auto;
+}
+
+.latest-products-section .horizontal-scroll-container {
+  gap: 16px;
+  padding-top: 6px;
+  padding-bottom: 18px;
+}
+
+.latest-products-section .horizontal-product-wrapper {
+  flex-basis: 260px;
+}
+
+@media (max-width: 480px) {
+  .latest-products-section .horizontal-product-wrapper {
+    flex-basis: min(78vw, 280px);
+  }
+
+  .latest-products-section .scroll-controls {
+    gap: 6px;
+  }
+
+  .latest-products-section .scroll-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
