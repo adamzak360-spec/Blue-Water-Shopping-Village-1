@@ -19,6 +19,19 @@ interface AuthContextType {
   role: string | null
 }
 
+const withTimeout = async <T,>(promise: PromiseLike<T>, timeoutMs: number): Promise<T> => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error('Authentication service did not respond in time.')), timeoutMs)
+  })
+
+  try {
+    return await Promise.race([Promise.resolve(promise), timeoutPromise])
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId)
+  }
+}
+
 const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
@@ -124,11 +137,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
 
-        const { data: { session }, error: sessionError } = await supabase!.auth.getSession()
+        const { data: { session }, error: sessionError } = await withTimeout(
+          supabase!.auth.getSession(),
+          10000,
+        )
         if (sessionError) {
           console.error('Unable to restore authentication session:', sessionError)
         }
-        await applySession(session ?? null)
+        await withTimeout(applySession(session ?? null), 10000)
       } catch (error) {
         console.error('Authentication initialization failed:', error)
         await applySession(null)
@@ -164,12 +180,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: new Error('Supabase not configured') }
     }
 
-    const { error } = await supabase!.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      const { error } = await withTimeout(
+        supabase!.auth.signInWithPassword({
+          email,
+          password,
+        }),
+        15000,
+      )
 
-    return { error }
+      return { error }
+    } catch (error) {
+      return { error: error instanceof Error ? error : new Error('Authentication service did not respond in time.') }
+    }
   }
 
   const signInWithGoogle = async (redirectPath = '') => {
