@@ -192,6 +192,19 @@ button:disabled {
 .justify-between { justify-content: space-between; }
 .grid { display: grid; }
 
+/* Accessible headings and labels that should not take visible layout space. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .section-padding {
   padding: var(--space-2xl) 0;
 }
