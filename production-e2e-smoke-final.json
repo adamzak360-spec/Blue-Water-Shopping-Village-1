@@ -1,0 +1,284 @@
+{
+  "capturedAt": "2026-08-23T09:18:43.776Z",
+  "origin": "https://reliable-now.vercel.app",
+  "productId": "c3f79325-f143-4104-90ef-3f79d384f69a",
+  "pass": true,
+  "passed": 17,
+  "failed": 0,
+  "homepageDurationMs": 252.8,
+  "results": [
+    {
+      "name": "homepage",
+      "path": "/",
+      "markers": [
+        "RELIABLE",
+        "id=\"root\""
+      ],
+      "url": "https://reliable-now.vercel.app/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "durationMs": 252.8,
+      "bytes": 2998,
+      "markerFailures": [],
+      "pass": true
+    },
+    {
+      "name": "catalog shell",
+      "path": "/products",
+      "markers": [
+        "RELIABLE",
+        "id=\"root\""
+      ],
+      "url": "https://reliable-now.vercel.app/products",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "durationMs": 58.6,
+      "bytes": 2998,
+      "markerFailures": [],
+      "pass": true
+    },
+    {
+      "name": "stores shell",
+      "path": "/stores",
+      "markers": [
+        "RELIABLE",
+        "id=\"root\""
+      ],
+      "url": "https://reliable-now.vercel.app/stores",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "durationMs": 42.2,
+      "bytes": 2998,
+      "markerFailures": [],
+      "pass": true
+    },
+    {
+      "name": "product detail shell",
+      "path": "/product/c3f79325-f143-4104-90ef-3f79d384f69a",
+      "markers": [
+        "RELIABLE",
+        "id=\"root\""
+      ],
+      "url": "https://reliable-now.vercel.app/product/c3f79325-f143-4104-90ef-3f79d384f69a",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "durationMs": 50.2,
+      "bytes": 2998,
+      "markerFailures": [],
+      "pass": true
+    },
+    {
+      "name": "checkout shell",
+      "path": "/checkout",
+      "markers": [
+        "RELIABLE",
+        "id=\"root\""
+      ],
+      "url": "https://reliable-now.vercel.app/checkout",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "durationMs": 41.7,
+      "bytes": 2998,
+      "markerFailures": [],
+      "pass": true
+    },
+    {
+      "name": "login shell",
+      "path": "/login",
+      "markers": [
+        "RELIABLE",
+        "id=\"root\""
+      ],
+      "url": "https://reliable-now.vercel.app/login",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "durationMs": 42.7,
+      "bytes": 2998,
+      "markerFailures": [],
+      "pass": true
+    },
+    {
+      "name": "seller registration shell",
+      "path": "/seller/register",
+      "markers": [
+        "RELIABLE",
+        "id=\"root\""
+      ],
+      "url": "https://reliable-now.vercel.app/seller/register",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "durationMs": 42.9,
+      "bytes": 2998,
+      "markerFailures": [],
+      "pass": true
+    },
+    {
+      "name": "about shell",
+      "path": "/about",
+      "markers": [
+        "RELIABLE",
+        "id=\"root\""
+      ],
+      "url": "https://reliable-now.vercel.app/about",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "durationMs": 41.6,
+      "bytes": 2998,
+      "markerFailures": [],
+      "pass": true
+    },
+    {
+      "name": "contact shell",
+      "path": "/contact",
+      "markers": [
+        "RELIABLE",
+        "id=\"root\""
+      ],
+      "url": "https://reliable-now.vercel.app/contact",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "durationMs": 41.6,
+      "bytes": 2998,
+      "markerFailures": [],
+      "pass": true
+    },
+    {
+      "name": "faq shell",
+      "path": "/faq",
+      "markers": [
+        "RELIABLE",
+        "id=\"root\""
+      ],
+      "url": "https://reliable-now.vercel.app/faq",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "durationMs": 43.5,
+      "bytes": 2998,
+      "markerFailures": [],
+      "pass": true
+    },
+    {
+      "name": "delivery shell",
+      "path": "/delivery",
+      "markers": [
+        "RELIABLE",
+        "id=\"root\""
+      ],
+      "url": "https://reliable-now.vercel.app/delivery",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "durationMs": 42.4,
+      "bytes": 2998,
+      "markerFailures": [],
+      "pass": true
+    },
+    {
+      "name": "terms shell",
+      "path": "/terms",
+      "markers": [
+        "RELIABLE",
+        "id=\"root\""
+      ],
+      "url": "https://reliable-now.vercel.app/terms",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "durationMs": 117.9,
+      "bytes": 2998,
+      "markerFailures": [],
+      "pass": true
+    },
+    {
+      "name": "returns shell",
+      "path": "/returns",
+      "markers": [
+        "RELIABLE",
+        "id=\"root\""
+      ],
+      "url": "https://reliable-now.vercel.app/returns",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "durationMs": 44.6,
+      "bytes": 2998,
+      "markerFailures": [],
+      "pass": true
+    },
+    {
+      "name": "privacy shell",
+      "path": "/privacy-policy",
+      "markers": [
+        "RELIABLE",
+        "id=\"root\""
+      ],
+      "url": "https://reliable-now.vercel.app/privacy-policy",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "durationMs": 44.6,
+      "bytes": 2998,
+      "markerFailures": [],
+      "pass": true
+    },
+    {
+      "name": "protected dashboard fallback",
+      "path": "/dashboard",
+      "markers": [
+        "RELIABLE",
+        "id=\"root\""
+      ],
+      "url": "https://reliable-now.vercel.app/dashboard",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "durationMs": 46.3,
+      "bytes": 2998,
+      "markerFailures": [],
+      "pass": true
+    },
+    {
+      "name": "sitemap",
+      "path": "/api/sitemap",
+      "markers": [
+        "urlset",
+        "sitemap"
+      ],
+      "url": "https://reliable-now.vercel.app/api/sitemap",
+      "status": 200,
+      "contentType": "application/xml; charset=utf-8",
+      "cacheControl": "public",
+      "durationMs": 42.4,
+      "bytes": 4841,
+      "markerFailures": [],
+      "pass": true
+    },
+    {
+      "name": "share preview",
+      "path": "/api/share-product?id=c3f79325-f143-4104-90ef-3f79d384f69a",
+      "markers": [
+        "og:site_name",
+        "Reliable",
+        "og:image"
+      ],
+      "url": "https://reliable-now.vercel.app/api/share-product?id=c3f79325-f143-4104-90ef-3f79d384f69a",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "cacheControl": "public",
+      "durationMs": 41.6,
+      "bytes": 2873,
+      "markerFailures": [],
+      "pass": true
+    }
+  ]
+}
