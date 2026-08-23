@@ -18,6 +18,7 @@ export default function StoresDirectory() {
       .then((data) => {
         if (!cancelled) {
           setAvailableCategories(Array.from(new Set(data.map((business) => business.category).filter(Boolean) as string[])).sort())
+          setBusinesses(data)
         }
       })
       .catch(() => {
@@ -35,7 +36,6 @@ export default function StoresDirectory() {
     setError('')
 
     if (!hasDiscoveryFilter) {
-      setBusinesses([])
       setIsLoading(false)
       return () => {
         cancelled = true
@@ -59,10 +59,10 @@ export default function StoresDirectory() {
   }, [searchTerm, category, hasDiscoveryFilter])
 
   return (
-    <section className="stores-page">
+    <section className="stores-page" aria-labelledby="stores-page-title">
       <div className="stores-hero">
         <span className="stores-eyebrow">Reliable Marketplace</span>
-        <h1>Discover stores you can trust</h1>
+        <h1 id="stores-page-title">Discover stores you can trust</h1>
         <p>Explore independent sellers, browse their collections, and shop directly from each store.</p>
         <div className="stores-search-row">
           <label className="stores-search" htmlFor="store-search">

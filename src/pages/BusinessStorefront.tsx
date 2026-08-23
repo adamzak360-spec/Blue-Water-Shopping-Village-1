@@ -66,6 +66,75 @@ export default function BusinessStorefront() {
     loadStorefront()
   }, [slug])
 
+  useEffect(() => {
+    if (!business || !slug) return
+
+    const origin = window.location.origin
+    const storeName = business.business_name || business.name
+    const storeUrl = `${origin}/store/${encodeURIComponent(slug)}`
+    const description = (business.description || `Browse ${storeName}'s products on Reliable Premium Marketplace.`)
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 155)
+    const setMeta = (selector: string, attributes: Record<string, string>, content: string) => {
+      let element = document.head.querySelector<HTMLMetaElement>(selector)
+      if (!element) {
+        element = document.createElement('meta')
+        Object.entries(attributes).forEach(([key, value]) => element!.setAttribute(key, value))
+        document.head.appendChild(element)
+      }
+      element.content = content
+    }
+
+    document.title = `${storeName} | Reliable Premium Marketplace`
+    setMeta('meta[name="description"]', { name: 'description' }, description)
+    setMeta('meta[property="og:title"]', { property: 'og:title' }, document.title)
+    setMeta('meta[property="og:description"]', { property: 'og:description' }, description)
+    setMeta('meta[property="og:url"]', { property: 'og:url' }, storeUrl)
+    setMeta('meta[property="og:type"]', { property: 'og:type' }, 'website')
+    setMeta('meta[property="og:site_name"]', { property: 'og:site_name' }, 'Reliable Premium Marketplace')
+    if (business.logo_url || business.banner_url) {
+      setMeta('meta[property="og:image"]', { property: 'og:image' }, business.logo_url || business.banner_url || '')
+    }
+
+    let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')
+    if (!canonical) {
+      canonical = document.createElement('link')
+      canonical.rel = 'canonical'
+      document.head.appendChild(canonical)
+    }
+    canonical.href = storeUrl
+
+    let jsonLd = document.head.querySelector<HTMLScriptElement>('#reliable-store-jsonld')
+    if (!jsonLd) {
+      jsonLd = document.createElement('script')
+      jsonLd.id = 'reliable-store-jsonld'
+      jsonLd.type = 'application/ld+json'
+      document.head.appendChild(jsonLd)
+    }
+    jsonLd.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Store',
+      name: storeName,
+      description,
+      url: storeUrl,
+      ...(business.logo_url ? { image: business.logo_url } : {}),
+      ...(business.location ? { address: { '@type': 'PostalAddress', addressLocality: business.location, addressCountry: 'GH' } } : {}),
+    })
+
+    return () => {
+      document.title = 'Reliable Premium Marketplace'
+      const defaultDescription = 'Reliable Premium Marketplace — quality products from trusted stores, delivered to your doorstep.'
+      setMeta('meta[name="description"]', { name: 'description' }, defaultDescription)
+      setMeta('meta[property="og:title"]', { property: 'og:title' }, 'Reliable Premium Marketplace')
+      setMeta('meta[property="og:description"]', { property: 'og:description' }, defaultDescription)
+      setMeta('meta[property="og:url"]', { property: 'og:url' }, origin)
+      setMeta('meta[property="og:type"]', { property: 'og:type' }, 'website')
+      canonical!.href = origin
+      jsonLd?.remove()
+    }
+  }, [business, slug])
+
   if (isLoading) {
     return (
       <div className="container" style={{ padding: '80px 20px', textAlign: 'center' }}>

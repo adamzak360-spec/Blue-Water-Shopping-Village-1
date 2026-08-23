@@ -77,8 +77,21 @@ module.exports = async (req, res) => {
       ? 'id,name,description,image_url,gallery_urls,updated_at'
       : 'id,updated_at';
     const endpoint = `${supabaseUrl}/rest/v1/products?status=eq.active&select=${select}&order=updated_at.desc&limit=1000&offset=${offset}`;
+    const businessesEndpoint = `${supabaseUrl}/rest/v1/businesses?slug=not.is.null&select=slug,updated_at&order=updated_at.desc&limit=5000`;
     const products = await fetchJson(endpoint, baseHeaders);
+    const businesses = mode === 'urls' && page === 0
+      ? await fetchJson(businessesEndpoint, baseHeaders).catch(() => [])
+      : [];
     const urls = mode === 'urls' ? [
+      ...(page === 0 ? [
+        `<url><loc>${escapeXml(origin)}/</loc></url>`,
+        `<url><loc>${escapeXml(origin)}/products</loc></url>`,
+        `<url><loc>${escapeXml(origin)}/stores</loc></url>`,
+        ...(Array.isArray(businesses) ? businesses.map(business => {
+          const lastmod = business.updated_at ? `<lastmod>${escapeXml(new Date(business.updated_at).toISOString())}</lastmod>` : '';
+          return `<url><loc>${escapeXml(`${origin}/store/${encodeURIComponent(business.slug)}`)}</loc>${lastmod}<changefreq>daily</changefreq></url>`;
+        }) : []),
+      ] : []),
       ...(Array.isArray(products) ? products.map(product => {
         const lastmod = product.updated_at ? `<lastmod>${escapeXml(new Date(product.updated_at).toISOString())}</lastmod>` : '';
         return `<url><loc>${escapeXml(`${origin}/product/${encodeURIComponent(product.id)}`)}</loc>${lastmod}<changefreq>daily</changefreq></url>`;
@@ -105,7 +118,7 @@ module.exports = async (req, res) => {
       }
       xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">${imageEntries.join('')}</urlset>`;
     } else {
-      xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${(page === 0 ? [`<url><loc>${escapeXml(origin)}/</loc></url>`, `<url><loc>${escapeXml(origin)}/products</loc></url>`, ...urls] : urls).join('')}</urlset>`;
+      xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join('')}</urlset>`;
     }
     res.setHeader('Cache-Control', 'public, s-maxage=900, stale-while-revalidate=86400');
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');

@@ -196,15 +196,17 @@ export async function getMarketplaceFreeCatalogMode(): Promise<boolean> {
   return Boolean(data?.free_public_catalog)
 }
 
-export async function getPublicBusinesses(searchTerm = '', category = ''): Promise<Business[]> {
+export async function getPublicBusinesses(searchTerm = '', category = '', limit = 60): Promise<Business[]> {
   if (!isSupabaseConfigured || !supabase) {
     return []
   }
 
+  const safeLimit = Math.min(Math.max(Number(limit) || 60, 1), 60)
   let query = supabase
     .from('businesses')
-    .select('*')
+    .select('id, name, business_name, slug, description, category, location, banner_url, logo_url, verification_status, created_at')
     .order('created_at', { ascending: false })
+    .limit(safeLimit)
 
   if (category) {
     query = query.eq('category', category)
