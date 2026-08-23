@@ -51,3 +51,11 @@ No regression requiring an application-code fix was found in the tested public f
 [2]: ./production-e2e-smoke-final.json "Raw final production smoke results"
 [3]: ./homepage-performance-audit-20260823.md "Homepage performance audit"
 [4]: https://reliable-now.vercel.app/ "Reliable production homepage"
+
+## Product-detail image fallback incident
+
+A mobile screenshot exposed broken-image placeholders on the product-detail gallery. Direct probing showed Supabase transformed image URLs under `/storage/v1/render/image/...` returned HTTP 403, while the corresponding public object URLs returned HTTP 200. The detail-page gallery had no explicit `onError` fallback, so the browser displayed the broken-image icon.
+
+The fix in commit `9f0cd53` adds a shared image error handler to the main product image and gallery thumbnails. The first image error switches to the original public Storage object URL and removes any responsive source set; a second failure hides the image rather than leaving a broken icon. Vercel deployment `9M2rpcM5jfwaT5mcDRqihW8PPhnz` is Ready and production now serves commit `9f0cd53`.
+
+Live verification confirmed the main image and all three thumbnails have `complete: true`, non-zero natural dimensions of 3048 × 4064, and no broken image elements. The main image and first thumbnail use the original object URL fallback, while the other thumbnails loaded successfully from their public object URLs. Product title, price, stock, size controls, delivery options, Add to Cart, Call to Order, and deferred chat behavior remain intact.
