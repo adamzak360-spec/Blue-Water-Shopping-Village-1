@@ -1052,3 +1052,10 @@
     height: 36px;
   }
 }
+
+
+/* Below-fold rails keep their heading and reserved footprint while cards are deferred. */
+.product-horizontal-section.is-deferred {
+  content-visibility: auto;
+  contain-intrinsic-size: 420px;
+}

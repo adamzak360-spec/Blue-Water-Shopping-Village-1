@@ -495,10 +495,13 @@ interface ProductSectionProps {
   promotionIdByProductId?: Map<string, string>
   showStock?: boolean
   autoPlay?: boolean
+  deferUntilNearViewport?: boolean
 }
 
-function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading, className = '', isSponsored = false, promotionIdByProductId, showStock = false, autoPlay = true }: ProductSectionProps) {
+function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading, className = '', isSponsored = false, promotionIdByProductId, showStock = false, autoPlay = true, deferUntilNearViewport = true }: ProductSectionProps) {
   const [isPaused, setIsPaused] = useState(false)
+  const [isNearViewport, setIsNearViewport] = useState(!deferUntilNearViewport)
+  const sectionRef = useRef<HTMLElement>(null)
   const directionRef = useRef<1 | -1>(1)
   const resumeTimerRef = useRef<number | null>(null)
 
@@ -514,6 +517,25 @@ function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading,
       resumeTimerRef.current = null
     }, 1400)
   }
+
+  useEffect(() => {
+    if (!deferUntilNearViewport || isNearViewport) return
+    const section = sectionRef.current
+    if (!section || typeof IntersectionObserver === 'undefined') {
+      setIsNearViewport(true)
+      return
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsNearViewport(true)
+        observer.disconnect()
+      }
+    }, { rootMargin: '800px 0px' })
+
+    observer.observe(section)
+    return () => observer.disconnect()
+  }, [deferUntilNearViewport, isNearViewport])
 
   useEffect(() => {
     const rail = scrollRef.current
@@ -554,8 +576,10 @@ function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading,
 
   if (!isLoading && products.length === 0) return null
 
+  const deferCards = deferUntilNearViewport && !isNearViewport
+
   return (
-    <section className={`section product-horizontal-section ${className}`}>
+    <section ref={sectionRef} className={`section product-horizontal-section ${className} ${deferCards ? 'is-deferred' : ''}`}>
       <div className="container">
         <div className="section-header">
           <div className="section-title-wrapper">
@@ -578,7 +602,7 @@ function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading,
           onWheel={resumeAfterInteraction}
           aria-label={`${title} carousel. Swipe, drag, or select a product to view it.`}
         >
-          {isLoading ? (
+          {isLoading || deferCards ? (
             [...Array(6)].map((_, i) => <div key={i} className="product-card-skeleton horizontal" />)
           ) : (
               products.map(product => (
