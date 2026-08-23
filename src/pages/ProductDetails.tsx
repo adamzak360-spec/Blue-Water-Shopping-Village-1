@@ -18,7 +18,7 @@ import ProductCard from '../components/ProductCard'
 import VerifiedSellerBadge from '../components/VerifiedSellerBadge'
 import BusinessSocialLinks from '../components/BusinessSocialLinks'
 import { applyProductSeo, resetProductSeo } from '../utils/seo'
-import { getOptimizedImageUrl, getOriginalImageUrl } from '../utils/imageDelivery'
+import { getOptimizedImageUrl, getOriginalImageUrl, getResponsiveImageSet } from '../utils/imageDelivery'
 import './ProductDetails.css'
 
 export default function ProductDetails() {
@@ -68,6 +68,23 @@ export default function ProductDetails() {
     applyProductSeo(product, ratingStats.averageRating, ratingStats.totalReviews)
     return () => resetProductSeo()
   }, [product, reviews, ratingStats])
+
+  useEffect(() => {
+    if (!product) return
+
+    const mediaUrls = [product.image_url, ...(product.gallery_urls || [])]
+      .filter((url): url is string => Boolean(url))
+    const nextImageUrl = mediaUrls[mainMediaIndex + 1]
+    if (!nextImageUrl) return
+
+    const timer = window.setTimeout(() => {
+      const image = new Image()
+      image.decoding = 'async'
+      image.src = getOptimizedImageUrl(nextImageUrl, 900)
+    }, 220)
+
+    return () => window.clearTimeout(timer)
+  }, [product, mainMediaIndex])
 
   useEffect(() => {
     const loadProductAndReviews = async () => {
@@ -438,7 +455,9 @@ export default function ProductDetails() {
                 {mainMedia.type === 'image' ? (
                   <>
                     <img
-                      src={getOptimizedImageUrl(mainMedia.url, 1200)}
+                      src={getOptimizedImageUrl(mainMedia.url, 900)}
+                      srcSet={mainMedia.type === 'image' ? getResponsiveImageSet(mainMedia.url, [540, 900, 1200]) : undefined}
+                      sizes="(max-width: 768px) calc(100vw - 32px), min(50vw, 720px)"
                       alt={product.name}
                       className="main-product-image"
                       decoding="async"
@@ -478,10 +497,12 @@ export default function ProductDetails() {
                 >
                   {media.type === 'image' ? (
                     <img
-                      src={getOptimizedImageUrl(media.url, 320)}
+                      src={getOptimizedImageUrl(media.url, 240)}
                       alt={`${product.name} thumbnail ${index + 1}`}
                       loading="lazy"
                       decoding="async"
+                      sizes="72px"
+                      referrerPolicy="no-referrer"
                       onError={(event) => handleImageFallback(event, media.url)}
                     />
                   ) : (
