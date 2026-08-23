@@ -1,0 +1,32 @@
+{
+  "capturedAt": "2026-08-23T08:49:23.181Z",
+  "url": "https://reliable-now.vercel.app/?performance-audit=20260823-final",
+  "navigation": {
+    "durationMs": 585.6000000238419,
+    "domContentLoadedMs": 585.3000000715256,
+    "responseMs": 370.10000002384186,
+    "loadEventMs": 585.6000000238419,
+    "transferSizeBytes": 3298,
+    "decodedBodySizeBytes": 2998
+  },
+  "resources": {
+    "total": 73,
+    "supabase": 47,
+    "rest": 9,
+    "storage": 37,
+    "transformedImages": 17,
+    "wildcardProducts": 0,
+    "supabaseTransferSizeBytes": 0,
+    "supabaseDecodedBodySizeBytes": 0,
+    "supabaseAggregateDurationMs": 21264.79999947548,
+    "allAggregateDurationMs": 23594.499999403954
+  },
+  "interpretation": {
+    "browserCrossOriginSizesUnavailable": true,
+    "baselineHomepageResourceInventoryLowerBound": 25,
+    "baselineIncludedWildcardProductsRequest": true,
+    "postfixWildcardProductsRequest": false,
+    "postfixHomepageMainCatalogRequest": "get_public_catalog_cards_bounded",
+    "postfixAuthProbe": "/auth/v1/settings"
+  }
+}
