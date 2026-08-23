@@ -49,3 +49,9 @@ The final read-only verification succeeded with `{"function_count":1}`, confirmi
 The bounded invocation query `SELECT * FROM public.get_public_catalog_cards_bounded('HOME', NULL, NULL, NULL, 1, 0);` is loaded cleanly in Monaco and ready to run.
 
 The bounded invocation test succeeded and returned exactly one product card. The response contains the expected narrow card fields (`id`, `name`, truncated description, price/currency/category, image URL, stock, status, timestamps, business ID, and delivery-fee fields) with no detail-only specifications/gallery payload. The new RPC is operational in Supabase.
+
+The latest implementation commit `47dd1e9` was pushed after a clean production build. The first post-push production navigation loaded the Reliable homepage, but the resource filter returned no matching entries and a subsequent browser view landed on a transient `about:blank` context. I am retrying the live check once to distinguish deployment behavior from the browser context reset.
+
+The latest production deployment is now live. The browser resource audit shows `/auth/v1/settings` instead of the dummy OTP request, `get_public_catalog_cards_bounded` for the catalog, and 240px/quality-78 Supabase image transformations for product thumbnails. The homepage displays the Reliable branding, current contact number, product cards, prices, stock labels, and Add to Cart controls.
+
+The live product-detail page loads successfully with the new transformed 1,200px main image and 320px thumbnails. Its resource audit shows `/auth/v1/settings`, the optimized public-card RPC, and responsive image transformations. No conversation, message, or realtime resource was requested before Chat with Seller was initiated. The page still displays the existing sign-in-temporarily-unavailable notice; this is an authentication availability condition in the backend, not a catalog or chat-loading regression.
