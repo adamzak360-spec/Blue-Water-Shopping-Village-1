@@ -53,3 +53,17 @@ For future percentage-based performance reporting, the recommended method is to 
 [1]: ./egress-baseline-20260823.md "Reliable egress optimization baseline — 2026-08-23"
 [2]: ./homepage-performance-postfix-20260823.json "Raw post-fix homepage performance metrics"
 [3]: https://reliable-now.vercel.app/ "Reliable Premium Marketplace production homepage"
+
+## P0 IntersectionObserver follow-up
+
+The P0 below-fold rail gate was implemented in commit `162af4c`. Vercel subsequently reported the production deployment as ready; the final production measurement was performed after the deployment completed.
+
+### P0 production measurement
+
+After the IntersectionObserver deployment, a fresh production load measured **275.6 ms** navigation duration, **275.3 ms** DOMContentLoaded, **169.2 ms** response time, **62** total resources, **38** Supabase resources, **13** transformed images, and **0** wildcard product requests. The DOM contained 22 product cards across two mounted horizontal rails at capture time, with no wildcard products REST request. Compared with the earlier post-fix capture (585.6 ms navigation, 73 total resources, 17 transformed images), this run was approximately 310 ms faster, used 11 fewer total resources, and initiated 4 fewer transformed image requests. These are single-run observations and not a controlled statistical benchmark.
+
+### P0 image-loading test after full scroll
+
+A fresh production load after the P0 deployment measured **275.6 ms** navigation duration and **275.3 ms** DOMContentLoaded. Before scrolling, the browser recorded **62** total resources, **38** Supabase resources, **13** transformed images, and **0** wildcard product requests. After scrolling to the end, the page recorded **71** total resources and **20** transformed images, still with **0** wildcard product requests. This shows that seven additional image requests were deferred until the scroll interaction rather than being initiated during the initial load.
+
+The test page contained 22 product cards across two mounted horizontal rails at the capture point. The current product data did not populate every possible homepage rail, so the observer reported no remaining deferred rail after the full-scroll test; this is expected once the available rails have entered the observer margin. The first P0 run was approximately 310 ms faster than the earlier single-run post-fix measurement of 585.6 ms, but this is not a controlled benchmark and should be treated as directional evidence only.
