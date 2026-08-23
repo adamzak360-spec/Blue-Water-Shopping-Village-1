@@ -18,7 +18,7 @@ import ProductCard from '../components/ProductCard'
 import VerifiedSellerBadge from '../components/VerifiedSellerBadge'
 import BusinessSocialLinks from '../components/BusinessSocialLinks'
 import { applyProductSeo, resetProductSeo } from '../utils/seo'
-import { getOptimizedImageUrl } from '../utils/imageDelivery'
+import { getOptimizedImageUrl, getOriginalImageUrl } from '../utils/imageDelivery'
 import './ProductDetails.css'
 
 export default function ProductDetails() {
@@ -314,6 +314,17 @@ export default function ProductDetails() {
   
   const mainMedia = productMedia[mainMediaIndex] || { type: 'image' as const, url: product.image_url }
 
+  const handleImageFallback = (event: React.SyntheticEvent<HTMLImageElement>, source: string) => {
+    const target = event.currentTarget
+    if (target.dataset.fallback !== '1') {
+      target.dataset.fallback = '1'
+      target.src = getOriginalImageUrl(source)
+      target.removeAttribute('srcset')
+      return
+    }
+    target.style.display = 'none'
+  }
+
   const baseStock = Number(product.stock_quantity) || 0
   const isOutOfStock = baseStock <= 0 || product.status === 'inactive'
 
@@ -432,6 +443,7 @@ export default function ProductDetails() {
                       className="main-product-image"
                       decoding="async"
                       fetchPriority="high"
+                      onError={(event) => handleImageFallback(event, mainMedia.url)}
                     />
                     <button className="lightbox-btn" aria-label="Zoom image">
                       <ZoomIn size={20} />
@@ -465,7 +477,13 @@ export default function ProductDetails() {
                   style={{ position: 'relative' }}
                 >
                   {media.type === 'image' ? (
-                    <img src={getOptimizedImageUrl(media.url, 320)} alt={`${product.name} thumbnail ${index + 1}`} loading="lazy" decoding="async" />
+                    <img
+                      src={getOptimizedImageUrl(media.url, 320)}
+                      alt={`${product.name} thumbnail ${index + 1}`}
+                      loading="lazy"
+                      decoding="async"
+                      onError={(event) => handleImageFallback(event, media.url)}
+                    />
                   ) : (
                     <>
                       <video src={media.url} preload="none" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
