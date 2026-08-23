@@ -30,6 +30,9 @@ export default function Products() {
   const [isSticky, setIsSticky] = useState(false)
   const [showProductCount, setShowProductCount] = useState(false)
   const [activePromotions, setActivePromotions] = useState<ActivePromotedProduct[]>([])
+  const [hasMoreProducts, setHasMoreProducts] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const PAGE_SIZE = 18
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -48,27 +51,43 @@ export default function Products() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  const loadProductPage = async (offset: number, append: boolean) => {
+    const data = await getBoundedPublicCatalogProducts('PRODUCTS', { limit: PAGE_SIZE, offset })
+    const nextProducts = shuffle(data)
+    setProducts(previous => append ? [...previous, ...nextProducts] : nextProducts)
+    setHasMoreProducts(data.length === PAGE_SIZE)
+  }
+
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const [data, shouldShowProductCount, activePromotionIds] = await Promise.all([
-          getBoundedPublicCatalogProducts('PRODUCTS', { limit: 60 }),
+        const [_, shouldShowProductCount, activePromotionIds] = await Promise.all([
+          loadProductPage(0, false),
           getMarketplaceProductCountVisibility(),
           getActivePromotedProducts(),
         ])
         setShowProductCount(shouldShowProductCount)
         setActivePromotions(activePromotionIds)
-        const rotatedProducts = shuffle(data)
-        setProducts(rotatedProducts)
-        setFilteredProducts(rotatedProducts.filter(p => p.status === 'active'))
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load products')
       } finally {
         setIsLoading(false)
       }
     }
-    loadProducts()
+    void loadProducts()
   }, [])
+
+  const loadMoreProducts = async () => {
+    if (isLoadingMore || !hasMoreProducts || searchTerm.trim()) return
+    setIsLoadingMore(true)
+    try {
+      await loadProductPage(products.length, true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load more products')
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
 
   // Catalog page SEO: rich titles + ItemList schema so the whole listing ranks for shopping queries
   useEffect(() => {
@@ -99,7 +118,7 @@ export default function Products() {
       void getBoundedPublicCatalogProducts('PRODUCTS', {
         searchTerm: trimmedSearch,
         category: selectedCategory || undefined,
-        limit: 60,
+        limit: PAGE_SIZE,
       })
         .then(data => { if (!cancelled) setSearchMatches(data.filter(p => p.status === 'active')) })
         .catch(() => { if (!cancelled) setSearchMatches([]) })
@@ -392,6 +411,13 @@ export default function Products() {
                 )
               ))}
             </div>
+            {!searchTerm.trim() && hasMoreProducts && (
+              <div className="products-load-more" style={{ display: 'flex', justifyContent: 'center', margin: '28px 0 8px' }}>
+                <button type="button" className="view-details-btn" onClick={() => void loadMoreProducts()} disabled={isLoadingMore}>
+                  {isLoadingMore ? 'Loading more products...' : 'Load More Products'}
+                </button>
+              </div>
+            )}
             </>
           )}
         </div>

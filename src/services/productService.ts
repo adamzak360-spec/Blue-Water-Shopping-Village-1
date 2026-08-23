@@ -95,17 +95,19 @@ export async function getPublicCatalogProducts(destination: PublicCatalogDestina
 
 export async function getBoundedPublicCatalogProducts(
   destination: PublicCatalogDestination,
-  options: { searchTerm?: string; category?: string; limit?: number; offset?: number } = {},
+  options: { searchTerm?: string; category?: string; limit?: number; offset?: number; businessId?: string } = {},
 ): Promise<Product[]> {
   if (!isSupabaseConfigured || !supabase) {
     throw new Error('Supabase not configured')
   }
+  const client = supabase
 
   const normalizedSearch = options.searchTerm?.trim().toLowerCase() || ''
   const normalizedCategory = options.category?.trim() || ''
   const limit = Math.min(Math.max(options.limit ?? 12, 1), 60)
   const offset = Math.max(options.offset ?? 0, 0)
-  const cacheKey = `bounded:${destination}:${normalizedSearch}:${normalizedCategory}:${limit}:${offset}`
+  const normalizedBusinessId = options.businessId?.trim() || ''
+  const cacheKey = `bounded:${destination}:${normalizedSearch}:${normalizedCategory}:${limit}:${offset}:${normalizedBusinessId}`
   const cached = publicCatalogCache.get(cacheKey)
   if (cached && Date.now() - cached.timestamp < PUBLIC_CATALOG_CACHE_DURATION) {
     return cached.data
@@ -114,13 +116,29 @@ export async function getBoundedPublicCatalogProducts(
   const existingRequest = publicCatalogRequests.get(cacheKey)
   if (existingRequest) return existingRequest
 
-  const request = Promise.resolve(supabase.rpc('get_public_catalog_products_bounded', {
+  const request = Promise.resolve(client.rpc('get_public_catalog_cards_bounded', {
     p_destination: destination,
     p_search: normalizedSearch || null,
     p_category: normalizedCategory || null,
+    p_business_id: normalizedBusinessId || null,
     p_limit: limit,
     p_offset: offset,
-  })).then(({ data, error }) => {
+  })).then(async ({ data, error }) => {
+    // Keep the rollout safe: if the additive RPC has not yet been applied,
+    // fall back once to the existing bounded function rather than breaking the catalog.
+    if (error && (error.code === 'PGRST202' || error.code === '42883')) {
+      const fallback = await client.rpc('get_public_catalog_products_bounded', {
+        p_destination: destination,
+        p_search: normalizedSearch || null,
+        p_category: normalizedCategory || null,
+        p_limit: limit,
+        p_offset: offset,
+      })
+      if (fallback.error) throw new Error(fallback.error.message)
+      const products = (fallback.data as Product[]) || []
+      publicCatalogCache.set(cacheKey, { data: products, timestamp: Date.now() })
+      return products
+    }
     if (error) throw new Error(error.message)
     const products = (data as Product[]) || []
     publicCatalogCache.set(cacheKey, { data: products, timestamp: Date.now() })

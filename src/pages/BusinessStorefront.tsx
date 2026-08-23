@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase, isSupabaseConfigured } from '../supabaseClient'
+import { getBoundedPublicCatalogProducts } from '../services/productService'
 import type { Product } from '../types'
 import type { Business } from '../services/businessService'
 import ProductCard from '../components/ProductCard'
@@ -48,19 +49,16 @@ export default function BusinessStorefront() {
 
       // Only show active products assigned to this business. An empty store must
       // remain empty instead of falling back to the marketplace catalog.
-      const { data: prodData, error: productsError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('business_id', biz.id)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(60)
-
-      if (productsError) {
+      try {
+        const storeProducts = await getBoundedPublicCatalogProducts('PRODUCTS', {
+          businessId: biz.id,
+          limit: 18,
+        })
+        setProducts(storeProducts.filter(product => product.status === 'active'))
+      } catch (productsError) {
         console.error('Error loading store products:', productsError)
+        setProducts([])
       }
-
-      setProducts((prodData || []) as Product[])
 
       setIsLoading(false)
     }

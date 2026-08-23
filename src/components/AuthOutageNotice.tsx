@@ -24,19 +24,17 @@ export default function AuthOutageNotice() {
 
     const probeAuth = async (): Promise<boolean> => {
       try {
-        // A real login attempt would lock accounts on failure; instead we hit
-        // the health surface with an anonymous POST that Supabase must answer.
-        const res = await fetch(`${supabaseUrl}/auth/v1/otp`, {
-          method: 'POST',
-          headers: {
-            apikey: supabaseAnonKey,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email: 'probe@example.com', data: {} }),
+        // Read the public Auth settings endpoint instead of POSTing a dummy OTP.
+        // This checks gateway availability without creating auth attempts or
+        // sending email/OTP-related traffic.
+        const res = await fetch(`${supabaseUrl}/auth/v1/settings`, {
+          method: 'GET',
+          headers: { apikey: supabaseAnonKey },
+          cache: 'no-store',
           signal: AbortSignal.timeout(8000),
         })
-        // 503 / gateway errors = still down. 400/401 etc. mean the gateway
-        // answered (auth service reachable) => outage over.
+        // 5xx / gateway errors = still down. Any response from Auth means the
+        // gateway is reachable and the outage notice can remain hidden.
         return res.status !== 503 && res.status !== 502
       } catch {
         return false

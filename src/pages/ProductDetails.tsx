@@ -18,6 +18,7 @@ import ProductCard from '../components/ProductCard'
 import VerifiedSellerBadge from '../components/VerifiedSellerBadge'
 import BusinessSocialLinks from '../components/BusinessSocialLinks'
 import { applyProductSeo, resetProductSeo } from '../utils/seo'
+import { getOptimizedImageUrl } from '../utils/imageDelivery'
 import './ProductDetails.css'
 
 export default function ProductDetails() {
@@ -49,6 +50,7 @@ export default function ProductDetails() {
   const [isSubmittingReview, setIsSubmittingReview] = useState(false)
   const [reviewSuccess, setReviewSuccess] = useState(false)
   const [showChatGate, setShowChatGate] = useState(false)
+  const [chatEnabled, setChatEnabled] = useState(false)
 
 
 
@@ -165,7 +167,7 @@ export default function ProductDetails() {
   }, [productId])
 
   useEffect(() => {
-    if (!product?.id || !sellerBusiness?.id) return
+    if (!chatEnabled || !product?.id || !sellerBusiness?.id) return
     let active = true
     let cleanupRealtime: (() => void) | undefined
     const initialState = getChatUnreadState(product.id)
@@ -199,7 +201,7 @@ export default function ProductDetails() {
       unsubscribeLocal()
       cleanupRealtime?.()
     }
-  }, [product?.id, sellerBusiness?.id, user?.id])
+  }, [chatEnabled, product?.id, sellerBusiness?.id, user?.id])
 
   const handleChat = () => {
     if (!product || !sellerBusiness) return
@@ -209,6 +211,7 @@ export default function ProductDetails() {
       setShowChatGate(true)
       return
     }
+    setChatEnabled(true)
     navigate(`/chat/product/${product.id}?business=${sellerBusiness.id}`)
   }
 
@@ -424,7 +427,7 @@ export default function ProductDetails() {
                 {mainMedia.type === 'image' ? (
                   <>
                     <img
-                      src={mainMedia.url}
+                      src={getOptimizedImageUrl(mainMedia.url, 1200)}
                       alt={product.name}
                       className="main-product-image"
                       decoding="async"
@@ -462,7 +465,7 @@ export default function ProductDetails() {
                   style={{ position: 'relative' }}
                 >
                   {media.type === 'image' ? (
-                    <img src={media.url} alt={`${product.name} thumbnail ${index + 1}`} loading="lazy" decoding="async" />
+                    <img src={getOptimizedImageUrl(media.url, 320)} alt={`${product.name} thumbnail ${index + 1}`} loading="lazy" decoding="async" />
                   ) : (
                     <>
                       <video src={media.url} preload="none" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />

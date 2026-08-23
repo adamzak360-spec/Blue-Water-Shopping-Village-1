@@ -16,6 +16,18 @@ function fetchJson(url, headers = {}) {
   });
 }
 
+function fetchCount(url, headers = {}) {
+  return new Promise((resolve) => {
+    const request = https.request(url, { method: 'HEAD', headers: { ...headers, Prefer: 'count=exact', Range: '0-0' } }, (response) => {
+      const range = response.headers['content-range'] || '';
+      const total = Number(String(range).split('/')[1]);
+      resolve(Number.isFinite(total) ? total : 0);
+    });
+    request.on('error', () => resolve(0));
+    request.end();
+  });
+}
+
 function escapeXml(value = '') {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -39,27 +51,39 @@ module.exports = async (req, res) => {
     const queryMode = (req.query && req.query.mode) || new URL(req.url || '/', `https://${req.headers.host || 'localhost'}`).searchParams.get('mode');
     const mode = queryMode || 'urls';
 
-    // Sitemap index: /sitemap.xml without a mode param lists the two child sitemaps
+    const baseHeaders = { apikey: anonKey, Authorization: `Bearer ${anonKey}` };
+    const countEndpoint = `${supabaseUrl}/rest/v1/products?status=eq.active&select=id`;
+
+    // Partition product URLs and image URLs so crawlers never receive thousands
+    // of rows in one response or one large Supabase egress event.
     if (path === '/sitemap.xml' && !queryMode) {
-      const indexXml = `<?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<sitemap><loc>${escapeXml(origin)}/sitemap.xml?mode=urls</loc></sitemap>
-<sitemap><loc>${escapeXml(origin)}/sitemap.xml?mode=images</loc></sitemap>
-</sitemapindex>`;
+      const total = await fetchCount(countEndpoint, baseHeaders);
+      const pageCount = Math.max(1, Math.ceil(total / 1000));
+      const sitemapLinks = [];
+      for (const modeName of ['urls', 'images']) {
+        for (let page = 0; page < pageCount; page += 1) {
+          sitemapLinks.push(`<sitemap><loc>${escapeXml(`${origin}/sitemap.xml?mode=${modeName}&page=${page}`)}</loc></sitemap>`);
+        }
+      }
+      const indexXml = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${sitemapLinks.join('')}</sitemapindex>`;
       res.setHeader('Cache-Control', 'public, s-maxage=900, stale-while-revalidate=86400');
       res.setHeader('Content-Type', 'application/xml; charset=utf-8');
       return res.status(200).send(indexXml);
     }
-    const endpoint = `${supabaseUrl}/rest/v1/products?status=eq.active&select=id,name,description,category,image_url,gallery_urls,brand,updated_at&order=updated_at.desc&limit=5000`;
-    const products = await fetchJson(endpoint, { apikey: anonKey, Authorization: `Bearer ${anonKey}` });
-    const urls = [
-      `<url><loc>${escapeXml(origin)}/</loc></url>`,
-      `<url><loc>${escapeXml(origin)}/products</loc></url>`,
+
+    const page = Math.max(0, Number((req.query && req.query.page) || 0) || 0);
+    const offset = page * 1000;
+    const select = mode === 'images'
+      ? 'id,name,description,image_url,gallery_urls,updated_at'
+      : 'id,updated_at';
+    const endpoint = `${supabaseUrl}/rest/v1/products?status=eq.active&select=${select}&order=updated_at.desc&limit=1000&offset=${offset}`;
+    const products = await fetchJson(endpoint, baseHeaders);
+    const urls = mode === 'urls' ? [
       ...(Array.isArray(products) ? products.map(product => {
         const lastmod = product.updated_at ? `<lastmod>${escapeXml(new Date(product.updated_at).toISOString())}</lastmod>` : '';
         return `<url><loc>${escapeXml(`${origin}/product/${encodeURIComponent(product.id)}`)}</loc>${lastmod}<changefreq>daily</changefreq></url>`;
       }) : []),
-    ];
+    ] : [];
 
     let xml;
     if (mode === 'images') {
@@ -81,7 +105,7 @@ module.exports = async (req, res) => {
       }
       xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">${imageEntries.join('')}</urlset>`;
     } else {
-      xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join('')}</urlset>`;
+      xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${(page === 0 ? [`<url><loc>${escapeXml(origin)}/</loc></url>`, `<url><loc>${escapeXml(origin)}/products</loc></url>`, ...urls] : urls).join('')}</urlset>`;
     }
     res.setHeader('Cache-Control', 'public, s-maxage=900, stale-while-revalidate=86400');
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');

@@ -7,6 +7,7 @@ import { useWishlist } from '../context/WishlistContext'
 import { formatCurrency } from '../utils/currency'
 import StockStatus from './StockStatus'
 import { recordPromotionClick, recordPromotionImpression } from '../services/promotionService'
+import { getOriginalImageUrl, getResponsiveImageSet, getOptimizedImageUrl } from '../utils/imageDelivery'
 
 interface ProductCardProps {
   product: Product
@@ -42,7 +43,8 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
             />
           ) : product.image_url ? (
             <img
-              src={product.image_url}
+              src={getOptimizedImageUrl(product.image_url, 540)}
+              srcSet={getResponsiveImageSet(product.image_url)}
               alt={product.name}
               className="product-image"
               loading="lazy"
@@ -52,6 +54,12 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
               style={{ objectFit: 'contain' }}
               onError={(e) => {
                 const target = e.target as HTMLImageElement
+                if (target.dataset.fallback !== '1') {
+                  target.dataset.fallback = '1'
+                  target.src = getOriginalImageUrl(product.image_url)
+                  target.removeAttribute('srcset')
+                  return
+                }
                 target.style.display = 'none'
                 const placeholder = target.parentElement?.querySelector('.product-image-placeholder')
                 if (placeholder) placeholder.classList.add('visible')
