@@ -1,0 +1,9 @@
+{
+  "capturedAt": "2026-08-23T09:11:37.824Z",
+  "url": "https://reliable-now.vercel.app/?performance-audit=memory-cpu-before",
+  "navigation": {"durationMs": 439.0, "domContentLoadedMs": 438.6},
+  "memory": {"usedJSHeapSizeBytes": 7770150, "totalJSHeapSizeBytes": 10565086, "jsHeapSizeLimitBytes": 2167144448},
+  "dom": {"nodes": 860, "productCards": 22, "rails": 2, "deferredRails": 0, "images": 23},
+  "cpuProxy": {"longTaskCount": 0, "longTaskDurationMs": 0, "rafCallbacksOver2s": 119, "approxFps": 59.5},
+  "resources": {"total": 64, "transformedImages": 14}
+}

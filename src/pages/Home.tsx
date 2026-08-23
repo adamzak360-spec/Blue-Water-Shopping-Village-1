@@ -537,9 +537,11 @@ function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading,
     return () => observer.disconnect()
   }, [deferUntilNearViewport, isNearViewport])
 
+  const deferCards = deferUntilNearViewport && !isNearViewport
+
   useEffect(() => {
     const rail = scrollRef.current
-    if (!autoPlay || !rail || products.length < 2 || isLoading) return
+    if (!autoPlay || !rail || products.length < 2 || isLoading || deferCards) return
 
     let animationFrame = 0
     let previousTime = performance.now()
@@ -568,15 +570,13 @@ function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading,
 
     animationFrame = window.requestAnimationFrame(animate)
     return () => window.cancelAnimationFrame(animationFrame)
-  }, [autoPlay, isLoading, isPaused, products.length, scrollRef])
+  }, [autoPlay, deferCards, isLoading, isPaused, products.length, scrollRef])
 
   useEffect(() => () => {
     if (resumeTimerRef.current !== null) window.clearTimeout(resumeTimerRef.current)
   }, [])
 
   if (!isLoading && products.length === 0) return null
-
-  const deferCards = deferUntilNearViewport && !isNearViewport
 
   return (
     <section ref={sectionRef} className={`section product-horizontal-section ${className} ${deferCards ? 'is-deferred' : ''}`}>
