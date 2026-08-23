@@ -55,3 +55,11 @@ The latest implementation commit `47dd1e9` was pushed after a clean production b
 The latest production deployment is now live. The browser resource audit shows `/auth/v1/settings` instead of the dummy OTP request, `get_public_catalog_cards_bounded` for the catalog, and 240px/quality-78 Supabase image transformations for product thumbnails. The homepage displays the Reliable branding, current contact number, product cards, prices, stock labels, and Add to Cart controls.
 
 The live product-detail page loads successfully with the new transformed 1,200px main image and 320px thumbnails. Its resource audit shows `/auth/v1/settings`, the optimized public-card RPC, and responsive image transformations. No conversation, message, or realtime resource was requested before Chat with Seller was initiated. The page still displays the existing sign-in-temporarily-unavailable notice; this is an authentication availability condition in the backend, not a catalog or chat-loading regression.
+
+A post-push production check for commit `39cb1ca` still observed `products?select=*` for the eight homepage showcase IDs. The loaded primary script was `index-CSu0fUhi.js`; its fetched text did not contain the new helper name, so the request is from an older/cached Vercel bundle rather than the checked-in source. The fix is compiled and pushed, but deployment propagation/cache invalidation must be confirmed before calling the live request clean.
+
+The guessed Vercel deployment-history URL returned 404 while logged in as `adamzak360@gmail.com`; the production domain remains reachable. This means the Vercel project slug/team route differs from the guessed repository name, so the actual deployment route must be located from the Vercel dashboard or deployment headers.
+
+Vercel’s actual `reliable-now` project now reports the production deployment as **Ready**, created about one minute ago from GitHub commit `39cb1ca` (`Remove broad homepage showcase product fetch`). The earlier guessed project URL was simply the wrong Vercel route.
+
+After Vercel marked commit `39cb1ca` Ready, the refreshed public domain was checked again. The resource audit returned an empty list for `/rest/v1/products`, confirming the legacy `products?select=*` request is gone from the homepage flow. The homepage still renders the Reliable catalog and shopping controls normally.
