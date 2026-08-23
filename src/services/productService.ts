@@ -13,6 +13,16 @@ const PUBLIC_CATALOG_CACHE_DURATION = 60 * 1000 // 1 minute
 const publicCatalogCache = new Map<string, { data: Product[]; timestamp: number }>()
 const publicCatalogRequests = new Map<string, Promise<Product[]>>()
 
+// Fields required by ProductCard and cart/delivery calculations; intentionally excludes
+// detail-only specifications, galleries, and other large product payloads.
+const PUBLIC_CARD_SELECT = [
+  'id', 'name', 'description', 'price', 'currency', 'category', 'image_url', 'video_urls',
+  'stock_quantity', 'low_stock_threshold', 'status', 'created_at', 'updated_at',
+  'business_id', 'brand', 'original_price', 'has_sizes',
+  'delivery_fee_tamale', 'delivery_fee_greater_accra', 'delivery_fee_lesser_accra',
+  'delivery_fee_dhl', 'delivery_fee_ups', 'delivery_fee_fedex',
+].join(', ')
+
 function isCacheValid() {
   return productsCache !== null && (Date.now() - cacheTimestamp) < CACHE_DURATION
 }
@@ -149,6 +159,24 @@ export async function getBoundedPublicCatalogProducts(
 
   publicCatalogRequests.set(cacheKey, request)
   return request
+}
+
+export async function getPublicCatalogProductsByIds(ids: string[]): Promise<Product[]> {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  const normalizedIds = Array.from(new Set(ids.map((id) => id.trim()).filter(Boolean))).slice(0, 60)
+  if (normalizedIds.length === 0) return []
+
+  const { data, error } = await supabase
+    .from('products')
+    .select(PUBLIC_CARD_SELECT)
+    .in('id', normalizedIds)
+    .eq('status', 'active')
+
+  if (error) throw new Error(error.message)
+  return (data as unknown as Product[]) || []
 }
 
 export async function getActiveProducts(): Promise<Product[]> {

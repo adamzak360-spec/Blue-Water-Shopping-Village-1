@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase, isSupabaseConfigured } from '../supabaseClient'
 import { validateEmail } from '../utils/validation'
-import { getBoundedPublicCatalogProducts } from '../services/productService'
+import { getBoundedPublicCatalogProducts, getPublicCatalogProductsByIds } from '../services/productService'
 import { shuffle } from '../utils/shuffle'
 import { getActivePromotedProducts, type ActivePromotedProduct } from '../services/promotionService'
 import type { Product } from '../types'
@@ -79,15 +79,11 @@ export default function Home() {
             const configuredProductIds = Array.isArray(showcaseConfig.product_ids) ? showcaseConfig.product_ids : []
             setFreeShowcaseProductIds(configuredProductIds)
             if (parsedMode === 'FREE' && configuredProductIds.length > 0) {
-              const { data: selectedProducts, error: selectedProductsError } = await supabase
-                .from('products')
-                .select('*')
-                .in('id', configuredProductIds)
-                .eq('status', 'active')
-              if (selectedProductsError) {
-                console.warn('Selected free showcase products unavailable:', selectedProductsError.message)
-              } else {
-                setFreeShowcaseProductsOverride((selectedProducts || []) as Product[])
+              try {
+                const selectedProducts = await getPublicCatalogProductsByIds(configuredProductIds)
+                setFreeShowcaseProductsOverride(selectedProducts)
+              } catch (error) {
+                console.warn('Selected free showcase products unavailable:', error instanceof Error ? error.message : error)
               }
             }
           }
