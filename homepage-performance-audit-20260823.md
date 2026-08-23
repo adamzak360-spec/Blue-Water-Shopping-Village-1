@@ -67,3 +67,13 @@ After the IntersectionObserver deployment, a fresh production load measured **27
 A fresh production load after the P0 deployment measured **275.6 ms** navigation duration and **275.3 ms** DOMContentLoaded. Before scrolling, the browser recorded **62** total resources, **38** Supabase resources, **13** transformed images, and **0** wildcard product requests. After scrolling to the end, the page recorded **71** total resources and **20** transformed images, still with **0** wildcard product requests. This shows that seven additional image requests were deferred until the scroll interaction rather than being initiated during the initial load.
 
 The test page contained 22 product cards across two mounted horizontal rails at the capture point. The current product data did not populate every possible homepage rail, so the observer reported no remaining deferred rail after the full-scroll test; this is expected once the available rails have entered the observer margin. The first P0 run was approximately 310 ms faster than the earlier single-run post-fix measurement of 585.6 ms, but this is not a controlled benchmark and should be treated as directional evidence only.
+
+## Deferred-rail CPU and memory follow-up
+
+Before the final CPU guard, the live homepage measured 860 DOM nodes, 22 product cards, 23 image elements, and 7.77 MB used JS heap where `performance.memory` was exposed. The page produced zero long tasks during the capture, but the browser’s two-second frame probe observed 119 callbacks (approximately 59.5 fps), confirming an active animation-frame cadence. The P0 fix now prevents carousel animation loops from running while a rail is still deferred or displaying skeletons.
+
+The CPU guard compiled successfully and was pushed in commit `7ddf614`. Vercel currently shows the prior production deployment Ready and the new `Stop deferred rails from animating offscreen` deployment building.
+
+### Final deployment handoff
+
+The CPU guard build and source validation pass locally. GitHub commit `7ddf614` is pushed. At the final check, Vercel still displayed the previous production deployment (`3772ee9`) as Ready and the new `Stop deferred rails from animating offscreen` deployment as Building. The source change is safe and ready; live CPU verification should be repeated after that deployment changes to Ready.
