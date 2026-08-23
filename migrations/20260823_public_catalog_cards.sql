@@ -10,13 +10,13 @@ CREATE OR REPLACE FUNCTION public.get_public_catalog_cards_bounded(
   p_limit INTEGER DEFAULT 12,
   p_offset INTEGER DEFAULT 0
 )
-RETURNS SETOF JSONB
+RETURNS SETOF JSON
 LANGUAGE SQL
 STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT jsonb_build_object(
+  SELECT json_build_object(
     'id', p.id,
     'name', p.name,
     'description', LEFT(COALESCE(p.description, ''), 320),
@@ -33,7 +33,7 @@ AS $$
       'business_id', p.business_id,
     'brand', p.brand,
     'original_price', p.original_price,
-    'discount_percentage', p.discount_percentage,
+
     'delivery_fee_tamale', p.delivery_fee_tamale,
     'delivery_fee_greater_accra', p.delivery_fee_greater_accra,
     'delivery_fee_lesser_accra', p.delivery_fee_lesser_accra,
