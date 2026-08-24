@@ -1,4 +1,5 @@
 import type { Product } from '../types'
+import type { Article, ArticleCard } from '../types/articles'
 
 const DEFAULT_DESCRIPTION = 'Reliable Premium Marketplace — quality products from trusted stores, delivered to your doorstep.'
 const DEFAULT_IMAGE = '/logo512.png'
@@ -206,6 +207,108 @@ export function applyCatalogSeo(pageTitle: string, pageDescription: string, prod
     })),
   }
   setJsonLd('reliable-catalog-jsonld', itemList)
+}
+
+export function applyArticlesListingSeo(articles: ArticleCard[]) {
+  const origin = window.location.origin
+  const url = `${origin}/articles`
+  const title = 'Articles & Shopping Guides | Reliable Premium Marketplace'
+  const description = 'Practical Ghana-focused shopping guides, seller education, product advice, and marketplace insights from Reliable Premium Marketplace.'
+  document.title = title
+  setMeta('meta[name="description"]', { name: 'description' }, description)
+  setLink('canonical', url)
+  setMeta('meta[property="og:title"]', { property: 'og:title' }, title)
+  setMeta('meta[property="og:description"]', { property: 'og:description' }, description)
+  setMeta('meta[property="og:url"]', { property: 'og:url' }, url)
+  setMeta('meta[property="og:type"]', { property: 'og:type' }, 'website')
+  setMeta('meta[property="og:site_name"]', { property: 'og:site_name' }, 'Reliable Premium Marketplace')
+  const listingImage = articles.find((article) => article.featured_image)?.featured_image || undefined
+  setMeta('meta[property="og:image"]', { property: 'og:image' }, absoluteUrl(listingImage, origin))
+  setMeta('meta[property="og:image:alt"]', { property: 'og:image:alt' }, 'Reliable Articles and Shopping Guides')
+  setMeta('meta[name="twitter:card"]', { name: 'twitter:card' }, 'summary_large_image')
+  setMeta('meta[name="twitter:title"]', { name: 'twitter:title' }, title)
+  setMeta('meta[name="twitter:description"]', { name: 'twitter:description' }, description)
+  setMeta('meta[name="twitter:image"]', { name: 'twitter:image' }, absoluteUrl(listingImage, origin))
+  setJsonLd('reliable-articles-jsonld', {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: title,
+    description,
+    url,
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: articles.slice(0, 24).map((article, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: `${origin}/articles/${encodeURIComponent(article.slug)}`,
+        name: article.title,
+      })),
+    },
+  })
+  removeJsonLd('reliable-article-jsonld')
+  removeJsonLd('reliable-breadcrumb-jsonld')
+}
+
+export function applyArticleSeo(article: Article) {
+  const origin = window.location.origin
+  const articleUrl = `${origin}/articles/${encodeURIComponent(article.slug)}`
+  const title = article.seo_title?.trim() || `${article.title} | Reliable Premium Marketplace`
+  const description = cleanDescription(article.seo_description || article.excerpt)
+  const image = absoluteUrl(article.featured_image || undefined, origin)
+  document.title = title
+  setMeta('meta[name="description"]', { name: 'description' }, description)
+  setLink('canonical', article.canonical_url?.trim() || articleUrl)
+  setMeta('meta[property="og:title"]', { property: 'og:title' }, title)
+  setMeta('meta[property="og:description"]', { property: 'og:description' }, description)
+  setMeta('meta[property="og:url"]', { property: 'og:url' }, articleUrl)
+  setMeta('meta[property="og:type"]', { property: 'og:type' }, 'article')
+  setMeta('meta[property="og:site_name"]', { property: 'og:site_name' }, 'Reliable Premium Marketplace')
+  setMeta('meta[property="og:image"]', { property: 'og:image' }, image)
+  setMeta('meta[property="og:image:alt"]', { property: 'og:image:alt' }, article.title)
+  setMeta('meta[name="twitter:card"]', { name: 'twitter:card' }, 'summary_large_image')
+  setMeta('meta[name="twitter:title"]', { name: 'twitter:title' }, title)
+  setMeta('meta[name="twitter:description"]', { name: 'twitter:description' }, description)
+  setMeta('meta[name="twitter:image"]', { name: 'twitter:image' }, image)
+  setJsonLd('reliable-article-jsonld', {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: article.title,
+    description,
+    image: [image],
+    url: articleUrl,
+    datePublished: article.published_at,
+    dateModified: article.updated_at || article.published_at,
+    articleSection: article.category,
+    author: { '@type': 'Person', name: article.author_name },
+    publisher: { '@type': 'Organization', name: 'Reliable Premium Marketplace', logo: { '@type': 'ImageObject', url: `${origin}/logo512.png` } },
+  })
+  setJsonLd('reliable-breadcrumb-jsonld', {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: origin },
+      { '@type': 'ListItem', position: 2, name: 'Articles', item: `${origin}/articles` },
+      { '@type': 'ListItem', position: 3, name: article.title, item: articleUrl },
+    ],
+  })
+  removeJsonLd('reliable-articles-jsonld')
+}
+
+export function resetArticleSeo() {
+  document.title = 'Reliable Premium Marketplace'
+  setMeta('meta[name="description"]', { name: 'description' }, DEFAULT_DESCRIPTION)
+  setLink('canonical', window.location.origin)
+  setMeta('meta[property="og:title"]', { property: 'og:title' }, 'Reliable Premium Marketplace')
+  setMeta('meta[property="og:description"]', { property: 'og:description' }, DEFAULT_DESCRIPTION)
+  setMeta('meta[property="og:url"]', { property: 'og:url' }, window.location.origin)
+  setMeta('meta[property="og:type"]', { property: 'og:type' }, 'website')
+  setMeta('meta[property="og:image"]', { property: 'og:image' }, `${window.location.origin}${DEFAULT_IMAGE}`)
+  setMeta('meta[name="twitter:title"]', { name: 'twitter:title' }, 'Reliable Premium Marketplace')
+  setMeta('meta[name="twitter:description"]', { name: 'twitter:description' }, DEFAULT_DESCRIPTION)
+  setMeta('meta[name="twitter:image"]', { name: 'twitter:image' }, `${window.location.origin}${DEFAULT_IMAGE}`)
+  removeJsonLd('reliable-article-jsonld')
+  removeJsonLd('reliable-articles-jsonld')
+  removeJsonLd('reliable-breadcrumb-jsonld')
 }
 
 export function resetProductSeo() {
