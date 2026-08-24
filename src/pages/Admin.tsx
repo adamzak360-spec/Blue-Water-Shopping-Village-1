@@ -38,6 +38,7 @@ import { BusinessVerificationForm } from '../components/BusinessVerificationForm
 import { PayoutProfileForm } from '../components/PayoutProfileForm'
 import DeliverySettings from '../components/DeliverySettings'
 import AdminNewsUpdates from '../components/AdminNewsUpdates'
+import AdminArticles from '../components/AdminArticles'
 import ImageCropEditor from '../components/ImageCropEditor'
 import './Admin.css'
 
@@ -71,7 +72,7 @@ import './Admin.css'
   const prefetchSellerProductVisibility = () => import('../components/SellerProductVisibility')
   const prefetchReliableOperations = () => import('../components/ReliableOperationsWorkspace')
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts' | 'promotions' | 'ads' | 'settings' | 'delivery' | 'marketplace' | 'news' | 'visibility' | 'operations'
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'registered-sellers' | 'pos' | 'payouts' | 'promotions' | 'ads' | 'settings' | 'delivery' | 'marketplace' | 'news' | 'articles' | 'visibility' | 'operations'
 
 interface ProductFormErrors {
   name?: string
@@ -1104,6 +1105,12 @@ export default function Admin() {
               News Updates
             </button>
             <button
+              className={`tab ${view === 'articles' ? 'active' : ''}`}
+              onClick={() => setView('articles')}
+            >
+              Articles
+            </button>
+            <button
               className={`tab ${view === 'promotions' ? 'active' : ''}`}
               onClick={() => setView('promotions')}
               onMouseEnter={prefetchAdminPromotions}
@@ -1209,6 +1216,7 @@ export default function Admin() {
 
         {/* General Admin News and Newsletter View */}
         {view === 'news' && canManageNews && <AdminNewsUpdates />}
+        {view === 'articles' && canManageNews && <AdminArticles />}
         {/* Seller Promotions remain separate from standalone advertising. */}
         {view === 'promotions' && canManageNews && <AdminPromotions />}
         {/* Standalone Reliable Ads management. */}
