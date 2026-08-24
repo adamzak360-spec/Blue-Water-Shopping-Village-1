@@ -78,15 +78,24 @@ module.exports = async (req, res) => {
       : 'id,updated_at';
     const endpoint = `${supabaseUrl}/rest/v1/products?status=eq.active&select=${select}&order=updated_at.desc&limit=1000&offset=${offset}`;
     const businessesEndpoint = `${supabaseUrl}/rest/v1/businesses?slug=not.is.null&select=slug,updated_at&order=updated_at.desc&limit=5000`;
+    const articlesEndpoint = `${supabaseUrl}/rest/v1/articles?status=eq.published&published_at=lte.${encodeURIComponent(new Date().toISOString())}&select=slug,updated_at,published_at&order=published_at.desc&limit=500`;
     const products = await fetchJson(endpoint, baseHeaders);
-    const businesses = mode === 'urls' && page === 0
-      ? await fetchJson(businessesEndpoint, baseHeaders).catch(() => [])
-      : [];
+    const [businesses, articles] = mode === 'urls' && page === 0
+      ? await Promise.all([
+          fetchJson(businessesEndpoint, baseHeaders).catch(() => []),
+          fetchJson(articlesEndpoint, baseHeaders).catch(() => []),
+        ])
+      : [[], []];
     const urls = mode === 'urls' ? [
       ...(page === 0 ? [
         `<url><loc>${escapeXml(origin)}/</loc></url>`,
         `<url><loc>${escapeXml(origin)}/products</loc></url>`,
         `<url><loc>${escapeXml(origin)}/stores</loc></url>`,
+        `<url><loc>${escapeXml(origin)}/articles</loc></url>`,
+        ...(Array.isArray(articles) ? articles.map(article => {
+          const lastmod = article.updated_at || article.published_at ? `<lastmod>${escapeXml(new Date(article.updated_at || article.published_at).toISOString())}</lastmod>` : '';
+          return `<url><loc>${escapeXml(`${origin}/articles/${encodeURIComponent(article.slug)}`)}</loc>${lastmod}<changefreq>weekly</changefreq></url>`;
+        }) : []),
         ...(Array.isArray(businesses) ? businesses.map(business => {
           const lastmod = business.updated_at ? `<lastmod>${escapeXml(new Date(business.updated_at).toISOString())}</lastmod>` : '';
           return `<url><loc>${escapeXml(`${origin}/store/${encodeURIComponent(business.slug)}`)}</loc>${lastmod}<changefreq>daily</changefreq></url>`;
