@@ -21,7 +21,8 @@ import {
   Phone,
   Info,
   Newspaper,
-  Store as StoreIcon
+  Store as StoreIcon,
+  BookOpen
 } from 'lucide-react'
 import './App.css'
 import { lazy, Suspense, useLayoutEffect } from 'react'
@@ -58,6 +59,8 @@ const CustomerSettings = lazy(() => import('./pages/CustomerSettings'))
 const ProductDetails = lazy(() => import('./pages/ProductDetails'))
 const BusinessStorefront = lazy(() => import('./pages/BusinessStorefront'))
 const StoresDirectory = lazy(() => import('./pages/StoresDirectory'))
+const Articles = lazy(() => import('./pages/Articles'))
+const ArticleDetails = lazy(() => import('./pages/ArticleDetails'))
 const Wishlist = lazy(() => import('./pages/Wishlist'))
 const ProductChat = lazy(() => import('./pages/ProductChat'))
 const SellerRegister = lazy(() => import('./pages/SellerRegister'))
@@ -71,6 +74,7 @@ const prefetchProducts = () => import('./pages/Products')
 const prefetchAbout = () => import('./pages/About')
 const prefetchContact = () => import('./pages/Contact')
 const prefetchFAQ = () => import('./pages/FAQ')
+const prefetchArticles = () => import('./pages/Articles')
 const prefetchLogin = () => import('./pages/Login')
 import TermsPopup from './components/TermsPopup'
 import WhatsAppButton from './components/WhatsAppButton'
@@ -311,6 +315,7 @@ function AppShell() {
           )}
           <div className="drawer-divider"></div>
           <Link to="/?view=news" className="drawer-item"><Newspaper size={20} /> Marketplace News</Link>
+          <Link to="/articles" className="drawer-item" onMouseEnter={prefetchArticles}><BookOpen size={20} /> Articles</Link>
           <Link to="/about" className="drawer-item" onMouseEnter={prefetchAbout}><Info size={20} /> About</Link>
           <Link to="/contact" className="drawer-item" onMouseEnter={prefetchContact}><Phone size={20} /> Contact</Link>
           <Link to="/faq" className="drawer-item" onMouseEnter={prefetchFAQ}><HelpCircle size={20} /> Support</Link>
@@ -342,6 +347,8 @@ function AppShell() {
             <Route path="/" element={<Home />} />
             <Route path="/stores" element={<StoresDirectory />} />
             <Route path="/store/:slug" element={<BusinessStorefront />} />
+            <Route path="/articles" element={<Articles />} />
+            <Route path="/articles/:slug" element={<ArticleDetails />} />
             <Route path="/products" element={<Products />} />
             <Route path="/product/:productId" element={<ProductDetails />} />
             <Route path="/checkout" element={<Checkout />} />
