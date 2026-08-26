@@ -3,8 +3,9 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { createBusinessForUser, getBusinessByOwner } from '../services/businessService'
 import { supabase } from '../supabaseClient'
-import { Store, MapPin, Phone, Tag, Building2, FileText } from 'lucide-react'
+import { Store, MapPin, Phone, Tag, Building2, FileText, CheckCircle2, ArrowRight, ShieldCheck, TrendingUp, Headphones, BarChart3 } from 'lucide-react'
 import './Login.css' // Reuse shared authentication styles
+import './SellerRegister.css'
 
 const CATEGORIES = [
   'Electronics',
@@ -181,12 +182,59 @@ export default function SellerRegister() {
   }
 
   return (
-    <div className="register-container">
-      <div className="register-card seller-register-card">
-        {step === 'register' ? (
+    <main className="seller-register-page">
+      <section className="seller-register-hero" aria-labelledby="seller-register-title">
+        <div className="seller-register-hero-copy">
+          <span className="seller-eyebrow">Reliable for business</span>
+          <h1 id="seller-register-title">Start selling on Reliable today</h1>
+          <p className="seller-hero-lede">Bring your products to more customers with a professional storefront, simple tools, and a trusted marketplace built for growing businesses.</p>
+          <div className="seller-hero-benefits">
+            <span><CheckCircle2 size={18} /> Reach more customers</span>
+            <span><CheckCircle2 size={18} /> Grow your business online</span>
+            <span><CheckCircle2 size={18} /> Manage your store with ease</span>
+          </div>
+          <a className="seller-secondary-cta" href="#seller-registration-form">How it works <ArrowRight size={17} /></a>
+        </div>
+        <div className="seller-register-hero-art">
+          <div className="seller-art-glow" aria-hidden="true" />
+          <img src="/seller-hero.jpeg" alt="Entrepreneur working on a laptop in a bright workspace" width="900" height="1125" fetchPriority="high" />
+          <div className="seller-art-badge"><ShieldCheck size={18} /><span>Built for trusted sellers</span></div>
+        </div>
+      </section>
+
+      <section className="seller-benefits" aria-labelledby="seller-benefits-title">
+        <div className="seller-section-heading">
+          <span className="seller-eyebrow">Why Reliable</span>
+          <h2 id="seller-benefits-title">Everything you need to grow online</h2>
+        </div>
+        <div className="seller-benefit-grid">
+          <article className="seller-benefit-card"><span className="seller-benefit-icon"><Store size={21} /></span><h3>Easy store setup</h3><p>Create a clear public storefront and start presenting your products professionally.</p></article>
+          <article className="seller-benefit-card"><span className="seller-benefit-icon"><TrendingUp size={21} /></span><h3>Reach more customers</h3><p>Put your products in front of shoppers browsing Reliable every day.</p></article>
+          <article className="seller-benefit-card"><span className="seller-benefit-icon"><BarChart3 size={21} /></span><h3>Track your sales</h3><p>Use the existing seller dashboard to manage products, orders, and performance.</p></article>
+          <article className="seller-benefit-card"><span className="seller-benefit-icon"><Headphones size={21} /></span><h3>Seller support</h3><p>Get practical guidance through Reliable support and seller resources.</p></article>
+        </div>
+      </section>
+
+      <section className="seller-registration-layout" id="seller-registration-form" aria-labelledby="seller-form-title">
+        <div className="seller-process-panel">
+          <span className="seller-eyebrow">Your next steps</span>
+          <h2 id="seller-form-title">Open your Reliable store</h2>
+          <p>Complete your account and store details. Our team reviews seller applications before a store is approved.</p>
+          <ol className="seller-step-list">
+            <li className={step === 'register' ? 'active' : 'complete'}><span>01</span><div><strong>Create an account</strong><small>Use an email and password you can access.</small></div></li>
+            <li className={step === 'setup' ? 'active' : ''}><span>02</span><div><strong>Tell us about your store</strong><small>Add your business, contact, category, and location.</small></div></li>
+            <li><span>03</span><div><strong>Await approval</strong><small>Reliable reviews the application before dashboard access.</small></div></li>
+          </ol>
+          <div className="seller-trust-note"><ShieldCheck size={19} /><span>Your information is handled through Reliable's existing secure account and seller application system.</span></div>
+        </div>
+
+        <div className="register-card seller-register-card seller-form-card">
+          <div className="seller-form-topline"><span>Step {step === 'register' ? '1' : '2'} of 2</span><span className="seller-form-dot" aria-hidden="true" /></div>
+          {step === 'register' ? (
           <>
-            <h1>Become a Seller</h1>
-            <p>Join Reliable and start selling your products today.</p>
+            <span className="seller-form-kicker">Create your seller account</span>
+            <h2>Become a Reliable seller</h2>
+            <p>Join Reliable and start building your online store.</p>
 
             {error && <div className="error-message">{error}</div>}
 
@@ -232,8 +280,9 @@ export default function SellerRegister() {
           </>
         ) : (
           <>
-            <h1>Setup Your Store</h1>
-            <p>Tell us about your business to get started.</p>
+            <span className="seller-form-kicker">Set up your storefront</span>
+            <h2>Tell us about your store</h2>
+            <p>These details help shoppers understand what your business offers.</p>
 
             {error && <div className="error-message">{error}</div>}
 
@@ -377,7 +426,15 @@ export default function SellerRegister() {
             </form>
           </>
         )}
-      </div>
-    </div>
+        </div>
+      </section>
+
+      <section className="seller-bottom-cta" aria-labelledby="seller-bottom-cta-title">
+        <div><span className="seller-eyebrow">Ready to grow?</span><h2 id="seller-bottom-cta-title">Your next customer is already looking.</h2><p>Start your application today and take your business online with Reliable.</p></div>
+        <a href="#seller-registration-form" className="seller-primary-cta">Start selling now <ArrowRight size={18} /></a>
+      </section>
+
+      <nav className="seller-resource-links" aria-label="Seller resources"><Link to="/articles">Seller guides</Link><Link to="/faq">Seller help</Link><Link to="/contact">Contact support</Link></nav>
+    </main>
   )
 }
