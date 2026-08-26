@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase, isSupabaseConfigured } from '../supabaseClient'
 import { validateEmail } from '../utils/validation'
 import { getBoundedPublicCatalogProducts, getPublicCatalogProductsByIds } from '../services/productService'
-import { shuffle } from '../utils/shuffle'
+import { createRotationSeed, shuffleWithSeed } from '../utils/shuffle'
 import { getActivePromotedProducts, type ActivePromotedProduct } from '../services/promotionService'
 import type { Product } from '../types'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -48,6 +48,7 @@ export default function Home() {
   const [freeShowcaseProductsOverride, setFreeShowcaseProductsOverride] = useState<Product[]>([])
   const [searchValue, setSearchValue] = useState('')
   const navigate = useNavigate()
+  const rotationSeedRef = useRef(createRotationSeed())
   
   const scrollRefs = {
     trending: useRef<HTMLDivElement>(null),
@@ -66,7 +67,7 @@ export default function Home() {
           getBoundedPublicCatalogProducts('HOME', { limit: 12 }),
           getActivePromotedProducts(),
         ])
-        setAllProducts(shuffle(data))
+        setAllProducts(shuffleWithSeed(data, rotationSeedRef.current))
         setActivePromotions(activePromotionData)
         if (isSupabaseConfigured && supabase) {
           const { data: showcaseConfig, error: showcaseConfigError } = await supabase.rpc('get_home_showcase_config')
@@ -107,7 +108,7 @@ export default function Home() {
   const activeProducts = allProducts.filter(p => p.status === 'active')
   const promotedProductIdSet = new Set(activePromotions.map(promotion => promotion.productId))
   const promotionIdByProductId = new Map(activePromotions.map(promotion => [promotion.productId, promotion.promotionId]))
-  const promotedProducts = shuffle(activeProducts.filter(product => promotedProductIdSet.has(product.id)))
+  const promotedProducts = shuffleWithSeed(activeProducts.filter(product => promotedProductIdSet.has(product.id)), rotationSeedRef.current ^ 0x9e3779b9)
   const freeShowcaseProducts = freeShowcaseProductIds
     .map(productId => freeShowcaseProductsOverride.find(product => product.id === productId) || activeProducts.find(product => product.id === productId))
     .filter((product): product is Product => Boolean(product))

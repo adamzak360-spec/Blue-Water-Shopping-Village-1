@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { getBoundedPublicCatalogProducts } from '../services/productService'
 import { getMarketplaceProductCountVisibility } from '../services/businessService'
-import { shuffle } from '../utils/shuffle'
+import { createRotationSeed, shuffleWithSeed } from '../utils/shuffle'
 import { getActivePromotedProducts, type ActivePromotedProduct } from '../services/promotionService'
 import type { Product } from '../types'
 import ProductCard from '../components/ProductCard'
@@ -32,6 +32,7 @@ export default function Products() {
   const [isSticky, setIsSticky] = useState(false)
   const [showProductCount, setShowProductCount] = useState(false)
   const [activePromotions, setActivePromotions] = useState<ActivePromotedProduct[]>([])
+  const rotationSeedRef = useRef(createRotationSeed())
 
   // Keep direct links such as /products?category=Oil&search=shea synchronized
   // with the existing local filter state when navigating from the homepage or sharing a URL.
@@ -64,7 +65,7 @@ export default function Products() {
 
   const loadProductPage = async (offset: number, append: boolean) => {
     const data = await getBoundedPublicCatalogProducts('PRODUCTS', { limit: PAGE_SIZE, offset })
-    const nextProducts = shuffle(data)
+    const nextProducts = shuffleWithSeed(data, rotationSeedRef.current ^ offset)
     setProducts(previous => append ? [...previous, ...nextProducts] : nextProducts)
     setHasMoreProducts(data.length === PAGE_SIZE)
   }
@@ -131,7 +132,7 @@ export default function Products() {
         category: selectedCategory || undefined,
         limit: PAGE_SIZE,
       })
-        .then(data => { if (!cancelled) setSearchMatches(data.filter(p => p.status === 'active')) })
+        .then(data => { if (!cancelled) setSearchMatches(shuffleWithSeed(data.filter(p => p.status === 'active'), rotationSeedRef.current ^ 0x9e3779b9)) })
         .catch(() => { if (!cancelled) setSearchMatches([]) })
     }, 320)
     return () => { cancelled = true; window.clearTimeout(timer) }
