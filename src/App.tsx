@@ -81,6 +81,10 @@ import WhatsAppButton from './components/WhatsAppButton'
 import InstallAppPrompt from './components/InstallAppPrompt'
 import { getMarketplaceFaviconUrl, getMarketplaceLogoUrl } from './services/businessService'
 
+const LOCAL_MARKETPLACE_LOGO = '/logo-square.png'
+const LEGACY_LOGO_MARKERS = ['logo-1786897784238.png', 'logo-1786796959602.png']
+const isLegacyMarketplaceLogo = (url: string | null | undefined) => Boolean(url && LEGACY_LOGO_MARKERS.some((marker) => url.includes(marker)))
+
 const getImageBackgroundColor = (url: string) => new Promise<string>((resolve) => {
   const image = new Image()
   image.crossOrigin = 'anonymous'
@@ -121,9 +125,9 @@ function AppShell() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [marketplaceLogoUrl, setMarketplaceLogoUrl] = useState('/logo-square.png')
+  const [marketplaceLogoUrl, setMarketplaceLogoUrl] = useState(LOCAL_MARKETPLACE_LOGO)
   const [marketplaceLogoShape, setMarketplaceLogoShape] = useState<'wide' | 'tall' | 'square'>('square')
-  const [marketplaceFaviconUrl, setMarketplaceFaviconUrl] = useState('/logo-square.png')
+  const [marketplaceFaviconUrl, setMarketplaceFaviconUrl] = useState(LOCAL_MARKETPLACE_LOGO)
 
   const isAdminRoute = location.pathname.startsWith('/admin')
   const isCustomerRoute = location.pathname.startsWith('/customer')
@@ -140,19 +144,19 @@ function AppShell() {
   useEffect(() => {
     let cancelled = false
     getMarketplaceLogoUrl().then((logoUrl) => {
-      if (!cancelled && logoUrl) setMarketplaceLogoUrl(logoUrl)
+      if (!cancelled && logoUrl && !isLegacyMarketplaceLogo(logoUrl)) setMarketplaceLogoUrl(logoUrl)
     })
     getMarketplaceFaviconUrl().then((faviconUrl) => {
-      if (!cancelled && faviconUrl) setMarketplaceFaviconUrl(faviconUrl)
+      if (!cancelled && faviconUrl && !isLegacyMarketplaceLogo(faviconUrl)) setMarketplaceFaviconUrl(faviconUrl)
     })
 
     const handleLogoUpdate = (event: Event) => {
       const nextUrl = (event as CustomEvent<string | null>).detail
-      setMarketplaceLogoUrl(nextUrl || '/logo-square.png')
+      setMarketplaceLogoUrl(nextUrl && !isLegacyMarketplaceLogo(nextUrl) ? nextUrl : LOCAL_MARKETPLACE_LOGO)
     }
     const handleFaviconUpdate = (event: Event) => {
       const nextUrl = (event as CustomEvent<string | null>).detail
-      setMarketplaceFaviconUrl(nextUrl || '/logo-square.png')
+      setMarketplaceFaviconUrl(nextUrl && !isLegacyMarketplaceLogo(nextUrl) ? nextUrl : LOCAL_MARKETPLACE_LOGO)
     }
     window.addEventListener('marketplace-logo-updated', handleLogoUpdate)
     window.addEventListener('marketplace-favicon-updated', handleFaviconUpdate)
