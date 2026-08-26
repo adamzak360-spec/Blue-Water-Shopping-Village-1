@@ -112,9 +112,10 @@ export default function Home() {
   const freeShowcaseProducts = freeShowcaseProductIds
     .map(productId => freeShowcaseProductsOverride.find(product => product.id === productId) || activeProducts.find(product => product.id === productId))
     .filter((product): product is Product => Boolean(product))
+  const rotatedFreeShowcaseProducts = rotateWithSeed(freeShowcaseProducts, rotationSeedRef.current)
   const featuredProducts = !showcaseEnabled
     ? []
-    : showcaseMode === 'FREE' ? freeShowcaseProducts : promotedProducts
+    : showcaseMode === 'FREE' ? rotatedFreeShowcaseProducts : promotedProducts
 
   // Reserve each homepage section from one shared identity pool so duplicate
   // database rows with the same product name do not repeat across the page.
