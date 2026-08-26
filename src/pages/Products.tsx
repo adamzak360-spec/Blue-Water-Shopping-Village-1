@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { getBoundedPublicCatalogProducts } from '../services/productService'
 import { getMarketplaceProductCountVisibility } from '../services/businessService'
 import { shuffle } from '../utils/shuffle'
@@ -17,6 +18,7 @@ interface SearchSuggestion {
 }
 
 export default function Products() {
+  const [searchParams] = useSearchParams()
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [searchMatches, setSearchMatches] = useState<Product[] | null>(null)
@@ -30,6 +32,15 @@ export default function Products() {
   const [isSticky, setIsSticky] = useState(false)
   const [showProductCount, setShowProductCount] = useState(false)
   const [activePromotions, setActivePromotions] = useState<ActivePromotedProduct[]>([])
+
+  // Keep direct links such as /products?category=Oil&search=shea synchronized
+  // with the existing local filter state when navigating from the homepage or sharing a URL.
+  useEffect(() => {
+    const urlSearch = searchParams.get('search') || ''
+    const urlCategory = searchParams.get('category') || ''
+    setSearchTerm(previous => previous === urlSearch ? previous : urlSearch)
+    setSelectedCategory(previous => previous === urlCategory ? previous : urlCategory)
+  }, [searchParams])
   const [hasMoreProducts, setHasMoreProducts] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const PAGE_SIZE = 18

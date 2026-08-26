@@ -292,7 +292,7 @@ export default function Home() {
         onScroll={(dir) => scroll(scrollRefs.latest, dir)}
         isLoading={isLoading}
         showStock
-        autoPlay={false}
+        autoPlay={true}
         className="latest-products-section"
       />
 
@@ -305,6 +305,7 @@ export default function Home() {
           scrollRef={scrollRefs.sponsored}
           onScroll={(dir) => scroll(scrollRefs.sponsored, dir)}
           isLoading={isLoading}
+          autoPlay={false}
           isSponsored
           promotionIdByProductId={promotionIdByProductId}
           className="sponsored-products-section"
@@ -319,6 +320,7 @@ export default function Home() {
         scrollRef={scrollRefs.trending}
         onScroll={(dir) => scroll(scrollRefs.trending, dir)}
         isLoading={isLoading}
+        autoPlay={false}
       />
 
       {/* Flash Deals */}
@@ -329,6 +331,7 @@ export default function Home() {
         scrollRef={scrollRefs.flashDeals}
         onScroll={(dir) => scroll(scrollRefs.flashDeals, dir)}
         isLoading={isLoading}
+        autoPlay={false}
         className="flash-deals-section"
       />
 
@@ -340,6 +343,7 @@ export default function Home() {
         scrollRef={scrollRefs.bestSellers}
         onScroll={(dir) => scroll(scrollRefs.bestSellers, dir)}
         isLoading={isLoading}
+        autoPlay={false}
       />
 
       {/* New Arrivals */}
@@ -350,6 +354,7 @@ export default function Home() {
         scrollRef={scrollRefs.newArrivals}
         onScroll={(dir) => scroll(scrollRefs.newArrivals, dir)}
         isLoading={isLoading}
+        autoPlay={false}
       />
 
       {/* --- Why Reliable --- */}
