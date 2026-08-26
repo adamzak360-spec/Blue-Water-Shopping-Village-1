@@ -81,7 +81,7 @@ import WhatsAppButton from './components/WhatsAppButton'
 import InstallAppPrompt from './components/InstallAppPrompt'
 import { getMarketplaceFaviconUrl, getMarketplaceLogoUrl } from './services/businessService'
 
-const LOCAL_MARKETPLACE_LOGO = '/logo-square.png'
+const LOCAL_MARKETPLACE_LOGO = '/logo-square.png?v=dc285c8'
 const LEGACY_LOGO_MARKERS = ['logo-1786897784238.png', 'logo-1786796959602.png']
 const isLegacyMarketplaceLogo = (url: string | null | undefined) => Boolean(url && LEGACY_LOGO_MARKERS.some((marker) => url.includes(marker)))
 
