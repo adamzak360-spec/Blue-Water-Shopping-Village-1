@@ -197,7 +197,7 @@ export default function SellerRegister() {
         </div>
         <div className="seller-register-hero-art">
           <div className="seller-art-glow" aria-hidden="true" />
-          <img src="/seller-hero.jpeg" alt="Entrepreneur working on a laptop in a bright workspace" width="900" height="1125" fetchPriority="high" />
+          <img src="/seller-hero.jpeg?v=woman-588f578" alt="Woman entrepreneur working on a laptop in a bright workspace" width="900" height="1125" fetchPriority="high" />
           <div className="seller-art-badge"><ShieldCheck size={18} /><span>Built for trusted sellers</span></div>
         </div>
       </section>
