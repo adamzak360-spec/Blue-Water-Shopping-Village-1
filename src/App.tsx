@@ -242,13 +242,14 @@ function AppShell() {
           <div className="header-right">
             <Link to="/stores" className="nav-text-link">Stores</Link>
             <Link to="/products" className="nav-text-link" onMouseEnter={prefetchProducts}>Shop</Link>
+            <Link to="/about" className="nav-text-link" onMouseEnter={prefetchAbout}>About Us</Link>
             <Link to="/seller/register" className="nav-text-link nav-sell-link" onMouseEnter={prefetchSellerRegister}>Sell</Link>
             <Link to={user ? "/customer" : "/login"} className="nav-icon-link" title="Account">
               <User size={22} />
             </Link>
             <Link to={user ? "/customer/wishlist" : "/login"} className="nav-icon-link wishlist-nav-link" title="Wishlist" aria-label="Wishlist">
-              <Heart size={22} />
-              {wishlistCount > 0 && <span className="wishlist-badge">{wishlistCount}</span>}
+              <Heart size={22} className={wishlistCount > 0 ? 'heart-active' : ''} />
+              {wishlistCount > 0 && <span className="wishlist-badge animate-pop">{wishlistCount}</span>}
             </Link>
 	            <NotificationBell />
             <button className="cart-btn" onClick={() => setIsCartOpen(true)}>

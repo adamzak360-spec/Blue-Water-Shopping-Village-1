@@ -530,3 +530,31 @@
     animation: none;
   }
 }
+
+/* Wishlist & Heart Animations */
+.heart-active {
+  fill: #e11d48;
+  color: #e11d48;
+  animation: heart-beat 0.3s ease-in-out;
+}
+
+@keyframes heart-beat {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.animate-pop {
+  animation: badge-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes badge-pop {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.wishlist-badge {
+  background-color: #e11d48 !important;
+  color: white !important;
+  box-shadow: 0 2px 4px rgba(225, 29, 72, 0.3);
+}
