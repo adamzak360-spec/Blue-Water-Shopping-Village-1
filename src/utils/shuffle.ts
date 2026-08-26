@@ -32,7 +32,28 @@ export function shuffleWithSeed<T>(items: T[], seed: number): T[] {
 }
 
 export function createRotationSeed(): number {
-  const timePart = Date.now() >>> 0
-  const randomPart = Math.floor(Math.random() * 0xffffffff) >>> 0
-  return (timePart ^ randomPart) >>> 0
+  if (typeof window === 'undefined') {
+    return 1
+  }
+
+  try {
+    const key = 'reliable.catalog.rotation.visit'
+    const previousVisit = Number.parseInt(window.sessionStorage.getItem(key) || '0', 10)
+    const visit = Number.isFinite(previousVisit) ? previousVisit + 1 : 1
+    window.sessionStorage.setItem(key, String(visit))
+    return visit >>> 0
+  } catch {
+    return 1
+  }
+}
+
+/**
+ * Rotates a bounded page by a deterministic visit offset. Unlike a random
+ * shuffle, this guarantees that a refresh changes the order while preserving
+ * a stable order for the rest of the current visit.
+ */
+export function rotateWithSeed<T>(items: T[], seed: number): T[] {
+  if (items.length < 2) return [...items]
+  const offset = Math.abs(seed) % items.length
+  return [...items.slice(offset), ...items.slice(0, offset)]
 }

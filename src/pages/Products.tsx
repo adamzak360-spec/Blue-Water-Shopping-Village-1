@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { getBoundedPublicCatalogProducts } from '../services/productService'
 import { getMarketplaceProductCountVisibility } from '../services/businessService'
-import { createRotationSeed, shuffleWithSeed } from '../utils/shuffle'
+import { createRotationSeed, rotateWithSeed } from '../utils/shuffle'
 import { getActivePromotedProducts, type ActivePromotedProduct } from '../services/promotionService'
 import type { Product } from '../types'
 import ProductCard from '../components/ProductCard'
@@ -65,7 +65,7 @@ export default function Products() {
 
   const loadProductPage = async (offset: number, append: boolean) => {
     const data = await getBoundedPublicCatalogProducts('PRODUCTS', { limit: PAGE_SIZE, offset })
-    const nextProducts = shuffleWithSeed(data, rotationSeedRef.current ^ offset)
+    const nextProducts = rotateWithSeed(data, rotationSeedRef.current + offset)
     setProducts(previous => append ? [...previous, ...nextProducts] : nextProducts)
     setHasMoreProducts(data.length === PAGE_SIZE)
   }
@@ -132,7 +132,7 @@ export default function Products() {
         category: selectedCategory || undefined,
         limit: PAGE_SIZE,
       })
-        .then(data => { if (!cancelled) setSearchMatches(shuffleWithSeed(data.filter(p => p.status === 'active'), rotationSeedRef.current ^ 0x9e3779b9)) })
+        .then(data => { if (!cancelled) setSearchMatches(rotateWithSeed(data.filter(p => p.status === 'active'), rotationSeedRef.current)) })
         .catch(() => { if (!cancelled) setSearchMatches([]) })
     }, 320)
     return () => { cancelled = true; window.clearTimeout(timer) }
