@@ -79,39 +79,10 @@ const prefetchLogin = () => import('./pages/Login')
 import TermsPopup from './components/TermsPopup'
 import WhatsAppButton from './components/WhatsAppButton'
 import InstallAppPrompt from './components/InstallAppPrompt'
-import { getMarketplaceFaviconUrl, getMarketplaceLogoUrl } from './services/businessService'
-
-const LOCAL_MARKETPLACE_LOGO = '/logo-square.png?v=dc285c8'
+const LOCAL_MARKETPLACE_LOGO = '/logo-square.png?v=reliable-exact-logo-v1'
 const RELIABLE_BRAND_BLUE = '#032D61'
 const LEGACY_LOGO_MARKERS = ['logo-1786897784238.png', 'logo-1786796959602.png']
 const isLegacyMarketplaceLogo = (url: string | null | undefined) => Boolean(url && LEGACY_LOGO_MARKERS.some((marker) => url.includes(marker)))
-
-const getImageBackgroundColor = (url: string) => new Promise<string>((resolve) => {
-  const image = new Image()
-  image.crossOrigin = 'anonymous'
-  image.onload = () => {
-    try {
-      const canvas = document.createElement('canvas')
-      canvas.width = 2
-      canvas.height = 2
-      const context = canvas.getContext('2d')
-      if (!context) return resolve('#000000')
-      context.drawImage(image, 0, 0, 2, 2)
-      const pixels = context.getImageData(0, 0, 2, 2).data
-      const rgb = [0, 0, 0]
-      for (let index = 0; index < pixels.length; index += 4) {
-        rgb[0] += pixels[index]
-        rgb[1] += pixels[index + 1]
-        rgb[2] += pixels[index + 2]
-      }
-      resolve(`#${rgb.map((channel) => Math.round(channel / 4).toString(16).padStart(2, '0')).join('')}`)
-    } catch {
-      resolve('#000000')
-    }
-  }
-  image.onerror = () => resolve('#000000')
-  image.src = url
-})
 
 function App() {
   return <AppShell />
@@ -143,14 +114,6 @@ function AppShell() {
   }, [])
 
   useEffect(() => {
-    let cancelled = false
-    getMarketplaceLogoUrl().then((logoUrl) => {
-      if (!cancelled && logoUrl && !isLegacyMarketplaceLogo(logoUrl)) setMarketplaceLogoUrl(logoUrl)
-    })
-    getMarketplaceFaviconUrl().then((faviconUrl) => {
-      if (!cancelled && faviconUrl && !isLegacyMarketplaceLogo(faviconUrl)) setMarketplaceFaviconUrl(faviconUrl)
-    })
-
     const handleLogoUpdate = (event: Event) => {
       const nextUrl = (event as CustomEvent<string | null>).detail
       setMarketplaceLogoUrl(nextUrl && !isLegacyMarketplaceLogo(nextUrl) ? nextUrl : LOCAL_MARKETPLACE_LOGO)
@@ -162,37 +125,26 @@ function AppShell() {
     window.addEventListener('marketplace-logo-updated', handleLogoUpdate)
     window.addEventListener('marketplace-favicon-updated', handleFaviconUpdate)
     return () => {
-      cancelled = true
       window.removeEventListener('marketplace-logo-updated', handleLogoUpdate)
       window.removeEventListener('marketplace-favicon-updated', handleFaviconUpdate)
     }
   }, [])
 
   useEffect(() => {
-    let cancelled = false
     const links = Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"], link[rel="apple-touch-icon"]'))
     links.forEach((link) => {
       link.href = marketplaceFaviconUrl
     })
 
-    const backgroundColorPromise = marketplaceFaviconUrl.startsWith('/logo-square.png')
-      ? Promise.resolve(RELIABLE_BRAND_BLUE)
-      : getImageBackgroundColor(marketplaceFaviconUrl)
-
-    backgroundColorPromise.then((backgroundColor) => {
-      if (cancelled) return
-      document.documentElement.style.setProperty('--brand-background', backgroundColor)
-      const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
-      if (themeColor) themeColor.content = backgroundColor
-      const manifestLink = document.querySelector<HTMLLinkElement>('link[rel="manifest"]')
-      if (manifestLink) {
-        manifestLink.href = `/api/manifest?bg=${encodeURIComponent(backgroundColor)}`
-      }
-    })
-
-    return () => {
-      cancelled = true
+    document.documentElement.style.setProperty('--brand-background', RELIABLE_BRAND_BLUE)
+    const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+    if (themeColor) themeColor.content = RELIABLE_BRAND_BLUE
+    const manifestLink = document.querySelector<HTMLLinkElement>('link[rel="manifest"]')
+    if (manifestLink) {
+      manifestLink.href = `/api/manifest?bg=${encodeURIComponent(RELIABLE_BRAND_BLUE)}`
     }
+
+    return undefined
   }, [marketplaceFaviconUrl])
 
   // Reset the page position whenever navigation changes, including filter/query changes.
