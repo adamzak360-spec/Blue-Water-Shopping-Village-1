@@ -271,10 +271,10 @@ export default function Home() {
                 <Package size={20} />
                 <div>
                   <span className="section-eyebrow">Reliable marketplace</span>
-                  <h2 id="home-products-title" className="section-title">Featured Products</h2>
+                  <h2 id="home-products-title" className="section-title" style={{ color: '#ffc400' }}>Featured Products</h2>
                 </div>
               </div>
-              <Link to="/products" className="view-all-link">View All <ArrowRight size={18} /></Link>
+              <Link to="/products" className="view-all-link" style={{ color: '#ffc400' }}>View All <ArrowRight size={18} /></Link>
             </div>
             <div className="home-products-grid">
               {homeFeaturedProducts.map((product) => (
@@ -591,7 +591,7 @@ function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading,
         <div className="section-header">
           <div className="section-title-wrapper">
             {icon}
-            <h3 className="section-title">{title}</h3>
+            <h3 className="section-title" style={{ color: '#ffc400' }}>{title}</h3>
           </div>
           <div className="scroll-controls">
             <button className="scroll-btn" onClick={() => onScroll('left')}><ChevronLeft size={20} /></button>
