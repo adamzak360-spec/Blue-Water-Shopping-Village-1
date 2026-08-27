@@ -7,6 +7,7 @@ import type { ArticleDetail } from '../types/articles'
 import { getOptimizedImageUrl } from '../utils/imageDelivery'
 import { applyArticleSeo, resetArticleSeo } from '../utils/seo'
 import { sanitizeArticleHtml } from '../utils/articleContent'
+import { getArticleImage } from '../utils/articleImages'
 import './Articles.css'
 
 function slugifyHeading(value: string) {
@@ -91,7 +92,7 @@ export default function ArticleDetails() {
           <p className="article-detail-excerpt">{article.excerpt}</p>
           <div className="article-detail-meta"><span><CalendarDays size={16} /> {formatDate(article.published_at)}</span><span><Clock3 size={16} /> {article.reading_time_minutes || 1} min read</span><span>By {article.author_name}</span></div>
         </header>
-        {article.featured_image ? <img className="article-featured-image" src={absoluteArticleImageUrl(getOptimizedImageUrl(article.featured_image, 1200))} alt={article.title} loading="eager" decoding="async" /> : <div className="article-featured-placeholder">RELIABLE ARTICLES</div>}
+        <img className="article-featured-image" src={absoluteArticleImageUrl(article.featured_image ? getOptimizedImageUrl(getArticleImage(article), 1200) : getArticleImage(article))} alt={article.title} loading="eager" decoding="async" />
         <div className="article-detail-layout">
           <aside className="article-toc" aria-label="Table of contents">
             <div className="article-toc-heading">In this article</div>
