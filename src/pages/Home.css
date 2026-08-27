@@ -772,11 +772,11 @@
 .home-products-preview .view-all-link,
 .latest-products-section .section-title,
 .product-horizontal-section .section-title {
-  color: #ffc400;
+  color: #000000;
 }
 
 .home-products-preview .view-all-link:hover {
-  color: #d99a00;
+  color: #000000;
 }
 
 /* Legacy discovery styles remain available for any future campaign landing variant. */
