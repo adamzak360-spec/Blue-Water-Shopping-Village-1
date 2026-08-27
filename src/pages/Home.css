@@ -767,6 +767,18 @@
   margin: 0;
 }
 
+/* Reliable brand hierarchy for the public homepage product sections. */
+.home-products-preview .section-title,
+.home-products-preview .view-all-link,
+.latest-products-section .section-title,
+.product-horizontal-section .section-title {
+  color: #ffc400;
+}
+
+.home-products-preview .view-all-link:hover {
+  color: #d99a00;
+}
+
 /* Legacy discovery styles remain available for any future campaign landing variant. */
 .home-discovery-section {
   background: linear-gradient(135deg, #032d61 0%, #075985 58%, #0f766e 100%);
