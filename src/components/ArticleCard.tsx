@@ -9,8 +9,21 @@ type Props = {
   featured?: boolean
 }
 
+const ARTICLE_IMAGE_FALLBACKS: Record<string, string> = {
+  'Shopping Guides': '/article-images/online-shopping.jpg',
+  'Seller Guides': '/article-images/african-seller.jpg',
+  Business: '/article-images/business-team.jpg',
+  'Product Advice': '/article-images/online-shopping.jpg',
+  'Ghana Marketplace': '/article-images/african-seller.jpg',
+  'Reliable Guides': '/article-images/entrepreneur.jpg',
+  'News & Insights': '/article-images/business-team.jpg',
+}
+
 export default function ArticleCard({ article, featured = false }: Props) {
-  const image = article.featured_image ? getOptimizedImageUrl(article.featured_image, featured ? 1100 : 640) : ''
+  const fallbackImage = ARTICLE_IMAGE_FALLBACKS[article.category] || '/article-images/entrepreneur.jpg'
+  const image = article.featured_image
+    ? getOptimizedImageUrl(article.featured_image, featured ? 1100 : 640)
+    : fallbackImage
   const date = article.published_at ? new Date(article.published_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'Draft'
 
   return (
@@ -18,9 +31,7 @@ export default function ArticleCard({ article, featured = false }: Props) {
       <div className="article-card-image-wrap">
         {image ? (
           <img src={absoluteArticleImageUrl(image)} alt="" className="article-card-image" loading={featured ? 'eager' : 'lazy'} decoding="async" />
-        ) : (
-          <div className="article-card-image article-card-placeholder" aria-hidden="true"><span>RELIABLE</span></div>
-        )}
+        ) : null}
         <span className="article-card-category">{article.category}</span>
       </div>
       <div className="article-card-body">
