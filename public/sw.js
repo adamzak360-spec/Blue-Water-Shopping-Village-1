@@ -1,8 +1,11 @@
-const CACHE_NAME = 'reliable-shell-v7'
+const CACHE_NAME = 'reliable-shell-v8'
 const APP_SHELL = [
   '/',
   '/index.html',
   '/logo-square.png',
+  '/favicon.ico',
+  '/android-chrome-192x192.png',
+  '/android-chrome-512x512.png',
 ]
 
 self.addEventListener('install', (event) => {

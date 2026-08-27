@@ -1,4 +1,4 @@
-const DEFAULT_ICON = '/logo-square.png'
+const DEFAULT_ICON = '/android-chrome-512x512.png?v=reliable-brand-v4'
 const BRAND_BLUE = '#032D61'
 module.exports = async function handler(req, res) {
   let icon = DEFAULT_ICON
@@ -16,8 +16,8 @@ module.exports = async function handler(req, res) {
     theme_color: backgroundColor,
     background_color: backgroundColor,
     icons: [
-      { src: icon, sizes: '192x192', type: 'image/png', purpose: 'any' },
-      { src: icon, sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+      { src: '/android-chrome-192x192.png?v=reliable-brand-v4', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: DEFAULT_ICON, sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
     ],
     categories: ['shopping'],
   }

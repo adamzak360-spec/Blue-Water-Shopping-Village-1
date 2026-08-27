@@ -82,6 +82,7 @@ import InstallAppPrompt from './components/InstallAppPrompt'
 import { getMarketplaceFaviconUrl, getMarketplaceLogoUrl } from './services/businessService'
 
 const LOCAL_MARKETPLACE_LOGO = '/logo-square.png?v=dc285c8'
+const RELIABLE_BRAND_BLUE = '#032D61'
 const LEGACY_LOGO_MARKERS = ['logo-1786897784238.png', 'logo-1786796959602.png']
 const isLegacyMarketplaceLogo = (url: string | null | undefined) => Boolean(url && LEGACY_LOGO_MARKERS.some((marker) => url.includes(marker)))
 
@@ -174,7 +175,11 @@ function AppShell() {
       link.href = marketplaceFaviconUrl
     })
 
-    getImageBackgroundColor(marketplaceFaviconUrl).then((backgroundColor) => {
+    const backgroundColorPromise = marketplaceFaviconUrl.startsWith('/logo-square.png')
+      ? Promise.resolve(RELIABLE_BRAND_BLUE)
+      : getImageBackgroundColor(marketplaceFaviconUrl)
+
+    backgroundColorPromise.then((backgroundColor) => {
       if (cancelled) return
       document.documentElement.style.setProperty('--brand-background', backgroundColor)
       const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
@@ -344,8 +349,12 @@ function AppShell() {
       <AuthOutageNotice />
       <main className="app-main">
         <Suspense fallback={
-          <div className="loading-screen" aria-label="Loading Reliable">
-            <img src={marketplaceLogoUrl} alt="Reliable" className={`loading-logo marketplace-brand-logo logo-shape-${marketplaceLogoShape}`} />
+          <div className="loading-screen" aria-label="Loading Reliable" role="status">
+            <div className="loading-card">
+              <img src={marketplaceLogoUrl} alt="Reliable" className={`loading-logo marketplace-brand-logo logo-shape-${marketplaceLogoShape}`} />
+              <span className="loading-label">Loading Reliable</span>
+              <span className="loading-signal" aria-hidden="true"><i /><i /><i /></span>
+            </div>
           </div>
         }>
           <Routes>
