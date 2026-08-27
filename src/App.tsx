@@ -80,7 +80,7 @@ import TermsPopup from './components/TermsPopup'
 import WhatsAppButton from './components/WhatsAppButton'
 import InstallAppPrompt from './components/InstallAppPrompt'
 const LOCAL_MARKETPLACE_LOGO = '/logo-square.png?v=reliable-exact-logo-v1'
-const RELIABLE_BRAND_BLUE = '#032D61'
+const RELIABLE_BRAND_YELLOW = '#FFC400'
 const LEGACY_LOGO_MARKERS = ['logo-1786897784238.png', 'logo-1786796959602.png']
 const isLegacyMarketplaceLogo = (url: string | null | undefined) => Boolean(url && LEGACY_LOGO_MARKERS.some((marker) => url.includes(marker)))
 
@@ -136,12 +136,12 @@ function AppShell() {
       link.href = marketplaceFaviconUrl
     })
 
-    document.documentElement.style.setProperty('--brand-background', RELIABLE_BRAND_BLUE)
+    document.documentElement.style.setProperty('--brand-background', RELIABLE_BRAND_YELLOW)
     const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
-    if (themeColor) themeColor.content = RELIABLE_BRAND_BLUE
+    if (themeColor) themeColor.content = RELIABLE_BRAND_YELLOW
     const manifestLink = document.querySelector<HTMLLinkElement>('link[rel="manifest"]')
     if (manifestLink) {
-      manifestLink.href = `/api/manifest?bg=${encodeURIComponent(RELIABLE_BRAND_BLUE)}`
+      manifestLink.href = `/api/manifest?bg=${encodeURIComponent(RELIABLE_BRAND_YELLOW)}`
     }
 
     return undefined

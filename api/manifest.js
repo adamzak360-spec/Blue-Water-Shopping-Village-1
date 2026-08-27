@@ -1,9 +1,9 @@
 const DEFAULT_ICON = '/android-chrome-512x512.png?v=reliable-brand-v4'
-const BRAND_BLUE = '#032D61'
+const BRAND_YELLOW = '#FFC400'
 module.exports = async function handler(req, res) {
   let icon = DEFAULT_ICON
   const requestedBackground = typeof req?.query?.bg === 'string' ? req.query.bg : ''
-  const backgroundColor = /^#[0-9a-fA-F]{6}$/.test(requestedBackground) ? requestedBackground : BRAND_BLUE
+  const backgroundColor = /^#[0-9a-fA-F]{6}$/.test(requestedBackground) ? requestedBackground : BRAND_YELLOW
 
   const manifest = {
     name: 'Reliable Premium Marketplace',
