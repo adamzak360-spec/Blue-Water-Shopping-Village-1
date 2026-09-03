@@ -1,7 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
-export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://iwouhwizzwwykchgflyk.supabase.co'
-export const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const configuredSupabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim()
+const configuredSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim()
+
+// Vercel values can contain an accidental trailing newline when pasted from a
+// dashboard or .env file. Trim both public values before creating the client so
+// authentication requests always target the exact Supabase project endpoint.
+export const supabaseUrl = configuredSupabaseUrl || 'https://iwouhwizzwwykchgflyk.supabase.co'
+export const supabaseAnonKey = configuredSupabaseAnonKey
 
 // Export a flag to indicate if Supabase is properly configured
 export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey)
