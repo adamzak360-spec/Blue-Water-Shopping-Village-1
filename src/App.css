@@ -311,6 +311,58 @@
   color: var(--color-accent);
 }
 
+.drawer-categories {
+  margin: 0 var(--space-md) var(--space-sm);
+  padding: var(--space-sm) 0;
+  border-top: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.drawer-section-title {
+  margin: 0 var(--space-sm) var(--space-xs);
+  color: var(--color-primary);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.drawer-category-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+
+.drawer-category-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  padding: 0.58rem 0.5rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.drawer-category-item svg {
+  flex: 0 0 auto;
+  color: var(--color-accent);
+}
+
+.drawer-category-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drawer-category-item:hover {
+  background-color: var(--color-primary-light);
+  color: var(--color-accent);
+}
+
 .drawer-divider {
   height: 1px;
   background-color: var(--color-border-light);
