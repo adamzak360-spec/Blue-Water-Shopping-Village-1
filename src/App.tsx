@@ -22,7 +22,17 @@ import {
   Info,
   Newspaper,
   Store as StoreIcon,
-  BookOpen
+  BookOpen,
+  Gamepad2,
+  Smartphone,
+  Shirt,
+  Home as HomeCategoryIcon,
+  Sparkles,
+  Dumbbell,
+  Car,
+  Baby,
+  Utensils,
+  BriefcaseBusiness
 } from 'lucide-react'
 import './App.css'
 import { lazy, Suspense, useLayoutEffect } from 'react'
@@ -83,6 +93,19 @@ const LOCAL_MARKETPLACE_LOGO = '/logo-square.png?v=reliable-exact-logo-v1'
 const RELIABLE_BRAND_YELLOW = '#FFC400'
 const LEGACY_LOGO_MARKERS = ['logo-1786897784238.png', 'logo-1786796959602.png']
 const isLegacyMarketplaceLogo = (url: string | null | undefined) => Boolean(url && LEGACY_LOGO_MARKERS.some((marker) => url.includes(marker)))
+
+const marketplaceCategories = [
+  { label: 'Games', icon: Gamepad2 },
+  { label: 'Electronics', icon: Smartphone },
+  { label: 'Fashion', icon: Shirt },
+  { label: 'Home & Living', icon: HomeCategoryIcon },
+  { label: 'Beauty', icon: Sparkles },
+  { label: 'Sports & Fitness', icon: Dumbbell },
+  { label: 'Automotive', icon: Car },
+  { label: 'Baby Products', icon: Baby },
+  { label: 'Food & Groceries', icon: Utensils },
+  { label: 'Other', icon: BriefcaseBusiness },
+]
 
 function App() {
   return <AppShell />
@@ -253,6 +276,17 @@ function AppShell() {
         <nav className="drawer-nav">
           <Link to="/" className="drawer-item" onMouseEnter={prefetchHome}><HomeIcon size={20} /> Home</Link>
           <Link to="/products" className="drawer-item" onMouseEnter={prefetchProducts}><Package size={20} /> Categories</Link>
+          <section className="drawer-categories" aria-labelledby="drawer-categories-heading">
+            <h2 id="drawer-categories-heading" className="drawer-section-title">Our Categories</h2>
+            <div className="drawer-category-list">
+              {marketplaceCategories.map(({ label, icon: CategoryIcon }) => (
+                <Link key={label} to={`/products?category=${encodeURIComponent(label)}`} className="drawer-category-item" onMouseEnter={prefetchProducts}>
+                  <CategoryIcon size={18} aria-hidden="true" />
+                  <span>{label}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
           <Link to="/products?filter=deals" className="drawer-item" onMouseEnter={prefetchProducts}><Tag size={20} /> Deals</Link>
           <Link to="/seller/register" className="drawer-item" style={{ color: '#059669', fontWeight: 'bold' }} onMouseEnter={prefetchSellerRegister}>
             <Tag size={20} /> Start Selling
