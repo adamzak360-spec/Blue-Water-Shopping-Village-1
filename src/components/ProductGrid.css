@@ -299,3 +299,328 @@
     font-size: 0.75rem;
   }
 }
+
+/* Optional marketplace-list card: additive variant; standard cards keep the rules above. */
+.product-card--marketplace-list {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(190px, 30%) minmax(0, 1fr);
+  min-height: 246px;
+  border-color: #e6e8eb;
+  border-radius: 0.7rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  background: #fff;
+}
+
+.product-card--marketplace-list:hover {
+  transform: none;
+  border-color: #cfd5dc;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.09);
+}
+
+.product-list-media {
+  position: relative;
+  min-width: 0;
+  background: #f8f9fa;
+}
+
+.product-card--marketplace-list .product-image-link,
+.product-card--marketplace-list .product-image-container {
+  height: 100%;
+}
+
+.product-card--marketplace-list .product-image-container {
+  min-height: 246px;
+  aspect-ratio: auto;
+  padding: 1.2rem;
+  background: #f8f9fa;
+}
+
+.product-card--marketplace-list .product-image {
+  transition: transform 180ms ease-out;
+}
+
+.product-card--marketplace-list:hover .product-image {
+  transform: scale(1.025);
+}
+
+.product-card--marketplace-list .product-wishlist-btn {
+  top: 0.7rem;
+  right: 0.7rem;
+}
+
+.product-list-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 1rem 1.15rem 0.95rem;
+}
+
+.product-list-topline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  min-height: 1.35rem;
+}
+
+.product-list-label,
+.product-list-style-label {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.2rem 0.48rem;
+  border-radius: 0.22rem;
+  font-size: 0.71rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.product-list-label {
+  background: #f1f3f5;
+  color: #5f6368;
+}
+
+.product-list-style-label {
+  background: #fff3cd;
+  color: #73510b;
+}
+
+.product-list-name-link {
+  display: block;
+  margin: 0.18rem 0 0;
+  color: #15191e;
+  text-decoration: none;
+}
+
+.product-list-name {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #15191e;
+  font-size: clamp(1rem, 1.45vw, 1.26rem);
+  font-weight: 600;
+  line-height: 1.28;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.product-list-name-link:hover .product-list-name {
+  color: #0b6e69;
+}
+
+.product-list-description {
+  display: -webkit-box;
+  margin: 0.32rem 0 0;
+  overflow: hidden;
+  color: #5f6368;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.product-list-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.32rem;
+  margin-top: 0.55rem;
+  min-height: 1.2rem;
+  font-size: 0.82rem;
+}
+
+.product-list-rating-number {
+  color: #252a31;
+  font-weight: 700;
+}
+
+.product-list-stars {
+  color: #e47911;
+  font-size: 1rem;
+  letter-spacing: 0.03em;
+  line-height: 1;
+}
+
+.product-list-review-count {
+  color: #5f6368;
+}
+
+.product-list-price-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.48rem;
+}
+
+.product-list-price {
+  color: #15191e;
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.product-list-original-price {
+  color: #6b7280;
+  font-size: 0.84rem;
+  text-decoration: line-through;
+}
+
+.product-list-delivery,
+.product-list-meta {
+  margin: 0.22rem 0 0;
+  color: #4b5563;
+  font-size: 0.83rem;
+  line-height: 1.32;
+}
+
+.product-list-features {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.product-list-stock {
+  margin-top: 0.45rem;
+}
+
+.product-list-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: auto;
+  padding-top: 0.8rem;
+}
+
+.product-list-details-btn,
+.product-list-cart-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.45rem;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 160ms ease-out, box-shadow 160ms ease-out, background-color 160ms ease-out;
+}
+
+.product-list-details-btn {
+  border: 1px solid #0b6e69;
+  background: #fff;
+  color: #0b6e69;
+}
+
+.product-list-cart-btn {
+  border: 1px solid #f4c430;
+  background: #ffd814;
+  color: #161616;
+  cursor: pointer;
+}
+
+.product-list-cart-btn:hover:not(:disabled),
+.product-list-details-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.12);
+}
+
+.product-list-cart-btn:hover:not(:disabled) {
+  background: #f7ca00;
+}
+
+.product-list-cart-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.product-list-trust {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.58rem;
+  color: #087f5b;
+  font-size: 0.77rem;
+}
+
+@media (max-width: 768px) {
+  .product-card--marketplace-list {
+    grid-template-columns: minmax(128px, 38%) minmax(0, 1fr);
+    min-height: 214px;
+  }
+
+  .product-card--marketplace-list .product-image-container {
+    min-height: 214px;
+    padding: 0.7rem;
+  }
+
+  .product-list-content {
+    padding: 0.8rem 0.8rem 0.75rem;
+  }
+
+  .product-list-name {
+    font-size: 0.96rem;
+  }
+
+  .product-list-description,
+  .product-list-delivery,
+  .product-list-meta {
+    font-size: 0.76rem;
+  }
+
+  .product-list-price {
+    font-size: 1.32rem;
+  }
+
+  .product-list-actions {
+    gap: 0.35rem;
+    padding-top: 0.55rem;
+  }
+
+  .product-list-details-btn,
+  .product-list-cart-btn {
+    min-height: 2.15rem;
+    padding: 0.45rem 0.68rem;
+    font-size: 0.74rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-card--marketplace-list {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(112px, 36%) minmax(0, 1fr);
+  }
+
+  .product-card--marketplace-list .product-image-container {
+    min-height: 205px;
+  }
+
+  .product-list-content {
+    padding: 0.7rem 0.65rem;
+  }
+
+  .product-list-stars {
+    font-size: 0.86rem;
+  }
+
+  .product-list-trust {
+    font-size: 0.68rem;
+  }
+}
+
+/* In narrow horizontal rails, keep the variant readable rather than compressing its two-column layout. */
+.products-horizontal-item .product-card--marketplace-list {
+  display: block;
+  min-height: 0;
+}
+
+.products-horizontal-item .product-card--marketplace-list .product-image-container {
+  min-height: 150px;
+  aspect-ratio: 1.18;
+}
+
+.products-horizontal-item .product-card--marketplace-list .product-list-content {
+  min-height: 260px;
+}

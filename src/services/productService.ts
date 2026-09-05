@@ -18,7 +18,7 @@ const publicCatalogRequests = new Map<string, Promise<Product[]>>()
 const PUBLIC_CARD_SELECT = [
   'id', 'name', 'description', 'price', 'currency', 'category', 'image_url', 'video_urls',
   'stock_quantity', 'low_stock_threshold', 'status', 'created_at', 'updated_at',
-  'business_id', 'brand', 'original_price', 'has_sizes',
+  'business_id', 'card_style', 'brand', 'original_price', 'has_sizes',
   'delivery_fee_tamale', 'delivery_fee_greater_accra', 'delivery_fee_lesser_accra',
   'delivery_fee_dhl', 'delivery_fee_ups', 'delivery_fee_fedex',
 ].join(', ')

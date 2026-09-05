@@ -34,6 +34,8 @@ export interface Country {
   store_enabled: boolean
 }
 
+export type ProductCardStyle = 'standard' | 'marketplace-list'
+
 export interface Product {
   id: string
   name: string
@@ -51,6 +53,7 @@ export interface Product {
   updated_at: string
   // Multi-store scoping
   business_id?: string
+  card_style?: ProductCardStyle
   average_rating?: number
   review_count?: number
   // Extended fields
@@ -104,6 +107,7 @@ export interface ProductFormData {
   price: string
   category: string
   stock_quantity: string
+  card_style: ProductCardStyle
   status: 'active' | 'inactive' | 'out-of-stock'
   image: File | null
   gallery_images: File[]

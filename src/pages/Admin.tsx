@@ -29,7 +29,7 @@ import {
   exportProductsCSV,
   exportCustomersCSV,
 } from '../services/adminAnalyticsService'
-import type { Product, DashboardStats, Order, Review, ProductVariant } from '../types'
+import type { Product, DashboardStats, Order, Review, ProductVariant, ProductCardStyle } from '../types'
 import { formatCurrency } from '../utils/currency'
 import { generateProductDescriptionDraft } from '../services/aiDescriptionService'
 import { lazy, Suspense, type ChangeEvent } from 'react'
@@ -126,6 +126,7 @@ const defaultFormState = {
   category: '',
   currency: 'GHS',
   stock_quantity: '',
+  card_style: 'standard' as ProductCardStyle,
   status: 'active' as 'active' | 'inactive' | 'out-of-stock',
   image: null as File | null,
   existingImageUrl: '',
@@ -695,6 +696,7 @@ export default function Admin() {
         price: parseFloat(formData.price),
         category: formData.category.trim(),
         stock_quantity: parseInt(formData.stock_quantity),
+        card_style: formData.card_style,
         status: formData.status,
         image_url: imageUrl,
         gallery_urls: gallery_urls,
@@ -782,6 +784,7 @@ export default function Admin() {
       category: product.category,
       currency: product.currency || 'GHS',
       stock_quantity: product.stock_quantity.toString(),
+      card_style: product.card_style || 'standard',
       status: product.status,
       image: null,
       existingImageUrl: product.image_url,
@@ -2420,6 +2423,19 @@ export default function Admin() {
                   <option value="inactive">Inactive</option>
                   <option value="out-of-stock">Out of Stock</option>
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="card_style">Product card style</label>
+                <select
+                  id="card_style"
+                  value={formData.card_style}
+                  onChange={(e) => setFormData({ ...formData, card_style: e.target.value as ProductCardStyle })}
+                >
+                  <option value="standard">Standard card (current)</option>
+                  <option value="marketplace-list">Marketplace list card</option>
+                </select>
+                <p className="help-text">Choose how this product appears in listings. Existing products remain on the standard card unless changed.</p>
               </div>
 
               <div className="form-group full-width">
