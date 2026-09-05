@@ -9,7 +9,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import CallToOrderBanner from '../components/CallToOrderBanner'
 import AdSlot from '../components/AdSlot'
-import { ChevronLeft, ChevronRight, ArrowRight, Zap, TrendingUp, Star, Package, Award, Heart, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ArrowRight, Zap, TrendingUp, Star, Package, Award, Heart, Search, ShoppingCart } from 'lucide-react'
 import './Home.css'
 
 type NewsUpdate = {
@@ -106,8 +106,10 @@ export default function Home() {
   }, [])
 
   const activeProducts = allProducts.filter(p => p.status === 'active')
-  const promotedProductIdSet = new Set(activePromotions.map(promotion => promotion.productId))
-  const promotionIdByProductId = new Map(activePromotions.map(promotion => [promotion.productId, promotion.promotionId]))
+  const marketplaceListProducts = activeProducts.filter(product => product.card_style === 'marketplace-list')
+  const marketplaceListProductIds = new Set(marketplaceListProducts.map(product => product.id))
+  const promotedProductIdSet = new Set(activePromotions.map((promotion) => promotion.productId))
+  const promotionIdByProductId = new Map(activePromotions.map((promotion) => [promotion.productId, promotion.promotionId]))
   const promotedProducts = rotateWithSeed(activeProducts.filter(product => promotedProductIdSet.has(product.id)), rotationSeedRef.current)
   const freeShowcaseProducts = freeShowcaseProductIds
     .map(productId => freeShowcaseProductsOverride.find(product => product.id === productId) || activeProducts.find(product => product.id === productId))
@@ -121,7 +123,9 @@ export default function Home() {
   // database rows with the same product name do not repeat across the page.
   const usedProductKeys = new Set(featuredProducts.map(getProductIdentity))
   const organicProducts = activeProducts.filter(product =>
-    !promotedProductIdSet.has(product.id) && !usedProductKeys.has(getProductIdentity(product)),
+    !promotedProductIdSet.has(product.id) &&
+    !marketplaceListProductIds.has(product.id) &&
+    !usedProductKeys.has(getProductIdentity(product)),
   )
   const homeFeaturedProducts = featuredProducts.length > 0
     ? featuredProducts.slice(0, 6)
@@ -278,6 +282,28 @@ export default function Home() {
             </div>
             <div className="home-products-grid">
               {homeFeaturedProducts.map((product) => (
+                <ProductCard key={product.id} product={product} showStock />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {marketplaceListProducts.length > 0 && (
+        <section className="section marketplace-list-section" aria-labelledby="marketplace-list-title">
+          <div className="container">
+            <div className="section-header marketplace-list-section-header">
+              <div className="section-title-wrapper">
+                <ShoppingCart size={20} />
+                <div>
+                  <span className="section-eyebrow">Amazon-style marketplace</span>
+                  <h2 id="marketplace-list-title" className="section-title" style={{ color: '#000000' }}>Marketplace Picks</h2>
+                </div>
+              </div>
+              <Link to="/products" className="view-all-link" style={{ color: '#000000' }}>View all <ArrowRight size={18} /></Link>
+            </div>
+            <div className="marketplace-list-grid">
+              {marketplaceListProducts.map((product) => (
                 <ProductCard key={product.id} product={product} showStock />
               ))}
             </div>
