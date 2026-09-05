@@ -96,14 +96,14 @@ const isLegacyMarketplaceLogo = (url: string | null | undefined) => Boolean(url 
 
 const marketplaceCategories = [
   { label: 'Games', icon: Gamepad2 },
-  { label: 'Electronics', icon: Smartphone },
   { label: 'Fashion', icon: Shirt },
-  { label: 'Home & Living', icon: HomeCategoryIcon },
   { label: 'Beauty', icon: Sparkles },
-  { label: 'Sports & Fitness', icon: Dumbbell },
   { label: 'Automotive', icon: Car },
-  { label: 'Baby Products', icon: Baby },
   { label: 'Food & Groceries', icon: Utensils },
+  { label: 'Electronics', icon: Smartphone },
+  { label: 'Home & Living', icon: HomeCategoryIcon },
+  { label: 'Sports & Fitness', icon: Dumbbell },
+  { label: 'Baby Products', icon: Baby },
   { label: 'Other', icon: BriefcaseBusiness },
 ]
 
