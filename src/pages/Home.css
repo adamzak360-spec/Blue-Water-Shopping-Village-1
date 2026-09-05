@@ -1071,3 +1071,34 @@
   content-visibility: auto;
   contain-intrinsic-size: 420px;
 }
+
+
+/* Dedicated downward section for Amazon-style marketplace-list products. */
+.marketplace-list-section {
+  padding: var(--space-xl) 0;
+  background: linear-gradient(180deg, #fffdf8 0%, #ffffff 100%);
+}
+
+.marketplace-list-section-header {
+  align-items: flex-end;
+}
+
+.marketplace-list-grid {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 0.9rem;
+}
+
+.marketplace-list-grid .product-card--marketplace-list {
+  width: 100%;
+}
+
+@media (max-width: 560px) {
+  .marketplace-list-section {
+    padding: var(--space-lg) 0;
+  }
+
+  .marketplace-list-grid {
+    gap: 0.7rem;
+  }
+}
