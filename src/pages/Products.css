@@ -599,3 +599,24 @@
     gap: var(--space-sm);
   }
 }
+
+
+/* Keep the compact style visually confined to its own two-card rows. */
+.compact-products-grid {
+  width: 100%;
+  max-width: 760px;
+  margin-inline: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-items: start;
+}
+
+.compact-products-grid .product-card--compact-grid {
+  min-width: 0;
+  align-self: start;
+}
+
+@media (max-width: 560px) {
+  .compact-products-grid {
+    max-width: none;
+  }
+}
