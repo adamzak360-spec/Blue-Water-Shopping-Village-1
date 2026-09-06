@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+fimport { Link } from 'react-router-dom'
 import { useEffect } from 'react'
 import { Heart, Leaf, ShoppingCart } from 'lucide-react'
 import type { Product } from '../types'
@@ -201,7 +201,7 @@ function MarketplaceListProductCard({
           {reviewCount > 0 && <span className="product-list-review-count">({reviewCount.toLocaleString()})</span>}
         </div>
         <div className="product-list-price-row">
-          <span className="product-list-price">{formatCurrency(product.price, product.currency || 'GHS')}</span>
+          <span className="product-list-price">{formatCurrency(product.price, product.currency || 'GHS')}</span> {getDiscountPercentage(product) !== null && <span className="product-list-discount">-{getDiscountPercentage(product)}%</span>}
           {product.original_price && product.original_price > product.price && (
             <span className="product-list-original-price">{formatCurrency(product.original_price, product.currency || 'GHS')}</span>
           )}
@@ -308,7 +308,7 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
         </Link>
         <p className="product-description">{product.description}</p>
         <div className="product-price-stock">
-          <span className="product-price">{formatCurrency(product.price, product.currency || 'GHS')}</span>
+          <span className="product-price">{formatCurrency(product.price, product.currency || 'GHS')}</span> {discount !== null && <span className="product-discount-badge">-{discount}%</span>}
           {showStock && (
             <div className="stock-badge-wrapper">
               <StockStatus stock={product.stock_quantity} size="medium" />
