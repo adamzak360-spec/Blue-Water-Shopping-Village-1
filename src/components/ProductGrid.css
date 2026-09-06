@@ -177,10 +177,34 @@
   margin-bottom: var(--space-md);
 }
 
+.product-price-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .product-price {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-accent);
+}
+
+.product-original-price {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  text-decoration: line-through;
+}
+
+.product-discount-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .stock-badge-wrapper {

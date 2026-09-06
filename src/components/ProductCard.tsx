@@ -1,4 +1,4 @@
-fimport { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useEffect } from 'react'
 import { Heart, Leaf, ShoppingCart } from 'lucide-react'
 import type { Product } from '../types'
@@ -238,6 +238,7 @@ function MarketplaceListProductCard({
 
 export default function ProductCard({ product, showStock = true, isSponsored = false, promotionId, featuredMedia = false }: ProductCardProps) {
   const { addToCart } = useCart()
+  const discount = getDiscountPercentage(product)
 
   useEffect(() => {
     if (isSponsored && promotionId) void recordPromotionImpression(promotionId)
@@ -308,7 +309,13 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
         </Link>
         <p className="product-description">{product.description}</p>
         <div className="product-price-stock">
-          <span className="product-price">{formatCurrency(product.price, product.currency || 'GHS')}</span> {discount !== null && <span className="product-discount-badge">-{discount}%</span>}
+          <div className="product-price-row">
+            <span className="product-price">{formatCurrency(product.price, product.currency || 'GHS')}</span>
+            {product.original_price && product.original_price > product.price && (
+              <span className="product-original-price">{formatCurrency(product.original_price, product.currency || 'GHS')}</span>
+            )}
+            {discount !== null && <span className="product-discount-badge">-{discount}%</span>}
+          </div>
           {showStock && (
             <div className="stock-badge-wrapper">
               <StockStatus stock={product.stock_quantity} size="medium" />
