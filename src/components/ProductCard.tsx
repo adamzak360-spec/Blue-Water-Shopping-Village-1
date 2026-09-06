@@ -28,6 +28,22 @@ interface MarketplaceListProductCardProps {
   addToCart: (product: Product) => void
 }
 
+interface CompactProductCardProps {
+  product: Product
+  isSponsored: boolean
+  promotionId?: string
+  featuredMedia: boolean
+  saved: boolean
+  toggleWishlist: (productId: string) => Promise<unknown>
+}
+
+function getDiscountPercentage(product: Product) {
+  const originalPrice = Number(product.original_price || 0)
+  const sellingPrice = Number(product.price || 0)
+  if (!Number.isFinite(originalPrice) || !Number.isFinite(sellingPrice) || originalPrice <= sellingPrice || originalPrice <= 0) return null
+  return Math.round(((originalPrice - sellingPrice) / originalPrice) * 100)
+}
+
 function ProductImage({ product, featuredMedia, className = '' }: { product: Product; featuredMedia: boolean; className?: string }) {
   return (
     <>
@@ -71,6 +87,54 @@ function ProductImage({ product, featuredMedia, className = '' }: { product: Pro
         <span>No image</span>
       </div>
     </>
+  )
+}
+
+function CompactProductCard({ product, isSponsored, promotionId, featuredMedia, saved, toggleWishlist }: CompactProductCardProps) {
+  const discount = getDiscountPercentage(product)
+
+  return (
+    <article className="product-card product-card--compact-grid">
+      <div className="compact-card-media">
+        <Link to={`/product/${product.id}`} className="product-image-link" aria-label={`View details for ${product.name}`}>
+          <div className="product-image-container">
+            <ProductImage product={product} featuredMedia={featuredMedia} />
+          </div>
+        </Link>
+        <button
+          type="button"
+          className={`product-wishlist-btn ${saved ? 'active' : ''}`}
+          aria-label={saved ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`}
+          aria-pressed={saved}
+          onClick={(event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            void toggleWishlist(product.id)
+          }}
+        >
+          <Heart size={17} fill={saved ? 'currentColor' : 'none'} />
+        </button>
+        {discount !== null && <span className="compact-card-discount">-{discount}%</span>}
+      </div>
+      <div className="compact-card-content">
+        {isSponsored && <span className="compact-card-sponsored">Sponsored</span>}
+        <Link
+          to={`/product/${product.id}`}
+          className="compact-card-name-link"
+          onClick={() => {
+            if (isSponsored && promotionId) void recordPromotionClick(promotionId)
+          }}
+        >
+          <h3 className="compact-card-name">{product.name}</h3>
+        </Link>
+        <div className="compact-card-price-row">
+          <span className="compact-card-price">{formatCurrency(product.price, product.currency || 'GHS')}</span>
+          {product.original_price && product.original_price > product.price && (
+            <span className="compact-card-original-price">{formatCurrency(product.original_price, product.currency || 'GHS')}</span>
+          )}
+        </div>
+      </div>
+    </article>
   )
 }
 
@@ -180,6 +244,19 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
   }, [isSponsored, promotionId])
   const { isWishlisted, toggleWishlist } = useWishlist()
   const saved = isWishlisted(product.id)
+
+  if (product.card_style === 'compact-grid') {
+    return (
+      <CompactProductCard
+        product={product}
+        isSponsored={isSponsored}
+        promotionId={promotionId}
+        featuredMedia={featuredMedia}
+        saved={saved}
+        toggleWishlist={toggleWishlist}
+      />
+    )
+  }
 
   if (product.card_style === 'marketplace-list') {
     return (

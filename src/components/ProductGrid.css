@@ -624,3 +624,129 @@
 .products-horizontal-item .product-card--marketplace-list .product-list-content {
   min-height: 260px;
 }
+
+
+/* Compact two-product card: image, name, selling price, original price, and discount only. */
+.product-card--compact-grid {
+  min-width: 0;
+  border-color: #e7e9ec;
+  border-radius: 0.55rem;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.07);
+}
+
+.product-card--compact-grid:hover {
+  transform: translateY(-3px);
+  border-color: #cfd5dc;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+}
+
+.compact-card-media {
+  position: relative;
+  min-width: 0;
+  background: #f8f9fa;
+}
+
+.product-card--compact-grid .product-image-container {
+  aspect-ratio: 1 / 1;
+  padding: 0.7rem;
+  background: #f8f9fa;
+}
+
+.product-card--compact-grid .product-image-link {
+  display: block;
+}
+
+.product-card--compact-grid .product-wishlist-btn {
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 2rem;
+  height: 2rem;
+}
+
+.compact-card-discount {
+  position: absolute;
+  left: 0.55rem;
+  top: 0.55rem;
+  z-index: 2;
+  padding: 0.22rem 0.42rem;
+  border-radius: 0.2rem;
+  background: #e47911;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.compact-card-content {
+  min-width: 0;
+  padding: 0.72rem 0.78rem 0.85rem;
+}
+
+.compact-card-sponsored {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #68707a;
+  font-size: 0.68rem;
+  line-height: 1.1;
+}
+
+.compact-card-name-link {
+  display: block;
+  color: #1b1f23;
+  text-decoration: none;
+}
+
+.compact-card-name {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #1b1f23;
+  font-size: clamp(0.82rem, 1.15vw, 1rem);
+  font-weight: 600;
+  line-height: 1.28;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.compact-card-name-link:hover .compact-card-name {
+  color: #0b6e69;
+}
+
+.compact-card-price-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.38rem;
+  margin-top: 0.48rem;
+}
+
+.compact-card-price {
+  color: #15191e;
+  font-size: clamp(1.05rem, 1.7vw, 1.38rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.compact-card-original-price {
+  color: #707780;
+  font-size: clamp(0.7rem, 1vw, 0.82rem);
+  text-decoration: line-through;
+}
+
+@media (max-width: 480px) {
+  .compact-card-content {
+    padding: 0.62rem 0.62rem 0.72rem;
+  }
+
+  .compact-card-name {
+    font-size: 0.82rem;
+  }
+
+  .compact-card-price {
+    font-size: 1rem;
+  }
+
+  .compact-card-original-price {
+    font-size: 0.7rem;
+  }
+}

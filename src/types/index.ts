@@ -34,7 +34,7 @@ export interface Country {
   store_enabled: boolean
 }
 
-export type ProductCardStyle = 'standard' | 'marketplace-list'
+export type ProductCardStyle = 'standard' | 'marketplace-list' | 'compact-grid'
 
 export interface Product {
   id: string

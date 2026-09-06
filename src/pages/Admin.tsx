@@ -123,6 +123,7 @@ const defaultFormState = {
   name: '',
   description: '',
   price: '',
+  original_price: '',
   category: '',
   currency: 'GHS',
   stock_quantity: '',
@@ -694,6 +695,7 @@ export default function Admin() {
         name: formData.name.trim(),
         description: formData.description.trim(),
         price: parseFloat(formData.price),
+        original_price: formData.original_price ? parseFloat(formData.original_price) : undefined,
         category: formData.category.trim(),
         stock_quantity: parseInt(formData.stock_quantity),
         card_style: formData.card_style,
@@ -781,6 +783,7 @@ export default function Admin() {
       name: product.name,
       description: product.description,
       price: product.price.toString(),
+      original_price: product.original_price?.toString() || '',
       category: product.category,
       currency: product.currency || 'GHS',
       stock_quantity: product.stock_quantity.toString(),
@@ -2376,15 +2379,28 @@ export default function Admin() {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Price</label>
+                  <label>Selling Price</label>
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     className={formErrors.price ? 'error' : ''}
                   />
                   {formErrors.price && <span className="error-text">{formErrors.price}</span>}
+                </div>
+                <div className="form-group">
+                  <label>Original Price <span className="optional-label">(optional)</span></label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.original_price}
+                    onChange={(e) => setFormData({ ...formData, original_price: e.target.value })}
+                    placeholder="Before-discount price"
+                  />
+                  <span className="help-text">Used to calculate the discount percentage on compact cards.</span>
                 </div>
                 <div className="form-group">
                   <label>Currency</label>
@@ -2434,8 +2450,9 @@ export default function Admin() {
                 >
                   <option value="standard">Standard card (current)</option>
                   <option value="marketplace-list">Marketplace list card</option>
+                  <option value="compact-grid">Compact two-product card</option>
                 </select>
-                <p className="help-text">Choose how this product appears in listings. Existing products remain on the standard card unless changed.</p>
+                <p className="help-text">Choose how this product appears in listings. Existing products remain unchanged unless you edit them.</p>
               </div>
 
               <div className="form-group full-width">
