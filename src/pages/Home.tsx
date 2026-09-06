@@ -296,7 +296,6 @@ export default function Home() {
               <div className="section-title-wrapper">
                 <ShoppingCart size={20} />
                 <div>
-                  <span className="section-eyebrow">Amazon-style marketplace</span>
                   <h2 id="marketplace-list-title" className="section-title" style={{ color: '#000000' }}>Marketplace Picks</h2>
                 </div>
               </div>
