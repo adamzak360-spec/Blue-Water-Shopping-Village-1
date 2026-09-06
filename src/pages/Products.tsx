@@ -164,21 +164,30 @@ export default function Products() {
   const promotedProducts = filteredProducts.filter(product => promotedProductIdSet.has(product.id))
   const organicFilteredProducts = filteredProducts.filter(product => !promotedProductIdSet.has(product.id))
 
-  // Keep every organic product unique while alternating four vertical pairs (8 cards)
-  // with three pairs in a horizontal scroller (6 cards).
-  const productSections: Array<{ type: 'grid' | 'horizontal'; products: Product[] }> = []
-  for (let start = 0; start < organicFilteredProducts.length;) {
-      const verticalProducts = organicFilteredProducts.slice(start, start + 8)
+  // Keep compact-grid products out of the latest-products flow so their shorter
+  // cards do not create uneven empty space beside full-height cards.
+  const compactGridProducts = organicFilteredProducts.filter(product => product.card_style === 'compact-grid')
+  const regularOrganicProducts = organicFilteredProducts.filter(product => product.card_style !== 'compact-grid')
+
+  // Keep every regular organic product unique while alternating four vertical pairs
+  // (8 cards) with three pairs in a horizontal scroller (6 cards).
+  const productSections: Array<{ type: 'grid' | 'horizontal' | 'compact'; products: Product[] }> = []
+  for (let start = 0; start < regularOrganicProducts.length;) {
+    const verticalProducts = regularOrganicProducts.slice(start, start + 8)
     if (verticalProducts.length > 0) {
       productSections.push({ type: 'grid', products: verticalProducts })
       start += verticalProducts.length
     }
 
-      const horizontalProducts = organicFilteredProducts.slice(start, start + 6)
+    const horizontalProducts = regularOrganicProducts.slice(start, start + 6)
     if (horizontalProducts.length > 0) {
       productSections.push({ type: 'horizontal', products: horizontalProducts })
       start += horizontalProducts.length
     }
+  }
+
+  if (compactGridProducts.length > 0) {
+    productSections.push({ type: 'compact', products: compactGridProducts })
   }
 
   const handleSearch = (term: string) => {
@@ -403,6 +412,21 @@ export default function Products() {
                       <ProductCard key={product.id} product={product} />
                     ))}
                   </div>
+                ) : section.type === 'compact' ? (
+                  <section className="products-compact-section" key={`compact-${sectionIndex}`} aria-labelledby="compact-products-title">
+                    <div className="products-compact-header">
+                      <div>
+                        <span className="products-compact-kicker">Special offers</span>
+                        <h2 id="compact-products-title">More deals</h2>
+                      </div>
+                      <p>Simple prices, clear savings</p>
+                    </div>
+                    <div className="products-grid compact-products-grid">
+                      {section.products.map(product => (
+                        <ProductCard key={product.id} product={product} />
+                      ))}
+                    </div>
+                  </section>
                 ) : (
                   <section className="products-horizontal-section" key={`horizontal-${sectionIndex}`} aria-label="More products">
                     <div className="products-horizontal-header">
