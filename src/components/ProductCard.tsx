@@ -47,18 +47,7 @@ function getDiscountPercentage(product: Product) {
 function ProductImage({ product, featuredMedia, className = '' }: { product: Product; featuredMedia: boolean; className?: string }) {
   return (
     <>
-      {featuredMedia && product.video_urls?.[0] ? (
-        <video
-          src={product.video_urls[0]}
-          className={`product-image ${className}`}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="none"
-          aria-label={`${product.name} product video`}
-        />
-      ) : product.image_url ? (
+      {product.image_url ? (
         <img
           src={getOptimizedImageUrl(product.image_url, 540)}
           srcSet={getResponsiveImageSet(product.image_url)}
@@ -81,6 +70,15 @@ function ProductImage({ product, featuredMedia, className = '' }: { product: Pro
             const placeholder = target.parentElement?.querySelector('.product-image-placeholder')
             if (placeholder) placeholder.classList.add('visible')
           }}
+        />
+      ) : featuredMedia && product.video_urls?.[0] ? (
+        <video
+          src={product.video_urls[0]}
+          className={`product-image ${className}`}
+          muted
+          playsInline
+          preload="none"
+          aria-label={`${product.name} product video`}
         />
       ) : null}
       <div className={`product-image-placeholder ${!product.image_url && !(featuredMedia && product.video_urls?.[0]) ? 'visible' : ''}`}>
