@@ -9,7 +9,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import CallToOrderBanner from '../components/CallToOrderBanner'
 import AdSlot from '../components/AdSlot'
-import { ChevronLeft, ChevronRight, ArrowRight, Zap, TrendingUp, Star, Package, Award, Heart, Search, ShoppingCart } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ArrowRight, Zap, TrendingUp, Star, Package, Award, Heart, Search, ShoppingCart, Tag } from 'lucide-react'
 import './Home.css'
 
 type NewsUpdate = {
@@ -106,14 +106,17 @@ export default function Home() {
   }, [])
 
   const activeProducts = allProducts.filter(p => p.status === 'active')
-  const marketplaceListProducts = activeProducts.filter(product => product.card_style === 'marketplace-list')
+  const compactGridProducts = activeProducts.filter(product => product.card_style === 'compact-grid')
+  const compactGridProductIds = new Set(compactGridProducts.map(product => product.id))
+  const marketplaceListProducts = activeProducts.filter(product => product.card_style === 'marketplace-list' && !compactGridProductIds.has(product.id))
   const marketplaceListProductIds = new Set(marketplaceListProducts.map(product => product.id))
   const promotedProductIdSet = new Set(activePromotions.map((promotion) => promotion.productId))
   const promotionIdByProductId = new Map(activePromotions.map((promotion) => [promotion.productId, promotion.promotionId]))
-  const promotedProducts = rotateWithSeed(activeProducts.filter(product => promotedProductIdSet.has(product.id)), rotationSeedRef.current)
+  const promotedProducts = rotateWithSeed(activeProducts.filter(product => promotedProductIdSet.has(product.id) && !compactGridProductIds.has(product.id)), rotationSeedRef.current)
   const freeShowcaseProducts = freeShowcaseProductIds
     .map(productId => freeShowcaseProductsOverride.find(product => product.id === productId) || activeProducts.find(product => product.id === productId))
     .filter((product): product is Product => Boolean(product))
+    .filter(product => !compactGridProductIds.has(product.id))
   const rotatedFreeShowcaseProducts = rotateWithSeed(freeShowcaseProducts, rotationSeedRef.current)
   const featuredProducts = !showcaseEnabled
     ? []
@@ -121,8 +124,10 @@ export default function Home() {
 
   // Reserve each homepage section from one shared identity pool so duplicate
   // database rows with the same product name do not repeat across the page.
+  // Compact cards are intentionally reserved for their own two-card section.
   const usedProductKeys = new Set(featuredProducts.map(getProductIdentity))
   const organicProducts = activeProducts.filter(product =>
+    !compactGridProductIds.has(product.id) &&
     !promotedProductIdSet.has(product.id) &&
     !marketplaceListProductIds.has(product.id) &&
     !usedProductKeys.has(getProductIdentity(product)),
@@ -349,6 +354,26 @@ export default function Home() {
         isLoading={isLoading}
         autoPlay={false}
       />
+
+      {/* Compact products: a dedicated two-card row group, separate from every carousel. */}
+      {!isLoading && compactGridProducts.length > 0 && (
+        <section className="section home-compact-products-section" aria-labelledby="home-compact-products-title">
+          <div className="container">
+            <div className="section-header home-compact-products-header">
+              <div className="section-title-wrapper">
+                <Tag size={20} />
+                <h3 id="home-compact-products-title" className="section-title" style={{ color: '#000000' }}>More deals</h3>
+              </div>
+              <span className="home-compact-products-note">Two-card offers</span>
+            </div>
+            <div className="home-compact-products-grid">
+              {compactGridProducts.map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Flash Deals */}
       <ProductSection 
