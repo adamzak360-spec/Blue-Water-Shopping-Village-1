@@ -984,8 +984,20 @@
     margin-bottom: 0.55rem;
   }
 
+  .home-products-grid .product-price-row {
+    gap: 0.28rem;
+  }
   .home-products-grid .product-price {
     font-size: 0.88rem;
+  }
+  .home-products-grid .product-original-price {
+    font-size: 0.68rem;
+  }
+  .home-products-grid .product-standard-discount {
+    top: 0.4rem;
+    left: 0.4rem;
+    padding: 0.22rem 0.35rem;
+    font-size: 0.62rem;
   }
 
   .home-products-grid .view-details-btn,

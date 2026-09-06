@@ -179,9 +179,25 @@
 
 .product-price-row {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.product-standard-discount {
+  position: absolute;
+  top: 0.65rem;
+  left: 0.65rem;
+  z-index: 2;
+  padding: 0.28rem 0.5rem;
+  border-radius: 0.35rem;
+  background: #e47911;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .product-price {
@@ -191,8 +207,11 @@
 }
 
 .product-original-price {
-  font-size: 0.9rem;
+  min-width: 0;
+  overflow: hidden;
   color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
   text-decoration: line-through;
 }
 

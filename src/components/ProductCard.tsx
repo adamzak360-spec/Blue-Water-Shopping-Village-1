@@ -279,6 +279,7 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
       <Link to={`/product/${product.id}`} className="product-image-link">
         <div className="product-image-container">
           <ProductImage product={product} featuredMedia={featuredMedia} />
+          {discount !== null && <span className="product-standard-discount">-{discount}%</span>}
           <button
             type="button"
             className={`product-wishlist-btn ${saved ? 'active' : ''}`}
@@ -314,7 +315,6 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
             {product.original_price && product.original_price > product.price && (
               <span className="product-original-price">{formatCurrency(product.original_price, product.currency || 'GHS')}</span>
             )}
-            {discount !== null && <span className="product-discount-badge">-{discount}%</span>}
           </div>
           {showStock && (
             <div className="stock-badge-wrapper">
