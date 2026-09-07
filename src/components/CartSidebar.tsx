@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ShoppingCart, ShieldCheck, Trash2 } from 'lucide-react'
+import { PhoneCall, ShoppingCart, ShieldCheck, Trash2 } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { formatCurrency } from '../utils/currency'
 import './CartSidebar.css'
@@ -118,7 +118,12 @@ export const CartSidebar: React.FC = () => {
               <span>Subtotal</span>
               <strong>{formatCurrency(cartSubtotal, currency)}</strong>
             </div>
-            <button className="checkout-btn" onClick={handleCheckout}>Proceed to Checkout ({formatCurrency(cartSubtotal, currency)})</button>
+            <div className="cart-actions-row">
+              <a className="cart-call-btn" href="tel:+233595609966" aria-label="Call Reliable support" title="Call Reliable support">
+                <PhoneCall size={23} strokeWidth={2.2} />
+              </a>
+              <button className="checkout-btn" onClick={handleCheckout}>Proceed to Checkout ({formatCurrency(cartSubtotal, currency)})</button>
+            </div>
             <button className="clear-btn" onClick={clearCart}>Empty Cart</button>
           </div>
         )}
