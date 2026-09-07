@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useEffect } from 'react'
-import { Heart, Leaf, ShoppingCart } from 'lucide-react'
+import { Heart, ShoppingCart } from 'lucide-react'
 import type { Product } from '../types'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
@@ -228,7 +228,6 @@ function MarketplaceListProductCard({
             {product.stock_quantity === 0 ? 'Out of stock' : 'Add to cart'}
           </button>
         </div>
-        <div className="product-list-trust"><Leaf size={15} aria-hidden="true" /> Reliable marketplace seller</div>
       </div>
     </article>
   )
