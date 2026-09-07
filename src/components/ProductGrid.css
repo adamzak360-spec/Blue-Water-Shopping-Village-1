@@ -793,3 +793,103 @@
     font-size: 0.7rem;
   }
 }
+
+
+/* Unified marketplace layout system: card variants live inside controlled containers. */
+.products-grid,
+.home-products-grid,
+.public-store-products-grid {
+  grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
+  align-items: stretch;
+  gap: clamp(0.55rem, 1.5vw, 1rem);
+}
+
+.products-grid > .product-card,
+.home-products-grid > .product-card,
+.public-store-products-grid > .product-card {
+  min-width: 0;
+  height: 100%;
+}
+
+.products-grid .product-image-container,
+.home-products-grid .product-image-container,
+.public-store-products-grid .product-image-container {
+  aspect-ratio: 1 / 1;
+}
+
+.products-horizontal-item {
+  min-width: 0;
+}
+
+.products-horizontal-item > .product-card {
+  height: 100%;
+}
+
+/* Keep list cards from creating oversized blank rows inside mixed grids. */
+.products-grid .product-card--marketplace-list,
+.home-products-grid .product-card--marketplace-list,
+.public-store-products-grid .product-card--marketplace-list {
+  grid-column: auto;
+  display: flex;
+  min-height: 0;
+}
+
+@media (max-width: 768px) {
+  .products-grid,
+  .home-products-grid,
+  .public-store-products-grid {
+    grid-template-columns: repeat(auto-fit, minmax(156px, 1fr));
+    gap: 0.65rem;
+  }
+
+  .products-grid .product-info,
+  .home-products-grid .product-info,
+  .public-store-products-grid .product-info {
+    padding: 0.65rem;
+  }
+
+  .products-grid .product-description,
+  .home-products-grid .product-description,
+  .public-store-products-grid .product-description {
+    -webkit-line-clamp: 1;
+  }
+}
+
+@media (max-width: 420px) {
+  .products-grid,
+  .home-products-grid,
+  .public-store-products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .products-grid .product-info,
+  .home-products-grid .product-info,
+  .public-store-products-grid .product-info {
+    padding: 0.55rem;
+  }
+}
+
+/* Horizontal rails show useful card sizes instead of three tiny cards. */
+.horizontal-scroll-container {
+  display: flex;
+  gap: clamp(0.65rem, 1.6vw, 1rem);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  padding-inline: 0.15rem 0.35rem;
+}
+
+.horizontal-product-wrapper,
+.products-horizontal-item {
+  flex: 0 0 clamp(172px, 21vw, 238px);
+  scroll-snap-align: start;
+}
+
+@media (max-width: 560px) {
+  .horizontal-product-wrapper,
+  .products-horizontal-item {
+    flex-basis: min(74vw, 218px);
+  }
+}
