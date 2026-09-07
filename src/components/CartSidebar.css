@@ -345,8 +345,32 @@
   font-weight: 700;
 }
 
+.cart-actions-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.7rem;
+}
+
+.cart-call-btn {
+  width: 56px;
+  min-width: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #f7941d;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #e88716;
+  text-decoration: none;
+}
+
+.cart-call-btn:hover {
+  background: #fff6e8;
+}
+
 .checkout-btn {
-  width: 100%;
+  flex: 1;
+  width: auto;
   padding: 0.92rem 1rem;
   background: #f7941d;
   color: #ffffff;
