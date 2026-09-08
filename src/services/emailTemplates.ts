@@ -137,7 +137,7 @@ function getEmailWrapper(content: string, title: string): string {
             height: 84px;
             padding: 7px;
             background-color: #ffffff;
-            border: 1px solid #dbe7df;
+            border: 0;
             border-radius: 50%;
             vertical-align: middle;
           }
@@ -313,7 +313,7 @@ function getEmailWrapper(content: string, title: string): string {
                       <td align="center" style="text-align:center;padding:0;">
                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 auto;">
                           <tr>
-                            <td class="brand-lockup-logo-cell" valign="middle" style="width:84px;height:84px;padding:7px;background:#ffffff;border:1px solid #dbe7df;border-radius:50%;vertical-align:middle;">
+                            <td class="brand-lockup-logo-cell" valign="middle" style="width:84px;height:84px;padding:7px;background:#ffffff;border:0;border-radius:50%;vertical-align:middle;">
                               <img src="${EMAIL_LOGO_URL}" alt="${COMPANY_NAME} yellow shopping-bag logo" width="68" height="68" border="0" class="brand-lockup-logo" style="display:block;width:68px;height:68px;object-fit:contain;border:0;border-radius:50%;">
                             </td>
                           </tr>
