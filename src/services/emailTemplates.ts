@@ -122,11 +122,13 @@ function getEmailWrapper(content: string, title: string): string {
             border-bottom: 1px solid #e5e7eb;
           }
           .brand-lockup {
+            width: 100%;
+            max-width: 520px;
             border-collapse: collapse;
             margin: 0 auto;
           }
           .brand-lockup-cell {
-            white-space: nowrap;
+            white-space: normal;
             text-align: center;
             vertical-align: middle;
           }
@@ -148,15 +150,16 @@ function getEmailWrapper(content: string, title: string): string {
             border-radius: 50%;
           }
           .brand-lockup-name {
-            display: inline-block;
+            display: block;
             color: #0f766e;
             font-size: 18px;
-            line-height: 1.25;
+            line-height: 1.3;
             font-weight: 800;
             letter-spacing: -0.02em;
-            white-space: nowrap;
-            vertical-align: middle;
-            padding-left: 12px;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            text-align: center;
+            padding: 10px 12px 0;
           }
           .header h1 {
             font-size: 24px;
@@ -304,14 +307,22 @@ function getEmailWrapper(content: string, title: string): string {
           <div class="brand-banner">
             <table role="presentation" class="brand-lockup" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td class="brand-lockup-cell" style="white-space:nowrap;text-align:center;vertical-align:middle;">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 auto;">
+                <td class="brand-lockup-cell" style="white-space:normal;text-align:center;vertical-align:middle;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:520px;border-collapse:collapse;margin:0 auto;">
                     <tr>
-                      <td class="brand-lockup-logo-cell" valign="middle" style="width:84px;height:84px;padding:7px;background:#ffffff;border:1px solid #dbe7df;border-radius:50%;vertical-align:middle;">
-                        <img src="${EMAIL_LOGO_URL}" alt="${COMPANY_NAME} yellow shopping-bag logo" width="68" height="68" border="0" class="brand-lockup-logo" style="display:block;width:68px;height:68px;object-fit:contain;border:0;border-radius:50%;">
+                      <td align="center" style="text-align:center;padding:0;">
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 auto;">
+                          <tr>
+                            <td class="brand-lockup-logo-cell" valign="middle" style="width:84px;height:84px;padding:7px;background:#ffffff;border:1px solid #dbe7df;border-radius:50%;vertical-align:middle;">
+                              <img src="${EMAIL_LOGO_URL}" alt="${COMPANY_NAME} yellow shopping-bag logo" width="68" height="68" border="0" class="brand-lockup-logo" style="display:block;width:68px;height:68px;object-fit:contain;border:0;border-radius:50%;">
+                            </td>
+                          </tr>
+                        </table>
                       </td>
-                      <td valign="middle" style="padding-left:12px;white-space:nowrap;vertical-align:middle;">
-                        <span class="brand-lockup-name" style="display:inline-block;color:#0f766e;font-size:18px;line-height:1.25;font-weight:800;letter-spacing:-0.02em;white-space:nowrap;vertical-align:middle;"><span style="color:#059669;">Reliable</span><span style="color:#dc2626;padding:0 3px;">•</span><span style="color:#0A2E5C;">Premium Marketplace</span></span>
+                    </tr>
+                    <tr>
+                      <td align="center" style="text-align:center;white-space:normal;padding:0;">
+                        <span class="brand-lockup-name" style="display:block;color:#0f766e;font-size:18px;line-height:1.3;font-weight:800;letter-spacing:-0.02em;white-space:normal;overflow-wrap:anywhere;text-align:center;padding:10px 12px 0;"><span style="color:#059669;">Reliable</span><span style="color:#dc2626;padding:0 3px;">•</span><span style="color:#0A2E5C;">Premium Marketplace</span></span>
                       </td>
                     </tr>
                   </table>
