@@ -281,7 +281,7 @@ function AppShell() {
             <div className="drawer-category-list">
               {marketplaceCategories.map(({ label, icon: CategoryIcon }) => (
                 <Link key={label} to={`/products?category=${encodeURIComponent(label)}`} className="drawer-category-item" onMouseEnter={prefetchProducts}>
-                  <CategoryIcon size={18} aria-hidden="true" />
+                  <CategoryIcon size={20} strokeWidth={2.1} aria-hidden="true" />
                   <span>{label}</span>
                 </Link>
               ))}
