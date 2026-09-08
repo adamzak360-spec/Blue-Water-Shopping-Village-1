@@ -13,7 +13,7 @@ const SUPPORT_EMAIL = 'support@reliable.com'
 const PHONE = '+233 59 560 9966'
 const SUPPORT_WHATSAPP = '+233 20 335 5542'
 const COMPANY_LOCATION = 'Tamale, Ghana'
-const EMAIL_LOGO_URL = 'https://www.reliablepremiummarketplace.com/manual-assets/reliable-email-logo-full-v2.png'
+const EMAIL_LOGO_URL = 'https://www.reliablepremiummarketplace.com/manual-assets/reliable-logo-yellow.webp'
 
 function getSellerContext(order: Order): SellerOrderContext {
   return order.seller_context || {}
@@ -116,9 +116,10 @@ function getEmailWrapper(content: string, title: string): string {
             text-align: center;
           }
           .brand-banner {
-            background-color: #ffffff;
-            padding: 14px 20px 8px;
+            background: linear-gradient(180deg, #f8fffb 0%, #ffffff 100%);
+            padding: 20px 20px 14px;
             text-align: center;
+            border-bottom: 1px solid #e5e7eb;
           }
           .brand-lockup {
             border-collapse: collapse;
@@ -129,24 +130,33 @@ function getEmailWrapper(content: string, title: string): string {
             text-align: center;
             vertical-align: middle;
           }
-          .brand-lockup-logo {
-            display: inline-block;
-            width: 72px;
-            height: 72px;
-            object-fit: contain;
+          .brand-lockup-logo-cell {
+            width: 84px;
+            height: 84px;
+            padding: 7px;
+            background-color: #ffffff;
+            border: 1px solid #dbe7df;
+            border-radius: 50%;
             vertical-align: middle;
+          }
+          .brand-lockup-logo {
+            display: block;
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
             border: 0;
-            margin-right: 8px;
+            border-radius: 50%;
           }
           .brand-lockup-name {
             display: inline-block;
-            color: #059669;
-            font-size: 16px;
-            line-height: 72px;
+            color: #0f766e;
+            font-size: 18px;
+            line-height: 1.25;
             font-weight: 800;
             letter-spacing: -0.02em;
             white-space: nowrap;
             vertical-align: middle;
+            padding-left: 12px;
           }
           .header h1 {
             font-size: 24px;
@@ -294,9 +304,17 @@ function getEmailWrapper(content: string, title: string): string {
           <div class="brand-banner">
             <table role="presentation" class="brand-lockup" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td valign="middle" class="brand-lockup-cell" style="white-space:nowrap;text-align:center;vertical-align:middle;">
-                  <img src="${EMAIL_LOGO_URL}" alt="${COMPANY_NAME} shopping-bag logo" width="72" height="72" border="0" class="brand-lockup-logo" style="display:inline-block;width:72px;height:72px;object-fit:contain;vertical-align:middle;border:0;margin-right:8px;">
-                  <span class="brand-lockup-name" style="display:inline-block;color:#059669;font-size:16px;line-height:72px;font-weight:800;letter-spacing:-0.02em;white-space:nowrap;vertical-align:middle;"><span style="color:#059669;">Reliable</span><span style="color:#dc2626;padding:0 3px;">•</span><span style="color:#0A2E5C;">Premium Marketplace</span></span>
+                <td class="brand-lockup-cell" style="white-space:nowrap;text-align:center;vertical-align:middle;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 auto;">
+                    <tr>
+                      <td class="brand-lockup-logo-cell" valign="middle" style="width:84px;height:84px;padding:7px;background:#ffffff;border:1px solid #dbe7df;border-radius:50%;vertical-align:middle;">
+                        <img src="${EMAIL_LOGO_URL}" alt="${COMPANY_NAME} yellow shopping-bag logo" width="68" height="68" border="0" class="brand-lockup-logo" style="display:block;width:68px;height:68px;object-fit:contain;border:0;border-radius:50%;">
+                      </td>
+                      <td valign="middle" style="padding-left:12px;white-space:nowrap;vertical-align:middle;">
+                        <span class="brand-lockup-name" style="display:inline-block;color:#0f766e;font-size:18px;line-height:1.25;font-weight:800;letter-spacing:-0.02em;white-space:nowrap;vertical-align:middle;"><span style="color:#059669;">Reliable</span><span style="color:#dc2626;padding:0 3px;">•</span><span style="color:#0A2E5C;">Premium Marketplace</span></span>
+                      </td>
+                    </tr>
+                  </table>
                 </td>
               </tr>
             </table>
