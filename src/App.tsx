@@ -89,23 +89,29 @@ const prefetchLogin = () => import('./pages/Login')
 import TermsPopup from './components/TermsPopup'
 import WhatsAppButton from './components/WhatsAppButton'
 import InstallAppPrompt from './components/InstallAppPrompt'
+import { MARKETPLACE_CATEGORY_LABELS } from './utils/marketplaceCategories'
 const LOCAL_MARKETPLACE_LOGO = '/logo-square.png?v=reliable-exact-logo-v1'
 const RELIABLE_BRAND_YELLOW = '#FFC400'
 const LEGACY_LOGO_MARKERS = ['logo-1786897784238.png', 'logo-1786796959602.png']
 const isLegacyMarketplaceLogo = (url: string | null | undefined) => Boolean(url && LEGACY_LOGO_MARKERS.some((marker) => url.includes(marker)))
 
-const marketplaceCategories = [
-  { label: 'Games', icon: Gamepad2 },
-  { label: 'Fashion', icon: Shirt },
-  { label: 'Beauty', icon: Sparkles },
-  { label: 'Automotive', icon: Car },
-  { label: 'Food & Groceries', icon: Utensils },
-  { label: 'Electronics', icon: Smartphone },
-  { label: 'Home & Living', icon: HomeCategoryIcon },
-  { label: 'Sports & Fitness', icon: Dumbbell },
-  { label: 'Baby Products', icon: Baby },
-  { label: 'Other', icon: BriefcaseBusiness },
-]
+const marketplaceCategoryIcons = [
+  Gamepad2,
+  Shirt,
+  Sparkles,
+  Car,
+  Utensils,
+  Smartphone,
+  HomeCategoryIcon,
+  Dumbbell,
+  Baby,
+  BriefcaseBusiness,
+] as const
+
+const marketplaceCategories = MARKETPLACE_CATEGORY_LABELS.map((label, index) => ({
+  label,
+  icon: marketplaceCategoryIcons[index],
+}))
 
 function App() {
   return <AppShell />

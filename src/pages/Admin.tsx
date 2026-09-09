@@ -41,6 +41,7 @@ import AdminNewsUpdates from '../components/AdminNewsUpdates'
 import AdminArticles from '../components/AdminArticles'
 import ImageCropEditor from '../components/ImageCropEditor'
 import './Admin.css'
+import { MARKETPLACE_CATEGORY_LABELS, isMarketplaceCategory } from '../utils/marketplaceCategories'
 
   // Lazy load admin sub-components for better performance
   const InventoryManagement = lazy(() => import('../components/InventoryManagement'))
@@ -632,7 +633,11 @@ export default function Admin() {
     if (!formData.name.trim()) errors.name = 'Product name is required'
     if (!formData.description.trim()) errors.description = 'Description is required'
     if (!formData.price || parseFloat(formData.price) <= 0) errors.price = 'Valid price is required'
-    if (!formData.category.trim()) errors.category = 'Category is required'
+    if (!formData.category.trim()) {
+      errors.category = 'Category is required'
+    } else if (!isMarketplaceCategory(formData.category)) {
+      errors.category = 'Select a category from the marketplace list'
+    }
     if (!formData.stock_quantity || parseInt(formData.stock_quantity) < 0) errors.stock_quantity = 'Valid stock quantity is required'
     setFormErrors(errors)
     return Object.keys(errors).length === 0
@@ -700,7 +705,7 @@ export default function Admin() {
         description: formData.description.trim(),
         price: parseFloat(formData.price),
         original_price: formData.original_price ? parseFloat(formData.original_price) : undefined,
-        category: formData.category.trim(),
+        category: formData.category,
         stock_quantity: parseInt(formData.stock_quantity),
         card_style: formData.card_style,
         status: formData.status,
@@ -2367,17 +2372,20 @@ export default function Admin() {
               </div>
 
               <div className="form-group">
-                <label>Category</label>
-                <input
-                  type="text"
+                <label htmlFor="product-category">Category</label>
+                <select
+                  id="product-category"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className={formErrors.category ? 'error' : ''}
-                  list="category-list"
-                />
-                <datalist id="category-list">
-                  {categories.map(cat => <option key={cat} value={cat} />)}
-                </datalist>
+                  required
+                >
+                  <option value="">Select a category</option>
+                  {MARKETPLACE_CATEGORY_LABELS.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+                <span className="help-text">Choose the category that matches the marketplace’s Our Categories section.</span>
                 {formErrors.category && <span className="error-text">{formErrors.category}</span>}
               </div>
 
