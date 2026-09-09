@@ -8,6 +8,7 @@ export interface ProductDescriptionDraft {
   keywords: string[]
   fallback?: boolean
   provider?: string
+  researchUsed?: boolean
 }
 
 export interface ProductDescriptionInput {

@@ -652,11 +652,15 @@ export default function Admin() {
         price: formData.price,
         sizes: formData.has_sizes ? formData.variants.map(variant => variant.variant_value).filter(Boolean).join(', ') : '',
         keyFeatures: formData.specifications.map(spec => `${spec.label}: ${spec.value}`).filter(Boolean).join('; '),
-        notes: [formData.pickup_instructions, formData.delivery_instructions, formData.return_policy].filter(Boolean).join(' '),
+        notes: [formData.pickup_instructions, formData.delivery_instructions, formData.return_policy, formData.customer_email_note].filter(Boolean).join(' '),
       })
       setFormData(current => ({ ...current, description: draft.description }))
       setFormErrors(current => ({ ...current, description: undefined }))
-      showNotification(draft.fallback ? 'Template draft generated without AI. Review and edit it before saving the product.' : 'AI draft generated. Review and edit it before saving the product.')
+      showNotification(draft.fallback
+        ? 'A starter draft was created without live research. Review and add exact product facts before saving.'
+        : draft.researchUsed
+          ? 'Research-assisted AI draft generated. Review the wording and confirm the exact product details before saving.'
+          : 'AI draft generated from the information provided. Review and add exact product facts before saving.')
     } catch (generationError: any) {
       showNotification(generationError?.message || 'Reliable AI could not generate a draft.', 'error')
     } finally {
@@ -2625,7 +2629,8 @@ export default function Admin() {
                     {isGeneratingDescription ? 'Generating draft…' : 'Generate with Reliable AI'}
                   </button>
                 </div>
-                <p style={{ margin: '0 0 0.55rem', color: '#64748b', fontSize: '0.82rem' }}>Reliable AI creates a draft from the facts you provide. Review and edit it before saving.</p>
+                <p style={{ margin: '0 0 0.55rem', color: '#64748b', fontSize: '0.82rem' }}>Reliable AI can research the product name when live research is available, then writes customer-focused copy from the research and your supplied facts. Always review the draft and confirm exact specifications before publishing.
+</p>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}

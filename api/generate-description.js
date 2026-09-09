@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const MAX_REQUEST_BYTES = 14_000;
 const MAX_TEXT_LENGTH = 600;
 const MAX_OUTPUT_LENGTH = 4_000;
+const MAX_RESEARCH_LENGTH = 8_000;
 const RATE_WINDOW_MS = 60_000;
 const RATE_LIMIT = 5;
 const rateBuckets = new Map();
@@ -48,7 +49,7 @@ async function getAuthenticatedUser(req) {
   return response.json();
 }
 
-function buildPrompt(input) {
+function buildPrompt(input, research) {
   const fields = [
     ['Product name', input.name],
     ['Category', input.category],
@@ -57,17 +58,22 @@ function buildPrompt(input) {
     ['Material', input.material],
     ['Sizes', input.sizes],
     ['Colors', input.colors],
-    ['Key features', input.keyFeatures],
+    ['Key features supplied by seller', input.keyFeatures],
     ['Condition', input.condition],
     ['Seller notes', input.notes],
   ].filter(([, value]) => value);
 
-  return fields.map(([label, value]) => `${label}: ${value}`).join('\n');
+  const sellerFacts = fields.map(([label, value]) => `${label}: ${value}`).join('\n');
+  const researchNotes = research
+    ? `\n\nWEB RESEARCH NOTES (reference context only; do not treat uncertain claims as confirmed seller facts):\n${research}`
+    : '\n\nNo live web research was available. Use only cautious, broadly applicable product language and do not invent specifications.';
+
+  return `${sellerFacts}${researchNotes}`;
 }
 
 function buildFallbackDraft(input) {
   const facts = [input.name, input.category, input.keyFeatures, input.material, input.condition].filter(Boolean);
-  const description = `${input.name} is a ${input.category} product${input.keyFeatures ? ` featuring ${input.keyFeatures}` : ''}${input.material ? `, made with ${input.material}` : ''}. ${input.condition ? `Condition: ${input.condition}. ` : ''}Please review the seller-provided details and update this draft before publishing.`;
+  const description = `${input.name} is a ${input.category} product${input.keyFeatures ? ` featuring ${input.keyFeatures}` : ''}${input.material ? `, made with ${input.material}` : ''}. ${input.condition ? `Condition: ${input.condition}. ` : ''}Add the exact specifications, included items, and usage details before publishing so customers can buy with confidence.`;
   return {
     description: text(description, 1_500),
     shortDescription: text(`${input.name} — ${input.category}${input.condition ? `, ${input.condition}` : ''}.`, 150),
@@ -75,6 +81,46 @@ function buildFallbackDraft(input) {
     seoTitle: text(`${input.name} | ${input.category}`, 60),
     keywords: [input.name, input.category].filter(Boolean).map(item => text(item, 60)),
   };
+}
+
+function extractChatContent(payload) {
+  const content = payload?.choices?.[0]?.message?.content;
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) return content.map(part => part?.text || '').join('');
+  return '';
+}
+
+async function researchProduct(input) {
+  if (!process.env.OPENAI_API_KEY || process.env.RELIABLE_AI_WEB_RESEARCH === 'false') return '';
+
+  const researchModel = process.env.RELIABLE_AI_RESEARCH_MODEL || 'gpt-4o-search-preview';
+  const query = [input.name, input.brand, input.category].filter(Boolean).join(' ');
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: researchModel,
+      web_search_options: { search_context_size: 'high' },
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a product research assistant. Search the web for reliable, current information about the named product. Prefer the manufacturer or official product page, then reputable retailers or documentation. Return concise research notes with source title and URL. Separate confirmed product facts from uncertain or model-dependent details. Never guess an exact specification.',
+        },
+        {
+          role: 'user',
+          content: `Research this marketplace product before a seller publishes it:\nProduct: ${query}\nCategory: ${input.category}\nSeller-provided details: ${input.keyFeatures || 'none supplied'}`,
+        },
+      ],
+      max_tokens: 1_200,
+    }),
+  });
+
+  if (!response.ok) {
+    console.warn('[RELIABLE_AI] Web research unavailable', response.status);
+    return '';
+  }
+  const payload = await response.json();
+  return text(extractChatContent(payload), MAX_RESEARCH_LENGTH);
 }
 
 module.exports = async (req, res) => {
@@ -87,7 +133,7 @@ module.exports = async (req, res) => {
 
   try {
     const user = await getAuthenticatedUser(req);
-    if (!user?.id) return res.status(401).json({ error: 'You must be signed in as a seller to use Reliable AI.' });
+    if (!user?.id) return res.status(401).json({ error: 'You must be signed in as a seller or admin to use Reliable AI.' });
     if (!rateLimit(user.id)) return res.status(429).json({ error: 'Too many generation requests. Please wait a minute and try again.' });
 
     const body = req.body || {};
@@ -106,15 +152,20 @@ module.exports = async (req, res) => {
 
     if (!input.name || !input.category) return res.status(400).json({ error: 'Product name and category are required.' });
 
-    // Keep provider credentials server-side. Prefer Groq for low-cost, fast drafts;
-    // fall back to OpenAI or the legacy compatible provider when configured.
+    let research = '';
+    try {
+      research = await researchProduct(input);
+    } catch (error) {
+      console.warn('[RELIABLE_AI] Research request failed', error?.message || error);
+    }
+
     const provider = process.env.GROQ_API_KEY ? 'groq' : process.env.OPENAI_API_KEY ? 'openai' : process.env.BUILT_IN_FORGE_API_KEY ? 'legacy' : 'fallback';
     const apiKey = process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || process.env.BUILT_IN_FORGE_API_KEY;
     const apiBaseUrl = (provider === 'groq'
       ? 'https://api.groq.com/openai/v1'
       : process.env.OPENAI_BASE_URL || process.env.BUILT_IN_FORGE_API_URL || 'https://api.openai.com/v1').replace(/\/$/, '');
     if (!apiKey) {
-      return res.status(200).json({ success: true, draft: buildFallbackDraft(input), draftOnly: true, fallback: true, provider: 'offline-template' });
+      return res.status(200).json({ success: true, draft: buildFallbackDraft(input), draftOnly: true, fallback: true, researchUsed: false, provider: 'offline-template' });
     }
 
     const completion = await fetch(`${apiBaseUrl}/chat/completions`, {
@@ -125,24 +176,24 @@ module.exports = async (req, res) => {
         messages: [
           {
             role: 'system',
-            content: 'You write cautious marketplace product drafts. Use only seller-provided facts. Never invent prices, stock, brands, materials, certifications, medical benefits, warranties, guarantees, discounts, delivery promises, or specifications. If a fact is missing, omit it. Return JSON only with description, shortDescription, highlights, seoTitle, and keywords. Keep description 80-140 words, shortDescription under 150 characters, highlights as 3-5 short factual bullets, seoTitle under 60 characters, and keywords as 5-10 plain strings. This is a draft for seller review, not a published listing.',
-          },
-          { role: 'user', content: buildPrompt(input) },
+            content: 'You write persuasive but truthful marketplace product drafts for sellers and admins. Use seller-provided facts first. You may use a research note only when it clearly matches the named product, and you must omit uncertain or model-dependent claims. Never invent prices, stock, brands, materials, certifications, medical benefits, warranties, guarantees, discounts, delivery promises, or specifications. Write customer-focused copy that explains what the item is, its practical value, and why it may suit the buyer, without hype or unsupported promises. Return JSON only with description, shortDescription, highlights, seoTitle, and keywords. Keep description 100-180 words, shortDescription under 150 characters, highlights as 3-5 short factual or clearly qualified benefits, seoTitle under 60 characters, and keywords as 5-10 plain strings. This is a draft for seller review, not a published listing.',
+          }, 
+          { role: 'user', content: buildPrompt(input, research) },
         ],
         response_format: { type: 'json_object' },
-        max_tokens: 900,
+        max_tokens: 1_100,
       }),
     });
 
     if (!completion.ok) {
       const providerText = await completion.text();
       console.error('[RELIABLE_AI] Provider error', completion.status, providerText.slice(0, 500));
-      return res.status(200).json({ success: true, draft: buildFallbackDraft(input), draftOnly: true, fallback: true, provider: 'offline-template' });
+      return res.status(200).json({ success: true, draft: buildFallbackDraft(input), draftOnly: true, fallback: true, researchUsed: Boolean(research), provider: 'offline-template' });
     }
 
     const payload = await completion.json();
-    const content = payload?.choices?.[0]?.message?.content;
-    if (!content || typeof content !== 'string' || content.length > MAX_OUTPUT_LENGTH) {
+    const content = extractChatContent(payload);
+    if (!content || content.length > MAX_OUTPUT_LENGTH) {
       return res.status(502).json({ error: 'Reliable AI returned an invalid draft.' });
     }
 
@@ -156,7 +207,7 @@ module.exports = async (req, res) => {
       keywords: Array.isArray(draft.keywords) ? draft.keywords.slice(0, 10).map(item => text(item, 60)).filter(Boolean) : [],
     };
 
-    return res.status(200).json({ success: true, draft: safeDraft, draftOnly: true, fallback: false, provider, requestId: crypto.randomUUID() });
+    return res.status(200).json({ success: true, draft: safeDraft, draftOnly: true, fallback: false, researchUsed: Boolean(research), provider, requestId: crypto.randomUUID() });
   } catch (error) {
     console.error('[RELIABLE_AI] Request failed', error?.message || error);
     return res.status(500).json({ error: 'Reliable AI is temporarily unavailable.' });
