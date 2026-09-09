@@ -73,7 +73,10 @@ function buildPrompt(input, research) {
 
 function buildFallbackDraft(input) {
   const facts = [input.name, input.category, input.keyFeatures, input.material, input.condition].filter(Boolean);
-  const description = `${input.name} is a ${input.category} product${input.keyFeatures ? ` featuring ${input.keyFeatures}` : ''}${input.material ? `, made with ${input.material}` : ''}. ${input.condition ? `Condition: ${input.condition}. ` : ''}Add the exact specifications, included items, and usage details before publishing so customers can buy with confidence.`;
+  const category = input.category.toLowerCase();
+  const description = category.includes('fashion') || category.includes('cloth') || category.includes('suit')
+    ? `${input.name} is a polished fashion piece designed to help create a sharp, confident look for work, celebrations, formal occasions, and smart-casual styling. Its versatile design makes it easy to pair with complementary shirts, shoes, and accessories, while the clean silhouette keeps the overall outfit refined.${input.keyFeatures ? ` Key details supplied by the seller: ${input.keyFeatures}.` : ''}`
+    : `${input.name} is a practical ${input.category} choice for customers looking for dependable everyday value. It is presented as a versatile option that can fit naturally into the buyer’s routine, with the supplied details helping customers understand what to expect and how it may suit their needs.${input.keyFeatures ? ` Key details supplied by the seller: ${input.keyFeatures}.` : ''}${input.material ? ` Material supplied: ${input.material}.` : ''}`;
   return {
     description: text(description, 1_500),
     shortDescription: text(`${input.name} — ${input.category}${input.condition ? `, ${input.condition}` : ''}.`, 150),
@@ -91,31 +94,40 @@ function extractChatContent(payload) {
 }
 
 async function researchProduct(input) {
-  if (!process.env.OPENAI_API_KEY || process.env.RELIABLE_AI_WEB_RESEARCH === 'false') return '';
+  if (process.env.RELIABLE_AI_WEB_RESEARCH === 'false') return '';
 
-  const researchModel = process.env.RELIABLE_AI_RESEARCH_MODEL || 'gpt-5.5';
   const query = [input.name, input.brand, input.category].filter(Boolean).join(' ');
-  const response = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: researchModel,
-      tools: [{ type: 'web_search', search_context_size: 'high' }],
-      input: `You are researching a product for a marketplace seller. Search the public internet outside the Reliable marketplace. Prefer the manufacturer’s or brand’s official product page, then reputable retailers, manuals, and independent documentation. Find current, product-specific facts that can help write an accurate customer description. Separate confirmed facts from uncertain or model-dependent details, include clickable source citations, and never guess an exact specification.\n\nProduct name: ${query}\nCategory: ${input.category}\nSeller-provided details: ${input.keyFeatures || 'none supplied'}`,
-      max_output_tokens: 1_200,
-    }),
-  });
+  let response = null;
 
-  if (!response.ok) {
-    console.warn('[RELIABLE_AI] Web research unavailable', response.status);
+  if (process.env.OPENAI_API_KEY) {
+    response = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: process.env.RELIABLE_AI_RESEARCH_MODEL || 'gpt-5.5',
+        tools: [{ type: 'web_search', search_context_size: 'high' }],
+        input: `You are researching a product for a marketplace seller. Search the public internet outside the Reliable marketplace. Prefer the manufacturer’s or brand’s official product page, then reputable retailers, manuals, and independent documentation. Find current, product-specific facts that can help write an accurate customer description. Separate confirmed facts from uncertain or model-dependent details, include clickable source citations, and never guess an exact specification.\n\nProduct name: ${query}\nCategory: ${input.category}\nSeller-provided details: ${input.keyFeatures || 'none supplied'}`,
+        max_output_tokens: 1_200,
+      }),
+    });
+  } else if (process.env.GROQ_API_KEY) {
+    response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'groq/compound',
+        messages: [{ role: 'user', content: `Search the public internet outside the Reliable marketplace for this product and return concise, source-aware research notes. Prefer official manufacturer pages and reputable retailers. Do not guess exact specifications. Product: ${query}. Category: ${input.category}. Seller details: ${input.keyFeatures || 'none supplied'}` }],
+        max_tokens: 1_200,
+      }),
+    });
+  }
+
+  if (!response || !response.ok) {
+    console.warn('[RELIABLE_AI] Web research unavailable', response?.status || 'no provider');
     return '';
   }
   const payload = await response.json();
-  const outputText = typeof payload?.output_text === 'string'
-    ? payload.output_text
-    : Array.isArray(payload?.output)
-      ? payload.output.flatMap(item => Array.isArray(item?.content) ? item.content.map(part => part?.text || '') : []).join('\n')
-      : '';
+  const outputText = typeof payload?.output_text === 'string' ? payload.output_text : extractChatContent(payload);
   return text(outputText, MAX_RESEARCH_LENGTH);
 }
 
@@ -168,7 +180,7 @@ module.exports = async (req, res) => {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: process.env.RELIABLE_AI_MODEL || (provider === 'groq' ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini'),
+        model: process.env.RELIABLE_AI_MODEL || (provider === 'groq' ? 'openai/gpt-oss-120b' : 'gpt-4o-mini'),
         messages: [
           {
             role: 'system',
