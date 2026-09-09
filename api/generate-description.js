@@ -93,25 +93,16 @@ function extractChatContent(payload) {
 async function researchProduct(input) {
   if (!process.env.OPENAI_API_KEY || process.env.RELIABLE_AI_WEB_RESEARCH === 'false') return '';
 
-  const researchModel = process.env.RELIABLE_AI_RESEARCH_MODEL || 'gpt-4o-search-preview';
+  const researchModel = process.env.RELIABLE_AI_RESEARCH_MODEL || 'gpt-5.5';
   const query = [input.name, input.brand, input.category].filter(Boolean).join(' ');
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: researchModel,
-      web_search_options: { search_context_size: 'high' },
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a product research assistant. Search the web for reliable, current information about the named product. Prefer the manufacturer or official product page, then reputable retailers or documentation. Return concise research notes with source title and URL. Separate confirmed product facts from uncertain or model-dependent details. Never guess an exact specification.',
-        },
-        {
-          role: 'user',
-          content: `Research this marketplace product before a seller publishes it:\nProduct: ${query}\nCategory: ${input.category}\nSeller-provided details: ${input.keyFeatures || 'none supplied'}`,
-        },
-      ],
-      max_tokens: 1_200,
+      tools: [{ type: 'web_search', search_context_size: 'high' }],
+      input: `You are researching a product for a marketplace seller. Search the public internet outside the Reliable marketplace. Prefer the manufacturer’s or brand’s official product page, then reputable retailers, manuals, and independent documentation. Find current, product-specific facts that can help write an accurate customer description. Separate confirmed facts from uncertain or model-dependent details, include clickable source citations, and never guess an exact specification.\n\nProduct name: ${query}\nCategory: ${input.category}\nSeller-provided details: ${input.keyFeatures || 'none supplied'}`,
+      max_output_tokens: 1_200,
     }),
   });
 
@@ -120,7 +111,12 @@ async function researchProduct(input) {
     return '';
   }
   const payload = await response.json();
-  return text(extractChatContent(payload), MAX_RESEARCH_LENGTH);
+  const outputText = typeof payload?.output_text === 'string'
+    ? payload.output_text
+    : Array.isArray(payload?.output)
+      ? payload.output.flatMap(item => Array.isArray(item?.content) ? item.content.map(part => part?.text || '') : []).join('\n')
+      : '';
+  return text(outputText, MAX_RESEARCH_LENGTH);
 }
 
 module.exports = async (req, res) => {
