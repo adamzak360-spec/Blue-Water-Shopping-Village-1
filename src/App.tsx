@@ -90,8 +90,9 @@ import TermsPopup from './components/TermsPopup'
 import WhatsAppButton from './components/WhatsAppButton'
 import InstallAppPrompt from './components/InstallAppPrompt'
 import { MARKETPLACE_CATEGORY_LABELS } from './utils/marketplaceCategories'
-import { useI18n } from './i18n'
+import { translateCategory, useI18n } from './i18n'
 import LanguageSelector from './components/LanguageSelector'
+import LocalizedContent from './components/LocalizedContent'
 const LOCAL_MARKETPLACE_LOGO = '/logo-square.png?v=reliable-exact-logo-v1'
 const RELIABLE_BRAND_YELLOW = '#FFC400'
 const LEGACY_LOGO_MARKERS = ['logo-1786897784238.png', 'logo-1786796959602.png']
@@ -121,7 +122,7 @@ function App() {
 
 function AppShell() {
   const { user, isAdmin, role } = useAuth()
-  const { t } = useI18n()
+  const { language, t } = useI18n()
   const { cartCount, setIsCartOpen } = useCart()
   const { wishlistCount } = useWishlist()
   const location = useLocation()
@@ -293,7 +294,7 @@ function AppShell() {
               {marketplaceCategories.map(({ label, icon: CategoryIcon }) => (
                 <Link key={label} to={`/products?category=${encodeURIComponent(label)}`} className="drawer-category-item" onMouseEnter={prefetchProducts}>
                   <CategoryIcon size={20} strokeWidth={2.1} aria-hidden="true" />
-                  <span>{label}</span>
+                  <span>{translateCategory(label, language)}</span>
                 </Link>
               ))}
             </div>
@@ -354,6 +355,7 @@ function AppShell() {
             </div>
           </div>
         }>
+          <LocalizedContent>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/stores" element={<StoresDirectory />} />
@@ -449,6 +451,7 @@ function AppShell() {
               }
             />
           </Routes>
+          </LocalizedContent>
         </Suspense>
       </main>
       <CartSidebar />

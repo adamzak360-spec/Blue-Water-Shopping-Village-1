@@ -7,7 +7,7 @@ import { useWishlist } from '../context/WishlistContext'
 import { formatCurrency } from '../utils/currency'
 import StockStatus from './StockStatus'
 import { recordPromotionClick, recordPromotionImpression } from '../services/promotionService'
-import { useI18n } from '../i18n'
+import { translateCategory, useI18n } from '../i18n'
 import { getOriginalImageUrl, getResponsiveImageSet, getOptimizedImageUrl } from '../utils/imageDelivery'
 
 interface ProductCardProps {
@@ -238,7 +238,7 @@ function MarketplaceListProductCard({
 }
 
 export default function ProductCard({ product, showStock = true, isSponsored = false, promotionId, featuredMedia = false }: ProductCardProps) {
-  const { t } = useI18n()
+  const { language, t } = useI18n()
   const { addToCart } = useCart()
   const discount = getDiscountPercentage(product)
 
@@ -300,7 +300,7 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
 
       <div className="product-info">
         {isSponsored && <span className="product-sponsored-badge">{t('sponsored')}</span>}
-        <span className="product-category">{product.category}</span>
+        <span className="product-category">{translateCategory(product.category, language)}</span>
         <Link
           to={`/product/${product.id}`}
           className="product-name-link"

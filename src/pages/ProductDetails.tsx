@@ -19,7 +19,7 @@ import VerifiedSellerBadge from '../components/VerifiedSellerBadge'
 import BusinessSocialLinks from '../components/BusinessSocialLinks'
 import { applyProductSeo, resetProductSeo } from '../utils/seo'
 import { getOptimizedImageUrl, getOriginalImageUrl, getResponsiveImageSet } from '../utils/imageDelivery'
-import { useI18n } from '../i18n'
+import { translateCategory, useI18n } from '../i18n'
 import './ProductDetails.css'
 
 export default function ProductDetails() {
@@ -28,7 +28,7 @@ export default function ProductDetails() {
   const { addToCart } = useCart()
   const { user } = useAuth()
   const { isWishlisted, toggleWishlist } = useWishlist()
-  const { t } = useI18n()
+  const { language, t } = useI18n()
 
   const [product, setProduct] = useState<Product | null>(null)
   const [sellerBusiness, setSellerBusiness] = useState<Business | null>(null)
@@ -403,7 +403,7 @@ export default function ProductDetails() {
   }
 
   // Always show these
-  specItems.push({ label: 'Category', value: product.category })
+  specItems.push({ label: t('categories'), value: translateCategory(product.category, language) })
   specItems.push({ label: t('stockAvailable'), value: `${product.stock_quantity} units` })
   specItems.push({ label: 'Product Status', value: product.status.charAt(0).toUpperCase() + product.status.slice(1) })
   specItems.push({
@@ -543,7 +543,7 @@ export default function ProductDetails() {
                 <ChevronLeft size={16} /> {t('products')}
               </Link>
               <span className="breadcrumb-separator">/</span>
-              <span className="breadcrumb-current">{product.category}</span>
+              <span className="breadcrumb-current">{translateCategory(product.category, language)}</span>
             </div>
             <h1 className="product-title">{product.name}</h1>
             {sellerBusiness && (

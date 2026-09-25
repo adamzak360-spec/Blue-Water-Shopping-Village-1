@@ -9,7 +9,7 @@ import ProductCard from '../components/ProductCard'
 import { applyCatalogSeo } from '../utils/seo'
 import AdSlot from '../components/AdSlot'
 import { ArrowRight, Search, X } from 'lucide-react'
-import { useI18n } from '../i18n'
+import { translateCategory, useI18n } from '../i18n'
 import './Products.css'
 
 interface SearchSuggestion {
@@ -19,7 +19,7 @@ interface SearchSuggestion {
 }
 
 export default function Products() {
-  const { t } = useI18n()
+  const { language, t } = useI18n()
   const [searchParams] = useSearchParams()
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
@@ -211,7 +211,7 @@ export default function Products() {
         suggestions.push({ type: 'recent', value: search, label: search })
       })
       categories.slice(0, 3).forEach(cat => {
-        suggestions.push({ type: 'category', value: cat, label: `Browse ${cat}` })
+        suggestions.push({ type: 'category', value: cat, label: `${t('browseCategory')} ${translateCategory(cat, language)}` })
       })
     } else {
       const lower = searchTerm.toLowerCase()
@@ -227,7 +227,7 @@ export default function Products() {
         c.toLowerCase().includes(lower)
       ).slice(0, 2)
       matchingCategories.forEach(cat => {
-        suggestions.push({ type: 'category', value: cat, label: `Browse ${cat}` })
+        suggestions.push({ type: 'category', value: cat, label: `${t('browseCategory')} ${translateCategory(cat, language)}` })
       })
     }
     
@@ -348,7 +348,7 @@ export default function Products() {
             >
               <option value="">{t('allCategories')}</option>
               {categories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
+                <option key={cat} value={cat}>{translateCategory(cat, language)}</option>
               ))}
             </select>
           </div>
