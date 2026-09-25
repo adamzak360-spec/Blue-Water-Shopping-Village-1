@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n'
 import { useState, useEffect } from 'react'
 import { Phone } from 'lucide-react'
 import { supabase } from '../supabaseClient'
@@ -11,6 +12,7 @@ interface CallToOrderSettings {
 }
 
 export default function CallToOrderBanner() {
+  const { t } = useI18n()
   const [settings, setSettings] = useState<CallToOrderSettings | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -79,7 +81,7 @@ export default function CallToOrderBanner() {
     <section className="call-to-order-banner">
       <div className="banner-content">
         <div className="banner-text">
-          <span className="banner-label">Call to Order</span>
+          <span className="banner-label">{t('callToOrder')}</span>
           <a href={`tel:${settings.phone_number.replace(/\s+/g, '')}`} className="banner-phone">
             <Phone size={18} />
             {settings.phone_number}

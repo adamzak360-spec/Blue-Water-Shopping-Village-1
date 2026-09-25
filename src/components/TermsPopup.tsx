@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n'
 import { useEffect, useState } from 'react'
 import {
   ArrowRight,
@@ -12,6 +13,7 @@ import { Link } from 'react-router-dom'
 import './TermsPopup.css'
 
 export default function TermsPopup() {
+  const { t } = useI18n()
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
@@ -49,7 +51,7 @@ export default function TermsPopup() {
       >
         <div className="terms-popup-accent" aria-hidden="true" />
 
-        <button className="terms-popup-close" onClick={handleClose} aria-label="Close welcome message">
+        <button className="terms-popup-close" onClick={handleClose} aria-label={t('closeWelcome')}>
           <X size={22} strokeWidth={2.2} />
         </button>
 
@@ -57,22 +59,22 @@ export default function TermsPopup() {
           <div className="terms-popup-header">
             <div className="terms-popup-badge" aria-hidden="true">
               <ShieldCheck size={18} strokeWidth={2.2} />
-              <span>SHOP WITH CONFIDENCE</span>
+              <span>{t('premiumMarketplace')}</span>
             </div>
-            <h2 id="terms-popup-title">Welcome to Reliable!</h2>
+            <h2 id="terms-popup-title">{t('welcomeToReliable')}</h2>
             <p className="terms-popup-intro" id="terms-popup-description">
-              Before placing an order, take a moment to review our policies so your shopping experience is clear, safe, and stress-free.
+              {t('policyIntro')}
             </p>
           </div>
 
-          <div className="terms-popup-policies" aria-label="Reliable policies">
+          <div className="terms-popup-policies" aria-label={t('policies')}>
             <Link to="/terms" className="policy-item" onClick={handleClose}>
               <span className="policy-icon" aria-hidden="true">
                 <ClipboardList size={25} strokeWidth={2.1} />
               </span>
               <span className="policy-copy">
-                <span className="policy-title">Terms &amp; Conditions</span>
-                <span className="policy-description">The agreement for using Reliable</span>
+                <span className="policy-title">{t('terms')}</span>
+                <span className="policy-description">{t('termsAgreement')}</span>
               </span>
               <ArrowRight className="policy-arrow" size={18} strokeWidth={2.2} aria-hidden="true" />
             </Link>
@@ -82,8 +84,8 @@ export default function TermsPopup() {
                 <LockKeyhole size={25} strokeWidth={2.1} />
               </span>
               <span className="policy-copy">
-                <span className="policy-title">Privacy Policy</span>
-                <span className="policy-description">How we protect your information</span>
+                <span className="policy-title">{t('privacyPolicy')}</span>
+                <span className="policy-description">{t('privacyDescription')}</span>
               </span>
               <ArrowRight className="policy-arrow" size={18} strokeWidth={2.2} aria-hidden="true" />
             </Link>
@@ -93,8 +95,8 @@ export default function TermsPopup() {
                 <Truck size={25} strokeWidth={2.1} />
               </span>
               <span className="policy-copy">
-                <span className="policy-title">Delivery Policy</span>
-                <span className="policy-description">What to expect from dispatch to arrival</span>
+                <span className="policy-title">{t('deliveryInformation')}</span>
+                <span className="policy-description">{t('deliveryDescription')}</span>
               </span>
               <ArrowRight className="policy-arrow" size={18} strokeWidth={2.2} aria-hidden="true" />
             </Link>
@@ -104,8 +106,8 @@ export default function TermsPopup() {
                 <RotateCcw size={25} strokeWidth={2.1} />
               </span>
               <span className="policy-copy">
-                <span className="policy-title">Return &amp; Refund Policy</span>
-                <span className="policy-description">Your options if something is not right</span>
+                <span className="policy-title">{t('returns')}</span>
+                <span className="policy-description">{t('returnsDescription')}</span>
               </span>
               <ArrowRight className="policy-arrow" size={18} strokeWidth={2.2} aria-hidden="true" />
             </Link>
@@ -113,16 +115,16 @@ export default function TermsPopup() {
 
           <div className="terms-popup-note">
             <ShieldCheck size={17} strokeWidth={2.2} aria-hidden="true" />
-            <p>By placing an order, you agree to these policies and our terms of service.</p>
+            <p>{t('policyAgreement')}</p>
           </div>
 
           <div className="terms-popup-actions">
             <Link to="/terms" className="terms-popup-btn read-btn" onClick={handleClose}>
-              Read Policies
+              {t('readPolicies')}
               <ArrowRight size={18} strokeWidth={2.2} aria-hidden="true" />
             </Link>
             <button className="terms-popup-btn acknowledge-btn" onClick={handleAcknowledge}>
-              I Understand
+              {t('iUnderstand')}
               <ShieldCheck size={18} strokeWidth={2.2} aria-hidden="true" />
             </button>
           </div>

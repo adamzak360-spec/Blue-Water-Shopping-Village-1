@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n'
 import { useEffect, useState } from 'react'
 import { getPublicAds, recordAdClick, recordAdImpression, type AdPlacement, type Advertisement } from '../services/adService'
 import './AdSlot.css'
@@ -8,6 +9,7 @@ interface AdSlotProps {
 }
 
 export default function AdSlot({ placement, className = '' }: AdSlotProps) {
+  const { t } = useI18n()
   const [ads, setAds] = useState<Advertisement[]>([])
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export default function AdSlot({ placement, className = '' }: AdSlotProps) {
   if (ads.length === 0) return null
 
   return (
-    <aside className={`reliable-ad-slot ${className}`} aria-label="Advertisement">
+    <aside className={`reliable-ad-slot ${className}`} aria-label={t('advertisement')}>
       {ads.map((ad) => (
         <a
           className="reliable-ad-card"
@@ -37,7 +39,7 @@ export default function AdSlot({ placement, className = '' }: AdSlotProps) {
         >
           {ad.image_url && <img src={ad.image_url} alt="" loading="lazy" />}
           <div className="reliable-ad-copy">
-            <span className="reliable-ad-label">Advertisement</span>
+            <span className="reliable-ad-label">{t('advertisement')}</span>
             <strong>{ad.headline}</strong>
             {ad.description && <span>{ad.description}</span>}
           </div>

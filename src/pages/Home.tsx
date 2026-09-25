@@ -10,6 +10,7 @@ import ProductCard from '../components/ProductCard'
 import CallToOrderBanner from '../components/CallToOrderBanner'
 import AdSlot from '../components/AdSlot'
 import { ChevronLeft, ChevronRight, ArrowRight, Zap, TrendingUp, Star, Package, Award, Heart, Search, ShoppingCart, Tag } from 'lucide-react'
+import { useI18n } from '../i18n'
 import './Home.css'
 
 type NewsUpdate = {
@@ -36,6 +37,7 @@ function takeDisjointProducts(products: Product[], usedKeys: Set<string>, limit:
 }
 
 export default function Home() {
+  const { t } = useI18n()
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const [newsUpdates, setNewsUpdates] = useState<NewsUpdate[]>([])
   const [searchParams] = useSearchParams()
@@ -49,7 +51,7 @@ export default function Home() {
   const [searchValue, setSearchValue] = useState('')
   const navigate = useNavigate()
   const rotationSeedRef = useRef(createRotationSeed())
-  
+
   const scrollRefs = {
     trending: useRef<HTMLDivElement>(null),
     bestSellers: useRef<HTMLDivElement>(null),
@@ -239,10 +241,10 @@ export default function Home() {
               type="search"
               value={searchValue}
               onChange={(event) => setSearchValue(event.target.value)}
-              placeholder="Search products, brands, categories…"
-              aria-label="Search products, brands, categories"
+              placeholder={t('searchProductsBrands')}
+              aria-label={t('searchProductsBrands')}
             />
-            <button type="submit">Search</button>
+            <button type="submit">{t('searchProductsAction')}</button>
           </form>
         </div>
       </section>
@@ -252,15 +254,15 @@ export default function Home() {
           <div className="container">
             <div className="section-header news-page-header">
               <div>
-                <span className="section-eyebrow">Reliable updates</span>
-                <h1 id="marketplace-news-title" className="section-title">Marketplace News</h1>
+                <span className="section-eyebrow">{t('reliableUpdates')}</span>
+                <h1 id="marketplace-news-title" className="section-title">{t('marketplaceNews')}</h1>
               </div>
-              <Link to="/" className="text-link">Back to Home</Link>
+              <Link to="/" className="text-link">{t('backToHome')}</Link>
             </div>
             <div className="news-updates-strip">
               {newsUpdates.map((update) => (
                 <article className="public-news-update" key={update.id}>
-                  <span className="public-news-label">News Update</span>
+                  <span className="public-news-label">{t('marketplaceNews')}</span>
                   <h2>{update.title}</h2>
                   <p>{update.message}</p>
                 </article>
@@ -279,11 +281,11 @@ export default function Home() {
               <div className="section-title-wrapper">
                 <Package size={20} />
                 <div>
-                  <span className="section-eyebrow">Reliable marketplace</span>
-                  <h2 id="home-products-title" className="section-title" style={{ color: '#000000' }}>Featured Products</h2>
+                  <span className="section-eyebrow">{t('premiumMarketplace')}</span>
+                  <h2 id="home-products-title" className="section-title" style={{ color: '#000000' }}>{t('featuredProducts')}</h2>
                 </div>
               </div>
-              <Link to="/products" className="view-all-link" style={{ color: '#000000' }}>View All <ArrowRight size={18} /></Link>
+              <Link to="/products" className="view-all-link" style={{ color: '#000000' }}>{t('viewAll')} <ArrowRight size={18} /></Link>
             </div>
             <div className="home-products-grid">
               {homeFeaturedProducts.map((product) => (
@@ -301,10 +303,10 @@ export default function Home() {
               <div className="section-title-wrapper">
                 <ShoppingCart size={20} />
                 <div>
-                  <h2 id="marketplace-list-title" className="section-title" style={{ color: '#000000' }}>Marketplace Picks</h2>
+                  <h2 id="marketplace-list-title" className="section-title" style={{ color: '#000000' }}>{t('marketplacePicks')}</h2>
                 </div>
               </div>
-              <Link to="/products" className="view-all-link" style={{ color: '#000000' }}>View all <ArrowRight size={18} /></Link>
+              <Link to="/products" className="view-all-link" style={{ color: '#000000' }}>{t('viewAll')} <ArrowRight size={18} /></Link>
             </div>
             <div className="marketplace-list-grid">
               {marketplaceListProducts.map((product) => (
@@ -317,7 +319,7 @@ export default function Home() {
 
       {/* --- Latest products: one polished, swipeable, autoplaying row --- */}
       <ProductSection
-        title="Latest Products"
+        title={t('latestProducts')}
         icon={<Package size={20} />}
         products={latestProducts}
         scrollRef={scrollRefs.latest}
@@ -331,7 +333,7 @@ export default function Home() {
       {/* --- Horizontal Product Sections --- */}
       {promotedProducts.length > 0 && (
         <ProductSection
-          title="Sponsored Products"
+          title={t('sponsoredProducts')}
           icon={<Star size={20} color="#b7791f" />}
           products={promotedProducts.slice(0, 8)}
           scrollRef={scrollRefs.sponsored}
@@ -343,12 +345,12 @@ export default function Home() {
           className="sponsored-products-section"
         />
       )}
-      
+
       {/* Trending */}
-      <ProductSection 
-        title="Trending Now" 
-        icon={<TrendingUp size={20} />} 
-        products={trendingProducts} 
+      <ProductSection
+        title={t('trendingNow')}
+        icon={<TrendingUp size={20} />}
+        products={trendingProducts}
         scrollRef={scrollRefs.trending}
         onScroll={(dir) => scroll(scrollRefs.trending, dir)}
         isLoading={isLoading}
@@ -362,9 +364,9 @@ export default function Home() {
             <div className="section-header home-compact-products-header">
               <div className="section-title-wrapper">
                 <Tag size={20} />
-                <h3 id="home-compact-products-title" className="section-title" style={{ color: '#000000' }}>More deals</h3>
+                <h3 id="home-compact-products-title" className="section-title" style={{ color: '#000000' }}>{t('moreDeals')}</h3>
               </div>
-              <span className="home-compact-products-note">Two-card offers</span>
+              <span className="home-compact-products-note">{t('specialOffers')}</span>
             </div>
             <div className="home-compact-products-grid">
               {compactGridProducts.map(product => (
@@ -376,10 +378,10 @@ export default function Home() {
       )}
 
       {/* Flash Deals */}
-      <ProductSection 
-        title="Flash Deals" 
-        icon={<Zap size={20} color="#ef4444" />} 
-        products={flashDeals} 
+      <ProductSection
+        title={t('flashDeals')}
+        icon={<Zap size={20} color="#ef4444" />}
+        products={flashDeals}
         scrollRef={scrollRefs.flashDeals}
         onScroll={(dir) => scroll(scrollRefs.flashDeals, dir)}
         isLoading={isLoading}
@@ -388,10 +390,10 @@ export default function Home() {
       />
 
       {/* Marketplace Favorites */}
-      <ProductSection 
-        title="Marketplace Favorites"
-        icon={<Award size={20} color="#f59e0b" />} 
-        products={bestSellers} 
+      <ProductSection
+        title={t('marketplaceFavorites')}
+        icon={<Award size={20} color="#f59e0b" />}
+        products={bestSellers}
         scrollRef={scrollRefs.bestSellers}
         onScroll={(dir) => scroll(scrollRefs.bestSellers, dir)}
         isLoading={isLoading}
@@ -399,10 +401,10 @@ export default function Home() {
       />
 
       {/* New Arrivals */}
-      <ProductSection 
-        title="New Arrivals" 
-        icon={<Package size={20} />} 
-        products={newArrivals} 
+      <ProductSection
+        title={t('newArrivals')}
+        icon={<Package size={20} />}
+        products={newArrivals}
         scrollRef={scrollRefs.newArrivals}
         onScroll={(dir) => scroll(scrollRefs.newArrivals, dir)}
         isLoading={isLoading}
@@ -415,23 +417,23 @@ export default function Home() {
           <div className="why-grid">
             <div className="why-card">
               <div className="why-icon"><TrendingUp /></div>
-              <h4>Premium Quality</h4>
-              <p>Handpicked products from trusted suppliers worldwide.</p>
+              <h4>{t('premiumQuality')}</h4>
+              <p>{t('handpickedProducts')}</p>
             </div>
             <div className="why-card">
               <div className="why-icon"><Zap /></div>
-              <h4>Express Delivery</h4>
-              <p>Get your orders delivered within 24 hours across the city.</p>
+              <h4>{t('expressDelivery')}</h4>
+              <p>{t('ordersDelivered')}</p>
             </div>
             <div className="why-card">
               <div className="why-icon"><Star /></div>
-              <h4>Exceptional Service</h4>
-              <p>Our support team is available 24/7 to assist you.</p>
+              <h4>{t('exceptionalService')}</h4>
+              <p>{t('supportAvailable')}.</p>
             </div>
             <div className="why-card">
               <div className="why-icon"><Heart /></div>
-              <h4>Customer First</h4>
-              <p>Easy returns and secure payments for peace of mind.</p>
+              <h4>{t('customerFirst')}</h4>
+              <p>{t('easyReturns')}</p>
             </div>
           </div>
         </div>
@@ -441,8 +443,8 @@ export default function Home() {
       <section className="section call-to-order-section">
         <div className="container">
           <div className="call-to-order-card">
-            <h3>Need Help Placing an Order?</h3>
-            <p>Our customer support team is ready to assist you</p>
+            <h3>{t('needHelp')}</h3>
+            <p>{t('supportAvailable')}</p>
             <a href="tel:+233595609966" className="call-to-order-link">
               📞 Call us: +233 59 560 9966
             </a>
@@ -454,18 +456,18 @@ export default function Home() {
       {featuredProducts.length > 0 && (
         <section
           className="section featured-showcase-section"
-          aria-label="Featured products"
+          aria-label={t('featuredProducts')}
           onFocus={() => setIsFeaturedPaused(true)}
           onBlur={() => setIsFeaturedPaused(false)}
         >
           <div className="container">
             <div className="featured-showcase-heading">
               <div>
-                <span className="featured-showcase-eyebrow">Selected for you</span>
-                <h3>{showcaseMode === 'FREE' ? 'Featured on Reliable' : 'Sponsored on Reliable'}</h3>
-                <p>{showcaseMode === 'FREE' ? 'Explore products selected by our marketplace team.' : 'Explore products selected through Reliable promotions.'}</p>
+                <span className="featured-showcase-eyebrow">{t('selectedForYou')}</span>
+                <h3>{showcaseMode === 'FREE' ? t('featuredOnReliable') : 'Sponsored on Reliable'}</h3>
+                <p>{showcaseMode === 'FREE' ? t('exploreSelected') : 'Explore products selected through Reliable promotions.'}</p>
               </div>
-              <Link to="/products" className="featured-showcase-link">View all products <ArrowRight size={16} /></Link>
+              <Link to="/products" className="featured-showcase-link">{t('viewAllProducts')} <ArrowRight size={16} /></Link>
             </div>
             <div
               className="featured-showcase-rail"
@@ -475,7 +477,7 @@ export default function Home() {
               onPointerCancel={resumeFeaturedAfterInteraction}
               onPointerLeave={resumeFeaturedAfterInteraction}
               onWheel={resumeFeaturedAfterInteraction}
-              aria-label="Featured products carousel. Swipe, drag, or select a product to view it."
+              aria-label={`${t('featuredProducts')} carousel`}
             >
               {featuredProducts.slice(0, 12).map((product) => (
                 <div key={product.id} className="featured-showcase-card">
@@ -498,8 +500,8 @@ export default function Home() {
         <div className="container">
           <div className="newsletter-card">
             <div className="newsletter-content">
-              <h3>Join the Reliable Community</h3>
-              <p>Subscribe to receive updates, access to exclusive deals, and more.</p>
+              <h3>{t('joinCommunity')}</h3>
+              <p>{t('subscribeUpdates')}</p>
               <form className="newsletter-form" onSubmit={async (e) => {
                 e.preventDefault()
                 const form = e.currentTarget
@@ -529,8 +531,8 @@ export default function Home() {
                   alert(err.message || 'Failed to subscribe. Please try again later.')
                 }
               }}>
-                <input type="email" placeholder="Enter your email" required />
-                <button type="submit">Subscribe</button>
+                <input type="email" placeholder={t('enterEmail')} required />
+                <button type="submit">{t('subscribe')}</button>
               </form>
             </div>
           </div>
@@ -648,7 +650,7 @@ function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading,
             <button className="scroll-btn" onClick={() => onScroll('right')}><ChevronRight size={20} /></button>
           </div>
         </div>
-        
+
         <div
           className="horizontal-scroll-container"
           ref={scrollRef}

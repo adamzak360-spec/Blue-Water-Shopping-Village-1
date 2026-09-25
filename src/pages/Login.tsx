@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Navigate, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useI18n } from '../i18n'
 import './Login.css'
 
 export default function Login() {
+  const { t } = useI18n()
   const { user, signIn, signInWithGoogle, isLoading: authLoading, role } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -97,7 +99,7 @@ export default function Login() {
     return (
       <div className="loading-container">
         <div className="spinner" />
-        <p>Loading...</p>
+        <p>{t('loading')}</p>
       </div>
     )
   }
@@ -112,7 +114,7 @@ export default function Login() {
     <div className="login-page">
       <div className="login-card">
         <div className="login-header">
-          <h2>Login</h2>
+          <h2>{t('login')}</h2>
           <p>Reliable</p>
         </div>
 
@@ -139,17 +141,17 @@ export default function Login() {
           {isLoading ? 'Connecting to Google...' : 'Continue with Google'}
         </button>
 
-        <div className="auth-divider"><span>or continue with email</span></div>
+        <div className="auth-divider"><span>{t('orContinueEmail')}</span></div>
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label htmlFor="email">Email Address</label>
+            <label htmlFor="email">{t('emailAddress')}</label>
             <input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              placeholder={t('emailPlaceholder')}
               disabled={isLoading}
               autoComplete="email"
             />
@@ -157,15 +159,15 @@ export default function Login() {
 
           <div className="form-group">
             <div className="label-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label htmlFor="password">Password</label>
-              <Link to="/forgot-password" style={{ fontSize: '0.85rem', color: '#0066cc', textDecoration: 'none' }}>Forgot Password?</Link>
+              <label htmlFor="password">{t('password')}</label>
+              <Link to="/forgot-password" style={{ fontSize: '0.85rem', color: '#0066cc', textDecoration: 'none' }}>{t('forgotPassword')}</Link>
             </div>
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
+              placeholder={t('passwordPlaceholder')}
               disabled={isLoading}
               autoComplete="current-password"
             />
@@ -188,8 +190,8 @@ export default function Login() {
         </form>
 
         <div className="login-footer">
-          <p>Don't have an account? <Link to="/register">Create Account</Link></p>
-          <p>Want to sell on Reliable? <Link to="/seller/register">Register as a Seller</Link></p>
+          <p>{t('dontHaveAccount')} <Link to="/register">{t('createAccount')}</Link></p>
+          <p>{t('sellOnReliable')} <Link to="/seller/register">{t('registerAsSeller')}</Link></p>
         </div>
       </div>
     </div>

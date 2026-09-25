@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MapPin, Search, Store as StoreIcon } from 'lucide-react'
 import { getPublicBusinesses, type Business } from '../services/businessService'
+import { useI18n } from '../i18n'
 import './StoresDirectory.css'
 
 export default function StoresDirectory() {
+  const { t } = useI18n()
   const [businesses, setBusinesses] = useState<Business[]>([])
   const [availableCategories, setAvailableCategories] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -22,7 +24,7 @@ export default function StoresDirectory() {
         }
       })
       .catch(() => {
-        if (!cancelled) setError('We could not load store categories right now. Please try again.')
+        if (!cancelled) setError(t('somethingWentWrong'))
       })
     return () => {
       cancelled = true
@@ -48,7 +50,7 @@ export default function StoresDirectory() {
         if (!cancelled) setBusinesses(data)
       })
       .catch(() => {
-        if (!cancelled) setError('We could not load stores right now. Please try again.')
+        if (!cancelled) setError(t('somethingWentWrong'))
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false)
@@ -61,9 +63,9 @@ export default function StoresDirectory() {
   return (
     <section className="stores-page" aria-labelledby="stores-page-title">
       <div className="stores-hero">
-        <span className="stores-eyebrow">Reliable Marketplace</span>
-        <h1 id="stores-page-title">Discover stores you can trust</h1>
-        <p>Explore independent sellers, browse their collections, and shop directly from each store.</p>
+        <span className="stores-eyebrow">{t('premiumMarketplace')}</span>
+        <h1 id="stores-page-title">{t('discoverStores')}</h1>
+        <p>{t('exploreIndependentSellers')}</p>
         <div className="stores-search-row">
           <label className="stores-search" htmlFor="store-search">
             <Search size={19} aria-hidden="true" />
@@ -71,24 +73,24 @@ export default function StoresDirectory() {
               id="store-search"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search stores, categories, or locations"
+              placeholder={t('searchStoresLocations')}
             />
           </label>
-          <select aria-label="Filter stores by category" value={category} onChange={(event) => setCategory(event.target.value)}>
-            <option value="">All categories</option>
+          <select aria-label={t('filterStoresCategory')} value={category} onChange={(event) => setCategory(event.target.value)}>
+            <option value="">{t('allCategories')}</option>
             {availableCategories.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
         </div>
       </div>
 
       <div className="stores-content">
-        {isLoading && <div className="stores-state">Loading stores...</div>}
+        {isLoading && <div className="stores-state">{t('loadingStoresState')}</div>}
         {!isLoading && error && <div className="stores-state stores-error">{error}</div>}
         {!isLoading && !error && businesses.length === 0 && (
           <div className="stores-state">
             <StoreIcon size={40} aria-hidden="true" />
-            <h2>{hasDiscoveryFilter ? 'No stores found' : 'Find a store to get started'}</h2>
-            <p>{hasDiscoveryFilter ? 'Try a different search or category.' : 'Search by store name, category, or location, or choose a category above.'}</p>
+            <h2>{hasDiscoveryFilter ? t('noStoresFound') : t('findStoreStart')}</h2>
+            <p>{hasDiscoveryFilter ? t('tryDifferentStoreSearch') : t('searchStoreHelp')}</p>
           </div>
         )}
         {!isLoading && !error && businesses.length > 0 && (
@@ -103,9 +105,9 @@ export default function StoresDirectory() {
                     <h2>{business.business_name || business.name}</h2>
                     {business.category && <span>{business.category}</span>}
                   </div>
-                  <p>{business.description || 'Browse this seller’s products on Reliable.'}</p>
+                  <p>{business.description || t('browseSellerProducts')}</p>
                   {business.location && <div className="store-location"><MapPin size={15} aria-hidden="true" />{business.location}</div>}
-                  <Link className="store-card-link" to={`/store/${encodeURIComponent(business.slug)}`}>Visit store</Link>
+                  <Link className="store-card-link" to={`/store/${encodeURIComponent(business.slug)}`}>{t('visitStore')}</Link>
                 </div>
               </article>
             ))}

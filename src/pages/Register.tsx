@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { handleNewCustomerRegistration } from '../api/emailNotificationHandler'
 import { validateEmail, validatePassword, validateRequired } from '../utils/validation'
+import { useI18n } from '../i18n'
 import './Login.css' // Reuse login styles
 
 export default function Register() {
+  const { t } = useI18n()
   const { signUp, signInWithGoogle } = useAuth()
   const [formData, setFormData] = useState({
     fullName: '',
@@ -85,8 +87,8 @@ export default function Register() {
     <div className="login-page">
       <div className="login-card">
         <div className="login-header">
-          <h2>Create Account</h2>
-          <p>Join Reliable</p>
+          <h2>{t('createAccount')}</h2>
+          <p>{t('joinReliable')}</p>
         </div>
 
         {error && (
@@ -106,39 +108,39 @@ export default function Register() {
           {isLoading ? 'Connecting to Google...' : 'Continue with Google'}
         </button>
 
-        <div className="auth-divider"><span>or create an account with email</span></div>
+        <div className="auth-divider"><span>{t('orCreateEmail')}</span></div>
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label htmlFor="fullName">Full Name</label>
+            <label htmlFor="fullName">{t('fullNameLabel')}</label>
             <input
               id="fullName"
               name="fullName"
               type="text"
               value={formData.fullName}
               onChange={handleChange}
-              placeholder="Enter your full name"
+              placeholder={t('fullNamePlaceholder')}
               disabled={isLoading}
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="email">Email Address</label>
+            <label htmlFor="email">{t('emailAddress')}</label>
             <input
               id="email"
               name="email"
               type="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="Enter your email"
+              placeholder={t('emailPlaceholder')}
               disabled={isLoading}
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="country">Country</label>
+            <label htmlFor="country">{t('country')}</label>
             <select
               id="country"
               name="country"
@@ -157,41 +159,41 @@ export default function Register() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="phone">Phone Number (Optional)</label>
+            <label htmlFor="phone">{t('phoneOptional')}</label>
             <input
               id="phone"
               name="phone"
               type="tel"
               value={formData.phone}
               onChange={handleChange}
-              placeholder="Enter your phone number"
+              placeholder={t('phonePlaceholder')}
               disabled={isLoading}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{t('password')}</label>
             <input
               id="password"
               name="password"
               type="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Create a password"
+              placeholder="{t('createPassword')}"
               disabled={isLoading}
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
+            <label htmlFor="confirmPassword">Confirm {t('password')}</label>
             <input
               id="confirmPassword"
               name="confirmPassword"
               type="password"
               value={formData.confirmPassword}
               onChange={handleChange}
-              placeholder="Confirm your password"
+              placeholder={t('confirmYourPassword')}
               disabled={isLoading}
               required
             />
@@ -214,7 +216,7 @@ export default function Register() {
         </form>
 
         <div className="login-footer">
-          <p>Already have an account? <Link to="/login">Sign In</Link></p>
+          <p>{t('alreadyHaveAccount')} <Link to="/login">{t('signIn')}</Link></p>
         </div>
       </div>
     </div>

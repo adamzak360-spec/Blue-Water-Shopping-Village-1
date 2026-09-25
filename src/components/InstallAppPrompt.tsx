@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n'
 import { Download, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import './InstallAppPrompt.css'
@@ -11,6 +12,7 @@ const DISMISS_KEY = 'reliable-install-prompt-dismissed'
 
 export default function InstallAppPrompt() {
   const [installEvent, setInstallEvent] = useState<DeferredInstallPrompt | null>(null)
+  const { t } = useI18n()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -43,14 +45,14 @@ export default function InstallAppPrompt() {
   }
 
   return (
-    <aside className="install-app-prompt" aria-label="Install Reliable Premium Marketplace">
+    <aside className="install-app-prompt" aria-label={t('installReliable')}>
       <div className="install-app-icon"><Download size={20} aria-hidden="true" /></div>
       <div className="install-app-copy">
-        <strong>Install Reliable</strong>
-        <span>Keep the marketplace one tap away.</span>
+        <strong>{t('installReliable')}</strong>
+        <span>{t('keepMarketplaceClose')}</span>
       </div>
-      <button className="install-app-action" onClick={install}>Install</button>
-      <button className="install-app-dismiss" onClick={dismiss} aria-label="Dismiss install prompt" title="Dismiss">
+      <button className="install-app-action" onClick={install}>{t('install')}</button>
+      <button className="install-app-dismiss" onClick={dismiss} aria-label={t('dismiss')} title={t('dismiss')}>
         <X size={18} aria-hidden="true" />
       </button>
     </aside>

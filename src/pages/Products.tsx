@@ -9,6 +9,7 @@ import ProductCard from '../components/ProductCard'
 import { applyCatalogSeo } from '../utils/seo'
 import AdSlot from '../components/AdSlot'
 import { ArrowRight, Search, X } from 'lucide-react'
+import { useI18n } from '../i18n'
 import './Products.css'
 
 interface SearchSuggestion {
@@ -18,6 +19,7 @@ interface SearchSuggestion {
 }
 
 export default function Products() {
+  const { t } = useI18n()
   const [searchParams] = useSearchParams()
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
@@ -81,7 +83,7 @@ export default function Products() {
         setShowProductCount(shouldShowProductCount)
         setActivePromotions(activePromotionIds)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load products')
+        setError(err instanceof Error ? err.message : t('loadingProducts'))
       } finally {
         setIsLoading(false)
       }
@@ -95,7 +97,7 @@ export default function Products() {
     try {
       await loadProductPage(products.length, true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load more products')
+      setError(err instanceof Error ? err.message : t('loadingMoreProducts'))
     } finally {
       setIsLoadingMore(false)
     }
@@ -244,7 +246,7 @@ export default function Products() {
       <div className="products-page">
         <div className="loading-container">
           <div className="spinner" />
-          <p>Loading products...</p>
+                <p>{t('loadingProducts')}</p>
         </div>
       </div>
     )
@@ -259,7 +261,7 @@ export default function Products() {
             <Search size={18} className="search-icon" />
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder={t('searchProducts')}
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value)
@@ -280,11 +282,11 @@ export default function Products() {
         <div className="section-container">
           {/* Page Header */}
           <div className="products-header">
-            <h1>Our Products</h1>
+            <h1>{t('ourProducts')}</h1>
             {showProductCount && (
               <p className="products-subtitle">
-                {activeCount} product{activeCount !== 1 ? 's' : ''} available
-                {showAll && ` (showing ${products.length} total, including inactive)`}
+                {activeCount} {t('productsAvailable')}
+                {showAll && ` (${t('showingProducts')} ${products.length} ${t('productsTotal')}, ${t('includingInactive')})`}
               </p>
             )}
           </div>
@@ -296,7 +298,7 @@ export default function Products() {
               <Search size={20} className="search-icon" />
               <input
                 type="text"
-                placeholder="Search products, brands, categories..."
+                placeholder={t('searchProductsBrands')}
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value)
@@ -344,7 +346,7 @@ export default function Products() {
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="category-filter"
             >
-              <option value="">All Categories</option>
+              <option value="">{t('allCategories')}</option>
               {categories.map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
@@ -357,14 +359,14 @@ export default function Products() {
               checked={showAll}
               onChange={(e) => setShowAll(e.target.checked)}
             />
-            <span>Include inactive</span>
+            <span>{t('includeInactive')}</span>
           </label>
         </div>
 
         {/* Error State */}
         {error && (
           <div className="error-state">
-            <h3>Oops! Something went wrong</h3>
+            <h3>{t('somethingWentWrong')}</h3>
             <p>{error}</p>
           </div>
         )}
@@ -374,28 +376,28 @@ export default function Products() {
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
           <div className="empty-state">
-            <h3>{products.length === 0 ? 'No products yet' : 'No products match your search'}</h3>
+            <h3>{products.length === 0 ? t('noProductsYet') : t('noProductsMatch')}</h3>
             <p>
               {products.length === 0
-                ? 'We\'re stocking up! Check back soon for our latest products.'
-                : 'Try adjusting your search terms or filters.'}
+                ? t('stockingUp')
+                : t('adjustSearch')}
             </p>
           </div>
         ) : (
           <>
             {showProductCount && (
               <div className="results-info">
-                Showing {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
+                {t('showingProducts')} {filteredProducts.length} {t('productsAvailable')}
               </div>
             )}
             {promotedProducts.length > 0 && (
               <section className="products-sponsored-section" aria-labelledby="sponsored-products-title">
                 <div className="products-sponsored-header">
                   <div>
-                    <span className="products-sponsored-kicker">Paid placement</span>
-                    <h2 id="sponsored-products-title">Sponsored Products</h2>
+                    <span className="products-sponsored-kicker">{t('paidPlacement')}</span>
+                    <h2 id="sponsored-products-title">{t('sponsoredProducts')}</h2>
                   </div>
-                  <p>Promoted by participating sellers</p>
+                  <p>{t('promotedBySellers')}</p>
                 </div>
                 <div className="products-grid sponsored-products-grid">
                   {promotedProducts.map(product => (
@@ -416,10 +418,10 @@ export default function Products() {
                   <section className="products-compact-section" key={`compact-${sectionIndex}`} aria-labelledby="compact-products-title">
                     <div className="products-compact-header">
                       <div>
-                        <span className="products-compact-kicker">Special offers</span>
-                        <h2 id="compact-products-title">More deals</h2>
+                        <span className="products-compact-kicker">{t('specialOffers')}</span>
+                        <h2 id="compact-products-title">{t('moreDeals')}</h2>
                       </div>
-                      <p>Simple prices, clear savings</p>
+                      <p>{t('clearSavings')}</p>
                     </div>
                     <div className="products-grid compact-products-grid">
                       {section.products.map(product => (
@@ -428,15 +430,15 @@ export default function Products() {
                     </div>
                   </section>
                 ) : (
-                  <section className="products-horizontal-section" key={`horizontal-${sectionIndex}`} aria-label="More products">
+                  <section className="products-horizontal-section" key={`horizontal-${sectionIndex}`} aria-label={t('moreProducts')}>
                     <div className="products-horizontal-header">
-                      <span className="products-horizontal-label">More products</span>
+                      <span className="products-horizontal-label">{t('moreProducts')}</span>
                       <span className="products-horizontal-hint" role="note">
-                        <span className="products-horizontal-hint-label">Swipe left to see more</span>
+                        <span className="products-horizontal-hint-label">{t('swipeForMore')}</span>
                         <ArrowRight size={18} strokeWidth={2.5} aria-hidden="true" />
                       </span>
                     </div>
-                    <div className="products-horizontal-scroll" tabIndex={0} aria-label="More products. Swipe left or scroll horizontally to see more products.">
+                    <div className="products-horizontal-scroll" tabIndex={0} aria-label={`${t('moreProducts')}. ${t('swipeForMore')}`}>
                       {section.products.map(product => (
                         <div className="products-horizontal-item" key={product.id}>
                           <ProductCard product={product} />
@@ -450,7 +452,7 @@ export default function Products() {
             {!searchTerm.trim() && hasMoreProducts && (
               <div className="products-load-more" style={{ display: 'flex', justifyContent: 'center', margin: '28px 0 8px' }}>
                 <button type="button" className="view-details-btn" onClick={() => void loadMoreProducts()} disabled={isLoadingMore}>
-                  {isLoadingMore ? 'Loading more products...' : 'Load More Products'}
+                  {isLoadingMore ? t('loadingMoreProducts') : t('loadMoreProducts')}
                 </button>
               </div>
             )}
