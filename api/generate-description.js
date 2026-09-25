@@ -136,6 +136,34 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  // Public, rate-limited translation path reused by product cards to stay within
+  // Vercel Hobby's serverless-function limit. It never changes price or stock.
+  if (req.body?.action === 'translate-content') {
+    const language = text(req.body.language, 12)
+    const items = Array.isArray(req.body.items) ? req.body.items.slice(0, 20).map(item => ({
+      id: text(item?.id, 100), name: text(item?.name), description: text(item?.description), category: text(item?.category, 120),
+    })).filter(item => item.id && (item.name || item.description || item.category)) : []
+    if (!language || language === 'en' || !items.length) return res.status(200).json({ translations: {} })
+    const translationKey = process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || process.env.BUILT_IN_FORGE_API_KEY
+    if (!translationKey || !rateLimit(`translate:${req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown'}`)) return res.status(200).json({ translations: {} })
+    const provider = process.env.GROQ_API_KEY ? 'groq' : 'openai'
+    const base = (provider === 'groq' ? 'https://api.groq.com/openai/v1' : process.env.OPENAI_BASE_URL || process.env.BUILT_IN_FORGE_API_URL || 'https://api.openai.com/v1').replace(/\/$/, '')
+    const localeName = ({ zh:'Simplified Chinese', es:'Spanish', fr:'French', pt:'Brazilian Portuguese', ar:'Arabic', hi:'Hindi', bn:'Bengali', ru:'Russian', ja:'Japanese', ko:'Korean', de:'German', it:'Italian', tr:'Turkish', vi:'Vietnamese', id:'Indonesian', nl:'Dutch', pl:'Polish', sw:'Swahili', ha:'Hausa', mg:'Malagasy' })[language] || language
+    try {
+      const response = await fetch(`${base}/chat/completions`, { method: 'POST', headers: { Authorization: `Bearer ${translationKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({
+        model: process.env.RELIABLE_TRANSLATION_MODEL || (provider === 'groq' ? 'openai/gpt-oss-20b' : 'gpt-4o-mini'),
+        messages: [{ role: 'system', content: `Translate marketplace product content into ${localeName}. Return JSON only as {\"translations\":[{\"id\":string,\"name\":string,\"description\":string,\"category\":string}]}. Preserve product facts, numbers, measurements, currency codes, brand names, URLs, and SKU-like codes.` }, { role: 'user', content: JSON.stringify(items) }],
+        response_format: { type: 'json_object' }, max_tokens: 5000,
+      }) })
+      if (!response.ok) return res.status(200).json({ translations: {} })
+      const content = extractChatContent(await response.json())
+      const parsed = JSON.parse(content)
+      const rows = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.translations) ? parsed.translations : [])
+      const translations = Object.fromEntries(rows.map(row => [text(row?.id, 100), { name: text(row?.name), description: text(row?.description), category: text(row?.category, 120) }]).filter(([id]) => id))
+      return res.status(200).json({ translations })
+    } catch (error) { console.error('[RELIABLE_TRANSLATION]', error?.message || error); return res.status(200).json({ translations: {} }) }
+  }
+
   const rawLength = Number(req.headers['content-length'] || 0);
   if (rawLength > MAX_REQUEST_BYTES) return res.status(413).json({ error: 'Request is too large.' });
 

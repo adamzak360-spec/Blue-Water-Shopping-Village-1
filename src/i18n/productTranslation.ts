@@ -12,7 +12,7 @@ async function requestTranslation(language: LanguageCode, product: Product) {
   if (language === 'en') return
   const key = keyFor(language, product)
   if (memoryCache.has(key) || pending.has(key)) return pending.get(key)
-  const promise = fetch('/api/translate-content', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ language, items: [{ id: product.id, name: product.name, description: product.description || '', category: product.category || '' }] }) })
+  const promise = fetch('/api/generate-description', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'translate-content', language, items: [{ id: product.id, name: product.name, description: product.description || '', category: product.category || '' }] }) })
     .then(response => response.ok ? response.json() : { translations: {} })
     .then(payload => { const translated = payload?.translations?.[product.id]; if (translated) memoryCache.set(key, { name: translated.name || product.name, description: translated.description || product.description || '', category: translated.category || product.category }) })
     .catch(() => undefined)
