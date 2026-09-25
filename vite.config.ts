@@ -4,6 +4,9 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  preview: {
+    allowedHosts: ['4173-i2to2vybx4cy4xohrvjee-38a391b3.us4.manus.computer'],
+  },
   build: {
     rollupOptions: {
       output: {
