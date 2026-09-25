@@ -8,6 +8,7 @@ import { formatCurrency } from '../utils/currency'
 import StockStatus from './StockStatus'
 import { recordPromotionClick, recordPromotionImpression } from '../services/promotionService'
 import { translateCategory, useI18n } from '../i18n'
+import { useTranslatedProduct } from '../i18n/productTranslation'
 import { getOriginalImageUrl, getResponsiveImageSet, getOptimizedImageUrl } from '../utils/imageDelivery'
 
 interface ProductCardProps {
@@ -239,6 +240,7 @@ function MarketplaceListProductCard({
 
 export default function ProductCard({ product, showStock = true, isSponsored = false, promotionId, featuredMedia = false }: ProductCardProps) {
   const { language, t } = useI18n()
+  const displayProduct = useTranslatedProduct(product, language)!
   const { addToCart } = useCart()
   const discount = getDiscountPercentage(product)
 
@@ -251,7 +253,7 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
   if (product.card_style === 'compact-grid') {
     return (
       <CompactProductCard
-        product={product}
+        product={displayProduct}
         isSponsored={isSponsored}
         promotionId={promotionId}
         featuredMedia={featuredMedia}
@@ -264,7 +266,7 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
   if (product.card_style === 'marketplace-list') {
     return (
       <MarketplaceListProductCard
-        product={product}
+        product={displayProduct}
         showStock={showStock}
         isSponsored={isSponsored}
         promotionId={promotionId}
@@ -280,12 +282,12 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
     <div className="product-card">
       <Link to={`/product/${product.id}`} className="product-image-link">
         <div className="product-image-container">
-          <ProductImage product={product} featuredMedia={featuredMedia} />
+          <ProductImage product={displayProduct} featuredMedia={featuredMedia} />
           {discount !== null && <span className="product-standard-discount">-{discount}%</span>}
           <button
             type="button"
             className={`product-wishlist-btn ${saved ? 'active' : ''}`}
-            aria-label={saved ? `${t('removeFromWishlist')} ${product.name}` : `${t('addToWishlist')} ${product.name}`}
+            aria-label={saved ? `${t('removeFromWishlist')} ${displayProduct.name}` : `${t('addToWishlist')} ${displayProduct.name}`}
             aria-pressed={saved}
             onClick={(event) => {
               event.preventDefault()
@@ -300,7 +302,7 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
 
       <div className="product-info">
         {isSponsored && <span className="product-sponsored-badge">{t('sponsored')}</span>}
-        <span className="product-category">{translateCategory(product.category, language)}</span>
+        <span className="product-category">{translateCategory(displayProduct.category, language)}</span>
         <Link
           to={`/product/${product.id}`}
           className="product-name-link"
@@ -308,9 +310,9 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
             if (isSponsored && promotionId) void recordPromotionClick(promotionId)
           }}
         >
-          <h4 className="product-name">{product.name}</h4>
+          <h4 className="product-name">{displayProduct.name}</h4>
         </Link>
-        <p className="product-description">{product.description}</p>
+        <p className="product-description">{displayProduct.description}</p>
         <div className="product-price-stock">
           <div className="product-price-row">
             <span className="product-price">{formatCurrency(product.price, product.currency || 'GHS')}</span>

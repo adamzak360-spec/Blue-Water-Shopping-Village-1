@@ -20,6 +20,7 @@ import BusinessSocialLinks from '../components/BusinessSocialLinks'
 import { applyProductSeo, resetProductSeo } from '../utils/seo'
 import { getOptimizedImageUrl, getOriginalImageUrl, getResponsiveImageSet } from '../utils/imageDelivery'
 import { translateCategory, useI18n } from '../i18n'
+import { useTranslatedProduct } from '../i18n/productTranslation'
 import './ProductDetails.css'
 
 export default function ProductDetails() {
@@ -43,6 +44,7 @@ export default function ProductDetails() {
   const [mainMediaIndex, setMainMediaIndex] = useState(0)
   const [selectedSizes, setSelectedSizes] = useState<string[]>([])
   const [sizeError, setSizeError] = useState('')
+  const displayProduct = useTranslatedProduct(product, language)
 
   // Review Form State
   const [reviewName, setReviewName] = useState('')
@@ -308,7 +310,7 @@ export default function ProductDetails() {
     )
   }
 
-  if (error || !product) {
+  if (error || !product || !displayProduct) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center' }}>
         <h2>{error || t('productNotFound')}</h2>
@@ -543,9 +545,9 @@ export default function ProductDetails() {
                 <ChevronLeft size={16} /> {t('products')}
               </Link>
               <span className="breadcrumb-separator">/</span>
-              <span className="breadcrumb-current">{translateCategory(product.category, language)}</span>
+              <span className="breadcrumb-current">{translateCategory(displayProduct.category, language)}</span>
             </div>
-            <h1 className="product-title">{product.name}</h1>
+            <h1 className="product-title">{displayProduct.name}</h1>
             {sellerBusiness && (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', margin: '12px 0' }}>
@@ -601,7 +603,7 @@ export default function ProductDetails() {
           {/* Description */}
           <div className="product-description-section">
             <h3>{t('description')}</h3>
-            <p className="product-description">{product.description}</p>
+            <p className="product-description">{displayProduct.description}</p>
           </div>
 
           {/* Size Selection */}
