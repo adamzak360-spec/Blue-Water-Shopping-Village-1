@@ -6,6 +6,7 @@ import { AppErrorBoundary } from './components/AppErrorBoundary'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
 import { WishlistProvider } from './context/WishlistContext'
+import { I18nProvider } from './i18n'
 import './index.css'
 import './animations.css'
 import './components/ProductGrid.css' // Ensure grid styles have priority
@@ -22,6 +23,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AppErrorBoundary>
       <Router>
+        <I18nProvider>
         <AuthProvider>
           <CartProvider>
             <WishlistProvider>
@@ -29,6 +31,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             </WishlistProvider>
           </CartProvider>
         </AuthProvider>
+        </I18nProvider>
       </Router>
     </AppErrorBoundary>
   </React.StrictMode>,

@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { Mail, Phone, MapPin, Clock } from 'lucide-react'
 import './Footer.css'
+import { useI18n } from '../i18n'
 
 export default function Footer() {
+  const { t } = useI18n()
   return (
     <footer className="site-footer">
       <div className="footer-container">
@@ -12,7 +14,7 @@ export default function Footer() {
             <div className="footer-logo">
               <span className="footer-logo-text">RELIABLE</span>
             </div>
-            <p className="footer-tagline">Premium Marketplace</p>
+            <p className="footer-tagline">{t('premiumMarketplace')}</p>
             <p className="footer-description">
               RELIABLE is your trusted online marketplace for premium products.
               We deliver quality, convenience, and exceptional service straight
@@ -22,33 +24,33 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Quick Links */}
+        {/* {t('quickLinks')} */}
         <div className="footer-section">
-          <h4 className="footer-heading">Quick Links</h4>
+          <h4 className="footer-heading">{t('quickLinks')}</h4>
           <ul className="footer-links">
-            <li><Link to="/">Home</Link></li>
-            <li><Link to="/products">Products</Link></li>
-            <li><Link to="/articles">Articles</Link></li>
-            <li><Link to="/about">About Us</Link></li>
-            <li><Link to="/contact">Contact Us</Link></li>
+            <li><Link to="/">{t('home')}</Link></li>
+            <li><Link to="/products">{t('products')}</Link></li>
+            <li><Link to="/articles">{t('articles')}</Link></li>
+            <li><Link to="/about">{t('aboutUs')}</Link></li>
+            <li><Link to="/contact">{t('contactUs')}</Link></li>
             <li><Link to="/faq">FAQ</Link></li>
-            <li><Link to="/delivery">Delivery Information</Link></li>
+            <li><Link to="/delivery">{t('deliveryInformation')}</Link></li>
           </ul>
         </div>
 
-        {/* Policies */}
+        {/* {t('policies')} */}
         <div className="footer-section">
-          <h4 className="footer-heading">Policies</h4>
+          <h4 className="footer-heading">{t('policies')}</h4>
           <ul className="footer-links">
-            <li><Link to="/privacy-policy">Privacy Policy</Link></li>
-            <li><Link to="/terms">Terms &amp; Conditions</Link></li>
-            <li><Link to="/returns">Return &amp; Refund Policy</Link></li>
+            <li><Link to="/privacy-policy">{t('privacyPolicy')}</Link></li>
+            <li><Link to="/terms">{t('terms')}</Link></li>
+            <li><Link to="/returns">{t('returns')}</Link></li>
           </ul>
         </div>
 
         {/* Contact Information */}
         <div className="footer-section">
-          <h4 className="footer-heading">Contact Us</h4>
+          <h4 className="footer-heading">{t('contactUs')}</h4>
           <div className="footer-contact">
             <div className="contact-item">
               <Phone size={18} />
@@ -82,7 +84,7 @@ export default function Footer() {
             <a href="#" className="social-link" title="WhatsApp">WhatsApp</a>
           </div>
           <p className="footer-copyright">
-            &copy; {new Date().getFullYear()} RELIABLE. All rights reserved.
+            &copy; {new Date().getFullYear()} RELIABLE. {t('allRightsReserved')}
           </p>
         </div>
       </div>

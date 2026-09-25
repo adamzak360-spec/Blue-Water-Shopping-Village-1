@@ -90,6 +90,8 @@ import TermsPopup from './components/TermsPopup'
 import WhatsAppButton from './components/WhatsAppButton'
 import InstallAppPrompt from './components/InstallAppPrompt'
 import { MARKETPLACE_CATEGORY_LABELS } from './utils/marketplaceCategories'
+import { useI18n } from './i18n'
+import LanguageSelector from './components/LanguageSelector'
 const LOCAL_MARKETPLACE_LOGO = '/logo-square.png?v=reliable-exact-logo-v1'
 const RELIABLE_BRAND_YELLOW = '#FFC400'
 const LEGACY_LOGO_MARKERS = ['logo-1786897784238.png', 'logo-1786796959602.png']
@@ -119,6 +121,7 @@ function App() {
 
 function AppShell() {
   const { user, isAdmin, role } = useAuth()
+  const { t } = useI18n()
   const { cartCount, setIsCartOpen } = useCart()
   const { wishlistCount } = useWishlist()
   const location = useLocation()
@@ -208,7 +211,7 @@ function AppShell() {
       <header className={`app-header ${isScrolled ? 'scrolled' : ''}`}>
         <div className="header-container container">
           <div className="header-left">
-            <button className="menu-toggle" onClick={toggleMenu} aria-label="Toggle Menu">
+            <button className="menu-toggle" onClick={toggleMenu} aria-label={t('categories')}>
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
             <Link to="/" className="brand-logo">
@@ -222,7 +225,7 @@ function AppShell() {
               <Search className="search-icon" size={18} />
               <input 
                 type="text" 
-                placeholder="Search products, categories..." 
+                placeholder={t('searchProducts')} 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -230,14 +233,15 @@ function AppShell() {
           </div>
 
           <div className="header-right">
-            <Link to="/stores" className="nav-text-link">Stores</Link>
-            <Link to="/products" className="nav-text-link" onMouseEnter={prefetchProducts}>Shop</Link>
-            <Link to="/about" className="nav-text-link" onMouseEnter={prefetchAbout}>About Us</Link>
-            <Link to="/seller/register" className="nav-text-link nav-sell-link" onMouseEnter={prefetchSellerRegister}>Sell</Link>
-            <Link to={user ? "/customer" : "/login"} className="nav-icon-link" title="Account">
+            <LanguageSelector />
+            <Link to="/stores" className="nav-text-link">{t('stores')}</Link>
+            <Link to="/products" className="nav-text-link" onMouseEnter={prefetchProducts}>{t('shop')}</Link>
+            <Link to="/about" className="nav-text-link" onMouseEnter={prefetchAbout}>{t('aboutUs')}</Link>
+            <Link to="/seller/register" className="nav-text-link nav-sell-link" onMouseEnter={prefetchSellerRegister}>{t('sell')}</Link>
+            <Link to={user ? "/customer" : "/login"} className="nav-icon-link" title={t('account')}>
               <User size={22} />
             </Link>
-            <Link to={user ? "/customer/wishlist" : "/login"} className="nav-icon-link wishlist-nav-link" title="Wishlist" aria-label="Wishlist">
+            <Link to={user ? "/customer/wishlist" : "/login"} className="nav-icon-link wishlist-nav-link" title={t('wishlist')} aria-label={t('wishlist')}>
               <Heart size={22} className={wishlistCount > 0 ? 'heart-active' : ''} />
               {wishlistCount > 0 && <span className="wishlist-badge animate-pop">{wishlistCount}</span>}
             </Link>
@@ -262,10 +266,10 @@ function AppShell() {
               type="search"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search products, brands, categories…"
-              aria-label="Search products, brands, categories"
+              placeholder={t('searchProductsBrands')}
+              aria-label={t('searchProductsBrands')}
             />
-            <button type="submit">Search</button>
+            <button type="submit">{t('search')}</button>
           </form>
         </div>
       )}
@@ -280,10 +284,11 @@ function AppShell() {
           <button onClick={toggleMenu}><X size={24} /></button>
         </div>
         <nav className="drawer-nav">
-          <Link to="/" className="drawer-item" onMouseEnter={prefetchHome}><HomeIcon size={20} /> Home</Link>
-          <Link to="/products" className="drawer-item" onMouseEnter={prefetchProducts}><Package size={20} /> Categories</Link>
+          <div className="drawer-language-selector"><LanguageSelector /></div>
+          <Link to="/" className="drawer-item" onMouseEnter={prefetchHome}><HomeIcon size={20} /> {t('home')}</Link>
+          <Link to="/products" className="drawer-item" onMouseEnter={prefetchProducts}><Package size={20} /> {t('categories')}</Link>
           <section className="drawer-categories" aria-labelledby="drawer-categories-heading">
-            <h2 id="drawer-categories-heading" className="drawer-section-title">Our Categories</h2>
+            <h2 id="drawer-categories-heading" className="drawer-section-title">{t('ourCategories')}</h2>
             <div className="drawer-category-list">
               {marketplaceCategories.map(({ label, icon: CategoryIcon }) => (
                 <Link key={label} to={`/products?category=${encodeURIComponent(label)}`} className="drawer-category-item" onMouseEnter={prefetchProducts}>
@@ -293,43 +298,43 @@ function AppShell() {
               ))}
             </div>
           </section>
-          <Link to="/products?filter=deals" className="drawer-item" onMouseEnter={prefetchProducts}><Tag size={20} /> Deals</Link>
+          <Link to="/products?filter=deals" className="drawer-item" onMouseEnter={prefetchProducts}><Tag size={20} /> {t('deals')}</Link>
           <Link to="/seller/register" className="drawer-item" style={{ color: '#059669', fontWeight: 'bold' }} onMouseEnter={prefetchSellerRegister}>
-            <Tag size={20} /> Start Selling
+            <Tag size={20} /> {t('startSelling')}
           </Link>
           {user && (
             <>
               {(isAdmin || role === 'seller') && (
                 <Link to="/dashboard" className="drawer-item admin-item" onMouseEnter={prefetchDashboard} style={{ color: '#0066cc', fontWeight: 'bold' }}>
-                  <Settings size={20} /> {isAdmin ? 'Admin Dashboard' : 'Seller Dashboard'}
+                  <Settings size={20} /> {isAdmin ? t('adminDashboard') : t('sellerDashboard')}
                 </Link>
               )}
               {(isAdmin || role === 'seller') && (
                 <Link to="/advertise" className="drawer-item" style={{ color: '#059669', fontWeight: 'bold' }}>
-                  <Tag size={20} /> Advertise on Reliable
+                  <Tag size={20} /> {t('advertise')}
                 </Link>
               )}
-              <Link to="/customer/orders" className="drawer-item"><Package size={20} /> Orders</Link>
-              <Link to="/stores" className="drawer-item"><StoreIcon size={20} /> Stores</Link>
-              <Link to="/customer/wishlist" className="drawer-item"><Heart size={20} /> Wishlist {wishlistCount > 0 && <span className="drawer-count">{wishlistCount}</span>}</Link>
-              <Link to="/customer" className="drawer-item"><User size={20} /> Account</Link>
+              <Link to="/customer/orders" className="drawer-item"><Package size={20} /> {t('orders')}</Link>
+              <Link to="/stores" className="drawer-item"><StoreIcon size={20} /> {t('stores')}</Link>
+              <Link to="/customer/wishlist" className="drawer-item"><Heart size={20} /> {t('wishlist')} {wishlistCount > 0 && <span className="drawer-count">{wishlistCount}</span>}</Link>
+              <Link to="/customer" className="drawer-item"><User size={20} /> {t('account')}</Link>
             </>
           )}
           <div className="drawer-divider"></div>
-          <Link to="/?view=news" className="drawer-item"><Newspaper size={20} /> Marketplace News</Link>
-          <Link to="/articles" className="drawer-item" onMouseEnter={prefetchArticles}><BookOpen size={20} /> Articles</Link>
-          <Link to="/about" className="drawer-item" onMouseEnter={prefetchAbout}><Info size={20} /> About</Link>
-          <Link to="/contact" className="drawer-item" onMouseEnter={prefetchContact}><Phone size={20} /> Contact</Link>
-          <Link to="/faq" className="drawer-item" onMouseEnter={prefetchFAQ}><HelpCircle size={20} /> Support</Link>
-          <Link to="/customer/settings" className="drawer-item"><Settings size={20} /> Settings</Link>
+          <Link to="/?view=news" className="drawer-item"><Newspaper size={20} /> {t('marketplaceNews')}</Link>
+          <Link to="/articles" className="drawer-item" onMouseEnter={prefetchArticles}><BookOpen size={20} /> {t('articles')}</Link>
+          <Link to="/about" className="drawer-item" onMouseEnter={prefetchAbout}><Info size={20} /> {t('about')}</Link>
+          <Link to="/contact" className="drawer-item" onMouseEnter={prefetchContact}><Phone size={20} /> {t('contact')}</Link>
+          <Link to="/faq" className="drawer-item" onMouseEnter={prefetchFAQ}><HelpCircle size={20} /> {t('support')}</Link>
+          <Link to="/customer/settings" className="drawer-item"><Settings size={20} /> {t('settings')}</Link>
           {user ? (
             <div className="drawer-footer">
               <LogoutButton />
             </div>
           ) : (
             <>
-              <Link to="/stores" className="drawer-item"><StoreIcon size={20} /> Stores</Link>
-              <Link to="/login" className="drawer-item login-item" onMouseEnter={prefetchLogin}><User size={20} /> Login / Register</Link>
+              <Link to="/stores" className="drawer-item"><StoreIcon size={20} /> {t('stores')}</Link>
+              <Link to="/login" className="drawer-item login-item" onMouseEnter={prefetchLogin}><User size={20} /> {t('loginRegister')}</Link>
             </>
           )}
         </nav>
@@ -341,10 +346,10 @@ function AppShell() {
       <AuthOutageNotice />
       <main className="app-main">
         <Suspense fallback={
-          <div className="loading-screen" aria-label="Loading Reliable" role="status">
+          <div className="loading-screen" aria-label={t('loadingReliable')} role="status">
             <div className="loading-card">
               <img src={marketplaceLogoUrl} alt="Reliable" className={`loading-logo marketplace-brand-logo logo-shape-${marketplaceLogoShape}`} />
-              <span className="loading-label">Loading Reliable</span>
+              <span className="loading-label">{t('loadingReliable')}</span>
               <span className="loading-signal" aria-hidden="true"><i /><i /><i /></span>
             </div>
           </div>

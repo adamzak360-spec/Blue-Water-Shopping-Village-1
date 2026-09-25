@@ -410,3 +410,11 @@ input:focus, textarea:focus, select:focus {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+
+/* Direction-aware layout: Arabic switches the document to RTL through I18nProvider. */
+html[dir="rtl"] body { text-align: right; }
+html[dir="rtl"] .alert { border-left: 0; border-right: 4px solid; }
+html[dir="rtl"] .search-icon { left: auto; right: 1rem; }
+html[dir="rtl"] .search-container input { padding-left: 1rem; padding-right: 2.5rem; }
+html[dir="rtl"] .drawer-nav, html[dir="rtl"] .drawer-header { direction: rtl; }
