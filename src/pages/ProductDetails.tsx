@@ -19,6 +19,7 @@ import VerifiedSellerBadge from '../components/VerifiedSellerBadge'
 import BusinessSocialLinks from '../components/BusinessSocialLinks'
 import { applyProductSeo, resetProductSeo } from '../utils/seo'
 import { getOptimizedImageUrl, getOriginalImageUrl, getResponsiveImageSet } from '../utils/imageDelivery'
+import { useI18n } from '../i18n'
 import './ProductDetails.css'
 
 export default function ProductDetails() {
@@ -27,6 +28,7 @@ export default function ProductDetails() {
   const { addToCart } = useCart()
   const { user } = useAuth()
   const { isWishlisted, toggleWishlist } = useWishlist()
+  const { t } = useI18n()
 
   const [product, setProduct] = useState<Product | null>(null)
   const [sellerBusiness, setSellerBusiness] = useState<Business | null>(null)
@@ -90,14 +92,14 @@ export default function ProductDetails() {
     const loadProductAndReviews = async () => {
       try {
         if (!productId) {
-          setError('Product not found')
+          setError(t('productNotFound'))
           setIsLoading(false)
           return
         }
 
         const productData = await getProductById(productId)
         if (!productData) {
-          setError('Product not found')
+          setError(t('productNotFound'))
           setIsLoading(false)
           return
         }
@@ -240,13 +242,13 @@ export default function ProductDetails() {
     // remain purchasable using their base stock.
     const hasSelectableVariants = variants.length > 0
     if (hasSelectableVariants && selectedSizes.length === 0) {
-      setSizeError('Please select at least one size')
+      setSizeError(t('selectSizes'))
       return
     }
 
     const availableStock = currentStock
     if (availableStock <= 0) {
-      setSizeError('This product is currently out of stock')
+      setSizeError(t('outOfStock'))
       return
     }
     if (quantity > availableStock) {
@@ -301,7 +303,7 @@ export default function ProductDetails() {
   if (isLoading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-        <div>Loading product details...</div>
+        <div>{t('loadingReliable')}...</div>
       </div>
     )
   }
@@ -309,9 +311,9 @@ export default function ProductDetails() {
   if (error || !product) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center' }}>
-        <h2>{error || 'Product not found'}</h2>
-        <Link to="/products" style={{ color: '#0066cc', textDecoration: 'underline' }}>
-          Back to Products
+        <h2>{error || t('productNotFound')}</h2>
+        <Link to="/products" style={{ color: '#0066cc', textDecoration: 'underline' }} >
+          {t('backToProducts')}
         </Link>
       </div>
     )
@@ -365,7 +367,7 @@ export default function ProductDetails() {
   const specItems: { label: string; value: string }[] = []
 
   if (product.brand) {
-    specItems.push({ label: 'Brand', value: product.brand })
+    specItems.push({ label: t('brand'), value: product.brand })
   }
   if (product.condition) {
     specItems.push({ label: 'Condition', value: product.condition })
@@ -402,11 +404,11 @@ export default function ProductDetails() {
 
   // Always show these
   specItems.push({ label: 'Category', value: product.category })
-  specItems.push({ label: 'Stock Available', value: `${product.stock_quantity} units` })
+  specItems.push({ label: t('stockAvailable'), value: `${product.stock_quantity} units` })
   specItems.push({ label: 'Product Status', value: product.status.charAt(0).toUpperCase() + product.status.slice(1) })
   specItems.push({
-    label: 'Availability',
-    value: isOutOfStock ? 'Out of Stock' : 'In Stock'
+    label: t('availability'),
+    value: isOutOfStock ? t('outOfStock') : t('inStock')
   })
 
   // Calculate display price info
@@ -464,7 +466,7 @@ export default function ProductDetails() {
                       fetchPriority="high"
                       onError={(event) => handleImageFallback(event, mainMedia.url)}
                     />
-                    <button className="lightbox-btn" aria-label="Zoom image">
+                    <button className="lightbox-btn" aria-label={t('zoomImage')}>
                       <ZoomIn size={20} />
                     </button>
                   </>
@@ -480,7 +482,7 @@ export default function ProductDetails() {
               </div>
             ) : (
               <div className="product-image-placeholder-large">
-                <span>No media available</span>
+                <span>{t('noMediaAvailable')}</span>
               </div>
             )}
           </div>
@@ -538,7 +540,7 @@ export default function ProductDetails() {
           <div className="product-header">
             <div className="breadcrumb">
               <Link to="/products" className="breadcrumb-link">
-                <ChevronLeft size={16} /> Products
+                <ChevronLeft size={16} /> {t('products')}
               </Link>
               <span className="breadcrumb-separator">/</span>
               <span className="breadcrumb-current">{product.category}</span>
@@ -548,7 +550,7 @@ export default function ProductDetails() {
               <>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', margin: '12px 0' }}>
                   <Link to={`/store/${sellerBusiness.slug}`} style={{ fontWeight: 700, color: '#1f2937', textDecoration: 'none' }}>
-                    Sold by {sellerBusiness.name}
+                    {t('soldBy')} {sellerBusiness.name}
                   </Link>
                   <VerifiedSellerBadge status={sellerBusiness.verification_status} compact />
                 </div>
@@ -567,7 +569,7 @@ export default function ProductDetails() {
               {ratingStats.totalReviews > 0 && (
                 <>
                   {renderStars(Math.round(ratingStats.averageRating))}
-                  <span className="review-count">({ratingStats.totalReviews} reviews)</span>
+                  <span className="review-count">({ratingStats.totalReviews} {t('reviews')})</span>
                 </>
               )}
               <span className="product-sku">SKU: {product.sku || product.id.slice(0, 8)}</span>
@@ -598,14 +600,14 @@ export default function ProductDetails() {
 
           {/* Description */}
           <div className="product-description-section">
-            <h3>Description</h3>
+            <h3>{t('description')}</h3>
             <p className="product-description">{product.description}</p>
           </div>
 
           {/* Size Selection */}
           {variants.length > 0 && (
             <div className="size-selection-section">
-              <h3 className="section-title">Select Sizes (Multiple allowed)</h3>
+              <h3 className="section-title">{t('selectSizes')}</h3>
               <div className="size-options">
                 {variants.map((variant) => {
                   const variantStock = Math.max(0, Number(variant.stock_quantity) || 0)
@@ -644,7 +646,7 @@ export default function ProductDetails() {
 
           {/* Quantity Selection */}
           <div className="quantity-section">
-            <label>Quantity:</label>
+            <label>{t('quantity')}:</label>
             <div className="quantity-control">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -656,7 +658,7 @@ export default function ProductDetails() {
               <button
                 onClick={() => setQuantity(Math.min(currentStock, quantity + 1))}
                 disabled={quantity >= currentStock}
-                aria-label="Increase quantity"
+                aria-label={t('quantity')}
               >
                 <Plus size={18} />
               </button>
@@ -665,9 +667,9 @@ export default function ProductDetails() {
 
           {/* Action Buttons */}
           <div className="action-buttons">
-            <button className="chat-product-btn" onClick={handleChat} disabled={!sellerBusiness} aria-label={chatUnreadCount > 0 ? `Chat with Seller, ${chatUnreadCount} unread ${chatUnreadCount === 1 ? 'message' : 'messages'}` : 'Chat with Seller'}>
+            <button className="chat-product-btn" onClick={handleChat} disabled={!sellerBusiness} aria-label={t('chatWithSeller')}>
               <MessageCircle size={20} />
-              <span>Chat with Seller</span>
+              <span>{t('chatWithSeller')}</span>
               {chatUnreadCount > 0 && <span className="chat-unread-badge" aria-label={`${chatUnreadCount} unread ${chatUnreadCount === 1 ? 'message' : 'messages'}`}>{chatUnreadCount > 99 ? '99+' : chatUnreadCount}</span>}
             </button>
             <button
@@ -676,7 +678,7 @@ export default function ProductDetails() {
               disabled={isOutOfStock}
             >
               <ShoppingCart size={20} />
-              {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+              {isOutOfStock ? t('outOfStock') : t('addToCart')}
             </button>
             <button
               className={`wishlist-btn ${product && isWishlisted(product.id) ? 'active' : ''}`}

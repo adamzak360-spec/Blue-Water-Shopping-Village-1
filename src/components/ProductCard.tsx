@@ -7,6 +7,7 @@ import { useWishlist } from '../context/WishlistContext'
 import { formatCurrency } from '../utils/currency'
 import StockStatus from './StockStatus'
 import { recordPromotionClick, recordPromotionImpression } from '../services/promotionService'
+import { useI18n } from '../i18n'
 import { getOriginalImageUrl, getResponsiveImageSet, getOptimizedImageUrl } from '../utils/imageDelivery'
 
 interface ProductCardProps {
@@ -45,6 +46,7 @@ function getDiscountPercentage(product: Product) {
 }
 
 function ProductImage({ product, featuredMedia, className = '' }: { product: Product; featuredMedia: boolean; className?: string }) {
+  const { t } = useI18n()
   return (
     <>
       {product.image_url ? (
@@ -82,19 +84,20 @@ function ProductImage({ product, featuredMedia, className = '' }: { product: Pro
         />
       ) : null}
       <div className={`product-image-placeholder ${!product.image_url && !(featuredMedia && product.video_urls?.[0]) ? 'visible' : ''}`}>
-        <span>No image</span>
+        <span>{t('noMediaAvailable')}</span>
       </div>
     </>
   )
 }
 
 function CompactProductCard({ product, isSponsored, promotionId, featuredMedia, saved, toggleWishlist }: CompactProductCardProps) {
+  const { t } = useI18n()
   const discount = getDiscountPercentage(product)
 
   return (
     <article className="product-card product-card--compact-grid">
       <div className="compact-card-media">
-        <Link to={`/product/${product.id}`} className="product-image-link" aria-label={`View details for ${product.name}`}>
+        <Link to={`/product/${product.id}`} className="product-image-link" aria-label={`${t('viewDetails')} for ${product.name}`}>
           <div className="product-image-container">
             <ProductImage product={product} featuredMedia={featuredMedia} />
           </div>
@@ -102,7 +105,7 @@ function CompactProductCard({ product, isSponsored, promotionId, featuredMedia, 
         <button
           type="button"
           className={`product-wishlist-btn ${saved ? 'active' : ''}`}
-          aria-label={saved ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`}
+          aria-label={saved ? `${t('removeFromWishlist')} ${product.name}` : `${t('addToWishlist')} ${product.name}`}
           aria-pressed={saved}
           onClick={(event) => {
             event.preventDefault()
@@ -115,7 +118,7 @@ function CompactProductCard({ product, isSponsored, promotionId, featuredMedia, 
         {discount !== null && <span className="compact-card-discount">-{discount}%</span>}
       </div>
       <div className="compact-card-content">
-        {isSponsored && <span className="compact-card-sponsored">Sponsored</span>}
+        {isSponsored && <span className="compact-card-sponsored">{t('sponsored')}</span>}
         <Link
           to={`/product/${product.id}`}
           className="compact-card-name-link"
@@ -146,19 +149,20 @@ function MarketplaceListProductCard({
   toggleWishlist,
   addToCart,
 }: MarketplaceListProductCardProps) {
+  const { t } = useI18n()
   const rating = Math.max(0, Math.min(5, Number(product.average_rating || 0)))
   const roundedRating = Math.round(rating)
   const reviewCount = product.review_count || 0
   const stars = `${'★'.repeat(roundedRating)}${'☆'.repeat(5 - roundedRating)}`
   const deliveryFee = product.delivery_fee_tamale
   const deliveryText = typeof deliveryFee === 'number' && deliveryFee > 0
-    ? `Delivery from ${formatCurrency(deliveryFee, product.currency || 'GHS')}`
-    : 'Delivery available'
+    ? `${t('deliveryFrom')} ${formatCurrency(deliveryFee, product.currency || 'GHS')}`
+    : t('deliveryAvailable')
 
   return (
     <article className="product-card product-card--marketplace-list">
       <div className="product-list-media">
-        <Link to={`/product/${product.id}`} className="product-image-link" aria-label={`View ${product.name}`}>
+        <Link to={`/product/${product.id}`} className="product-image-link" aria-label={`${t('viewDetails')} ${product.name}`}>
           <div className="product-image-container">
             <ProductImage product={product} featuredMedia={featuredMedia} />
           </div>
@@ -166,7 +170,7 @@ function MarketplaceListProductCard({
         <button
           type="button"
           className={`product-wishlist-btn ${saved ? 'active' : ''}`}
-          aria-label={saved ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`}
+          aria-label={saved ? `${t('removeFromWishlist')} ${product.name}` : `${t('addToWishlist')} ${product.name}`}
           aria-pressed={saved}
           onClick={(event) => {
             event.preventDefault()
@@ -180,8 +184,8 @@ function MarketplaceListProductCard({
 
       <div className="product-list-content">
         <div className="product-list-topline">
-          {isSponsored && <span className="product-list-label">Sponsored</span>}
-          {product.card_style === 'marketplace-list' && <span className="product-list-style-label">Marketplace pick</span>}
+          {isSponsored && <span className="product-list-label">{t('sponsored')}</span>}
+          {product.card_style === 'marketplace-list' && <span className="product-list-style-label">{t('marketplacePick')}</span>}
         </div>
         <Link
           to={`/product/${product.id}`}
@@ -193,8 +197,8 @@ function MarketplaceListProductCard({
           <h3 className="product-list-name">{product.name}</h3>
         </Link>
         {product.description && <p className="product-list-description">{product.description}</p>}
-        <div className="product-list-rating" aria-label={`${rating.toFixed(1)} out of 5 stars${reviewCount ? ` from ${reviewCount} reviews` : ''}`}>
-          <span className="product-list-rating-number">{rating > 0 ? rating.toFixed(1) : 'New'}</span>
+        <div className="product-list-rating" aria-label={`${rating.toFixed(1)} out of 5 stars${reviewCount ? ` ${t('reviews')}` : ''}`}>
+          <span className="product-list-rating-number">{rating > 0 ? rating.toFixed(1) : t('newProduct')}</span>
           {rating > 0 && <span className="product-list-stars" aria-hidden="true">{stars}</span>}
           {reviewCount > 0 && <span className="product-list-review-count">({reviewCount.toLocaleString()})</span>}
         </div>
@@ -205,7 +209,7 @@ function MarketplaceListProductCard({
           )}
         </div>
         <p className="product-list-delivery">{deliveryText}</p>
-        {product.brand && <p className="product-list-meta">Brand: <strong>{product.brand}</strong></p>}
+        {product.brand && <p className="product-list-meta">{t('brand')}: <strong>{product.brand}</strong></p>}
         {product.features && <p className="product-list-meta product-list-features">{product.features}</p>}
         {showStock && <div className="product-list-stock"><StockStatus stock={product.stock_quantity} size="medium" /></div>}
         <div className="product-list-actions">
@@ -216,7 +220,7 @@ function MarketplaceListProductCard({
               if (isSponsored && promotionId) void recordPromotionClick(promotionId)
             }}
           >
-            View details
+            {t('viewDetails')}
           </Link>
           <button
             type="button"
@@ -225,7 +229,7 @@ function MarketplaceListProductCard({
             disabled={product.stock_quantity === 0 || product.status === 'inactive'}
           >
             <ShoppingCart size={17} aria-hidden="true" />
-            {product.stock_quantity === 0 ? 'Out of stock' : 'Add to cart'}
+            {product.stock_quantity === 0 ? t('outOfStock') : t('addToCart')}
           </button>
         </div>
       </div>
@@ -234,6 +238,7 @@ function MarketplaceListProductCard({
 }
 
 export default function ProductCard({ product, showStock = true, isSponsored = false, promotionId, featuredMedia = false }: ProductCardProps) {
+  const { t } = useI18n()
   const { addToCart } = useCart()
   const discount = getDiscountPercentage(product)
 
@@ -280,7 +285,7 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
           <button
             type="button"
             className={`product-wishlist-btn ${saved ? 'active' : ''}`}
-            aria-label={saved ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`}
+            aria-label={saved ? `${t('removeFromWishlist')} ${product.name}` : `${t('addToWishlist')} ${product.name}`}
             aria-pressed={saved}
             onClick={(event) => {
               event.preventDefault()
@@ -294,7 +299,7 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
       </Link>
 
       <div className="product-info">
-        {isSponsored && <span className="product-sponsored-badge">Sponsored</span>}
+        {isSponsored && <span className="product-sponsored-badge">{t('sponsored')}</span>}
         <span className="product-category">{product.category}</span>
         <Link
           to={`/product/${product.id}`}
@@ -327,7 +332,7 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
               if (isSponsored && promotionId) void recordPromotionClick(promotionId)
             }}
           >
-            View Details
+            {t('viewDetails')}
           </Link>
           <button
             className="add-to-cart-btn"
@@ -337,7 +342,7 @@ export default function ProductCard({ product, showStock = true, isSponsored = f
             }}
             disabled={product.stock_quantity === 0 || product.status === 'inactive'}
           >
-            {product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+            {product.stock_quantity === 0 ? t('outOfStock') : t('addToCart')}
           </button>
         </div>
       </div>

@@ -17,6 +17,7 @@ import { getDeliveryMethodsForBusiness, getProductDeliveryMethods, DELIVERY_CONT
 import { getProductById } from '../services/productService'
 import { supabase } from '../supabaseClient'
 import './Checkout.css'
+import { useI18n } from '../i18n'
 
 const GUEST_CHECKOUT_ENABLED = true
 
@@ -26,6 +27,7 @@ const DEFAULT_BUSINESS_ID = '00000000-0000-0000-0000-000000000001'
 export default function Checkout() {
   const { cart, cartSubtotal, clearCart } = useCart()
   const { user, isLoading: authLoading } = useAuth()
+  const { t } = useI18n()
   const navigate = useNavigate()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [paymentStep, setPaymentStep] = useState<'form' | 'payment' | 'verifying'>('form')
@@ -218,9 +220,9 @@ export default function Checkout() {
     return (
       <div className="checkout-page empty">
         <div className="page-container">
-          <h2>Your cart is empty</h2>
-          <p>Add some products to your cart before checking out.</p>
-          <button className="btn-primary" onClick={() => navigate('/products')}>Browse Products</button>
+          <h2>{t('emptyCart')}</h2>
+          <p>{t('addProductsBeforeCheckout')}</p>
+          <button className="btn-primary" onClick={() => navigate('/products')}>{t('browseProducts')}</button>
         </div>
       </div>
     )
@@ -231,11 +233,11 @@ export default function Checkout() {
       <div className="checkout-page account-required-checkout">
         <div className="page-container">
           <div className="account-required-card">
-            <h2>Create a customer account to continue.</h2>
-            <p>Sign in or create an account to keep your order history, delivery details, and notifications together.</p>
+            <h2>{t('createAccountToContinue')}</h2>
+            <p>{t('orderHistoryPrompt')}</p>
             <div className="account-required-actions">
-              <button className="btn-primary" onClick={() => navigate(`/register?redirect=${encodeURIComponent('/checkout')}`)}>Create Customer Account</button>
-              <button className="btn-secondary" onClick={() => navigate(`/login?redirect=${encodeURIComponent('/checkout')}`)}>Login</button>
+              <button className="btn-primary" onClick={() => navigate(`/register?redirect=${encodeURIComponent('/checkout')}`)}>{t('createCustomerAccount')}</button>
+              <button className="btn-secondary" onClick={() => navigate(`/login?redirect=${encodeURIComponent('/checkout')}`)}>{t('login')}</button>
             </div>
           </div>
         </div>
@@ -466,7 +468,7 @@ export default function Checkout() {
         
         localStorage.removeItem('checkout_state')
         clearCart()
-        alert('Payment successful! Your order has been placed. A confirmation email has been sent.')
+        alert(t('paymentSuccessful'))
         
         if (user) {
           navigate('/customer/orders')
@@ -554,7 +556,7 @@ export default function Checkout() {
         <div className="checkout-form-section">
           {paymentStep === 'form' && (
             <>
-              <h2>Customer Information</h2>
+              <h2>{t('account')} {t('contactUs')}</h2>
               <div className={`checkout-store-status ${hasMultipleStores ? 'multiple' : 'single'}`} role="status">
                 <strong>{hasMultipleStores ? 'Multiple stores in this cart' : 'Single-store checkout'}</strong>
                 {hasMultipleStores ? (
@@ -576,7 +578,7 @@ export default function Checkout() {
               </div>
               <form onSubmit={handleFormSubmit} className="checkout-form">
                 <div className="form-group">
-                  <label htmlFor="fullName">Full Name *</label>
+                  <label htmlFor="fullName">{t('fullName')} *</label>
                   <input
                     type="text"
                     id="fullName"
@@ -589,7 +591,7 @@ export default function Checkout() {
                 </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="email">Email *</label>
+                    <label htmlFor="email">{t('emailAddress')} *</label>
                     <input
                       type="email"
                       id="email"
@@ -601,7 +603,7 @@ export default function Checkout() {
                     />
                   </div>
                   <div className="form-group">
-                    <label htmlFor="phone">Phone Number *</label>
+                    <label htmlFor="phone">{t('phoneNumber')} *</label>
                     <input
                       type="tel"
                       id="phone"
@@ -614,7 +616,7 @@ export default function Checkout() {
                   </div>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="address">Delivery Address *</label>
+                  <label htmlFor="address">{t('deliveryAddress')} *</label>
                   <input
                     type="text"
                     id="address"
@@ -627,7 +629,7 @@ export default function Checkout() {
                 </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="city">City *</label>
+                    <label htmlFor="city">{t('city')} *</label>
                     <input
                       type="text"
                       id="city"
@@ -639,7 +641,7 @@ export default function Checkout() {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="region">Region *</label>
+                  <label htmlFor="region">{t('region')} *</label>
                   <input
                     type="text"
                     id="region"
@@ -652,9 +654,9 @@ export default function Checkout() {
                   </div>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="deliveryMethod">Delivery Method *</label>
+                  <label htmlFor="deliveryMethod">{t('deliveryMethod')} *</label>
                   {deliveryLoading ? (
-                    <p className="delivery-loading-message">Loading delivery options...</p>
+                    <p className="delivery-loading-message">{t('deliveryOptionsLoading')}</p>
                   ) : deliveryOptions.length === 0 ? (
                     <p className="delivery-empty-message">
                       {businessResolutionPending || unresolvedBusinessItems
@@ -695,7 +697,7 @@ export default function Checkout() {
                   </div>
                 )}
                 <div className="form-group">
-                  <label htmlFor="notes">Additional Notes</label>
+                  <label htmlFor="notes">{t('additionalNotes')}</label>
                   <textarea
                     id="notes"
                     name="notes"
@@ -706,14 +708,14 @@ export default function Checkout() {
                   />
                 </div>
                 <button type="submit" className="submit-order-btn" disabled={isSubmitting || businessResolutionPending || unresolvedBusinessItems || hasMultipleStores || deliveryLoading || deliveryOptions.length === 0 || !formData.deliveryMethod}>
-                  {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
+                  {isSubmitting ? t('processing') : t('proceedToPayment')}
                 </button>
               </form>
               
               <div className="checkout-help-section">
-                <p>Need help with your order?</p>
+                <p>{t('needHelp')}</p>
                 <a href="tel:+233595609966" className="checkout-call-btn">
-                  📞 Call us: +233 59 560 9966
+                  📞 {t('callUs')}: +233 59 560 9966
                 </a>
               </div>
             </>
@@ -721,8 +723,8 @@ export default function Checkout() {
 
           {paymentStep === 'payment' && (
             <div className="payment-processing">
-              <h2>Processing Payment</h2>
-              <p>You will be redirected to Paystack to complete your payment.</p>
+              <h2>{t('processingPayment')}</h2>
+              <p>{t('redirectedToPaystack')}</p>
               <p>If you are not redirected, click the button below:</p>
               <button className="submit-order-btn" onClick={handlePaymentVerification}>
                 Verify Payment
@@ -732,14 +734,14 @@ export default function Checkout() {
 
           {paymentStep === 'verifying' && (
             <div className="payment-verifying">
-              <h2>Verifying Payment</h2>
-              <p>Please wait while we verify your payment...</p>
+              <h2>{t('verifyingPayment')}</h2>
+              <p>{t('verifyingPaymentWait')}</p>
             </div>
           )}
         </div>
 
         <div className="order-summary-section">
-          <h2>Order Summary</h2>
+          <h2>{t('orderSummary')}</h2>
           <div className="order-summary-card">
             <div className="summary-items">
               {cart.map((item, index) => (
@@ -771,18 +773,18 @@ export default function Checkout() {
                 <span>{formatCurrency(cartSubtotal, cart[0]?.currency || 'GHS')}</span>
               </div>
               <div className="summary-row">
-                <span>Delivery Fee</span>
+                <span>{t('deliveryFee')}</span>
                 <span>{formatCurrency(deliveryFee, cart[0]?.currency || 'GHS')}</span>
               </div>
               <div className="summary-row total">
-                <span>Total</span>
+                <span>{t('total')}</span>
                 <span>{formatCurrency(total, cart[0]?.currency || 'GHS')}</span>
               </div>
             </div>
           </div>
           {paymentStep === 'form' && (
             <button className="back-to-products" onClick={() => navigate('/products')}>
-              &larr; Back to Products
+              &larr; {t('backToProducts')}
             </button>
           )}
         </div>
