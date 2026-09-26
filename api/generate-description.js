@@ -93,6 +93,38 @@ function extractChatContent(payload) {
   return '';
 }
 
+function sourceHash(item) {
+  return crypto.createHash('sha256').update(`${item.name}\u0000${item.description}\u0000${item.category}`).digest('hex');
+}
+
+function supabaseAdminConfig() {
+  const url = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY || '';
+  return url && key ? { url, key } : null;
+}
+
+async function readTranslationCache(language, items) {
+  const config = supabaseAdminConfig();
+  if (!config) return new Map();
+  const ids = items.map(item => item.id).filter(id => /^[0-9a-f-]{36}$/i.test(id));
+  if (!ids.length) return new Map();
+  const query = `${config.url}/rest/v1/product_translations?select=product_id,language_code,source_hash,name,description,category&language_code=eq.${encodeURIComponent(language)}&product_id=in.(${ids.join(',')})`;
+  const response = await fetch(query, { headers: { apikey: config.key, Authorization: `Bearer ${config.key}` } });
+  if (!response.ok) return new Map();
+  const rows = await response.json();
+  return new Map(rows.map(row => [row.product_id, row]));
+}
+
+async function writeTranslationCache(language, rows) {
+  const config = supabaseAdminConfig();
+  if (!config || !rows.length) return;
+  await fetch(`${config.url}/rest/v1/product_translations`, {
+    method: 'POST',
+    headers: { apikey: config.key, Authorization: `Bearer ${config.key}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify(rows.map(row => ({ product_id: row.id, language_code: language, source_hash: row.sourceHash, name: row.name, description: row.description, category: row.category, updated_at: new Date().toISOString() }))),
+  });
+}
+
 async function researchProduct(input) {
   if (process.env.RELIABLE_AI_WEB_RESEARCH === 'false') return '';
 
@@ -136,32 +168,46 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // Public, rate-limited translation path reused by product cards to stay within
-  // Vercel Hobby's serverless-function limit. It never changes price or stock.
+  // Cache-first batched translation path. A page can submit many cards in one
+  // request; only new or edited source text reaches the translation provider.
   if (req.body?.action === 'translate-content') {
     const language = text(req.body.language, 12)
-    const items = Array.isArray(req.body.items) ? req.body.items.slice(0, 20).map(item => ({
+    const items = Array.isArray(req.body.items) ? req.body.items.slice(0, 60).map(item => ({
       id: text(item?.id, 100), name: text(item?.name), description: text(item?.description), category: text(item?.category, 120),
     })).filter(item => item.id && (item.name || item.description || item.category)) : []
     if (!language || language === 'en' || !items.length) return res.status(200).json({ translations: {} })
+    const cached = await readTranslationCache(language, items)
+    const translations = {}
+    const misses = []
+    for (const item of items) {
+      const row = cached.get(item.id)
+      if (row && row.source_hash === sourceHash(item)) translations[item.id] = { name: row.name, description: row.description, category: row.category }
+      else misses.push(item)
+    }
+    if (!misses.length) return res.status(200).json({ translations, cached: true, translatedCount: 0 })
     const translationKey = process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || process.env.BUILT_IN_FORGE_API_KEY
-    if (!translationKey || !rateLimit(`translate:${req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown'}`)) return res.status(200).json({ translations: {} })
+    if (!translationKey || !rateLimit(`translate-batch:${language}`)) return res.status(200).json({ translations, cached: true, translatedCount: 0 })
     const provider = process.env.GROQ_API_KEY ? 'groq' : 'openai'
     const base = (provider === 'groq' ? 'https://api.groq.com/openai/v1' : process.env.OPENAI_BASE_URL || process.env.BUILT_IN_FORGE_API_URL || 'https://api.openai.com/v1').replace(/\/$/, '')
     const localeName = ({ zh:'Simplified Chinese', es:'Spanish', fr:'French', pt:'Brazilian Portuguese', ar:'Arabic', hi:'Hindi', bn:'Bengali', ru:'Russian', ja:'Japanese', ko:'Korean', de:'German', it:'Italian', tr:'Turkish', vi:'Vietnamese', id:'Indonesian', nl:'Dutch', pl:'Polish', sw:'Swahili', ha:'Hausa', mg:'Malagasy' })[language] || language
     try {
       const response = await fetch(`${base}/chat/completions`, { method: 'POST', headers: { Authorization: `Bearer ${translationKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({
         model: process.env.RELIABLE_TRANSLATION_MODEL || (provider === 'groq' ? 'openai/gpt-oss-20b' : 'gpt-4o-mini'),
-        messages: [{ role: 'system', content: `Translate marketplace product content into ${localeName}. Return JSON only as {\"translations\":[{\"id\":string,\"name\":string,\"description\":string,\"category\":string}]}. Preserve product facts, numbers, measurements, currency codes, brand names, URLs, and SKU-like codes.` }, { role: 'user', content: JSON.stringify(items) }],
-        response_format: { type: 'json_object' }, max_tokens: 5000,
+        messages: [{ role: 'system', content: `Translate marketplace product content into ${localeName}. Return JSON only as {\"translations\":[{\"id\":string,\"name\":string,\"description\":string,\"category\":string}]}. Preserve product facts, numbers, measurements, currency codes, brand names, URLs, and SKU-like codes.` }, { role: 'user', content: JSON.stringify(misses) }],
+        response_format: { type: 'json_object' }, max_tokens: 12000,
       }) })
-      if (!response.ok) return res.status(200).json({ translations: {} })
+      if (!response.ok) return res.status(200).json({ translations, cached: true, translatedCount: 0 })
       const content = extractChatContent(await response.json())
       const parsed = JSON.parse(content)
       const rows = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.translations) ? parsed.translations : [])
-      const translations = Object.fromEntries(rows.map(row => [text(row?.id, 100), { name: text(row?.name), description: text(row?.description), category: text(row?.category, 120) }]).filter(([id]) => id))
-      return res.status(200).json({ translations })
-    } catch (error) { console.error('[RELIABLE_TRANSLATION]', error?.message || error); return res.status(200).json({ translations: {} }) }
+      const cacheRows = rows.map(row => {
+        const item = misses.find(candidate => candidate.id === text(row?.id, 100))
+        return item ? { id: item.id, sourceHash: sourceHash(item), name: text(row?.name) || item.name, description: text(row?.description) || item.description, category: text(row?.category, 120) || item.category } : null
+      }).filter(Boolean)
+      for (const row of cacheRows) translations[row.id] = { name: row.name, description: row.description, category: row.category }
+      await writeTranslationCache(language, cacheRows)
+      return res.status(200).json({ translations, cached: false, translatedCount: cacheRows.length })
+    } catch (error) { console.error('[RELIABLE_TRANSLATION]', error?.message || error); return res.status(200).json({ translations, cached: true, translatedCount: 0 }) }
   }
 
   const rawLength = Number(req.headers['content-length'] || 0);
