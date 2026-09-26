@@ -1,6 +1,7 @@
 {
   "crons": [
-    { "path": "/api/payouts", "schedule": "0 0 * * *" }
+    { "path": "/api/payouts", "schedule": "0 0 * * *" },
+    { "path": "/api/generate-description?mode=translation-worker", "schedule": "30 0 * * *" }
   ],
   "headers": [
     {

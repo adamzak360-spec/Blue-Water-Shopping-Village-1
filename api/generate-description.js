@@ -125,6 +125,59 @@ async function writeTranslationCache(language, rows) {
   });
 }
 
+async function runTranslationWorker(req) {
+  const config = supabaseAdminConfig();
+  if (!config) return { processed: 0, error: 'Supabase server configuration is missing.' };
+  const now = new Date().toISOString();
+  const jobsResponse = await fetch(`${config.url}/rest/v1/product_translation_jobs?select=product_id,language_code,source_hash,attempts&or=(status.eq.pending,status.eq.failed)&attempts=lt.3&available_at=lte.${encodeURIComponent(now)}&order=updated_at.asc&limit=60`, {
+    headers: { apikey: config.key, Authorization: `Bearer ${config.key}` },
+  });
+  if (!jobsResponse.ok) throw new Error(`Could not read translation jobs (${jobsResponse.status})`);
+  const jobs = await jobsResponse.json();
+  if (!jobs.length) return { processed: 0, message: 'No translation jobs ready.' };
+  const ids = [...new Set(jobs.map(job => job.product_id))];
+  const productsResponse = await fetch(`${config.url}/rest/v1/products?select=id,name,description,category,status&id=in.(${ids.join(',')})&status=eq.active`, {
+    headers: { apikey: config.key, Authorization: `Bearer ${config.key}` },
+  });
+  if (!productsResponse.ok) throw new Error(`Could not read products (${productsResponse.status})`);
+  const products = await productsResponse.json();
+  const byId = new Map(products.map(product => [product.id, product]));
+  const grouped = new Map();
+  for (const job of jobs) {
+    const product = byId.get(job.product_id);
+    if (!product) continue;
+    const list = grouped.get(job.language_code) || [];
+    list.push({ id: product.id, name: text(product.name), description: text(product.description), category: text(product.category, 120) });
+    grouped.set(job.language_code, list);
+    await fetch(`${config.url}/rest/v1/product_translation_jobs?product_id=eq.${job.product_id}&language_code=eq.${job.language_code}`, {
+      method: 'PATCH', headers: { apikey: config.key, Authorization: `Bearer ${config.key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ status: 'processing', locked_at: now, updated_at: now, attempts: Number(job.attempts || 0) + 1 }),
+    });
+  }
+  let processed = 0;
+  for (const [language, items] of grouped) {
+    const host = req.headers.host;
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const response = await fetch(`${protocol}://${host}/api/generate-description`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.CRON_SECRET || ''}` },
+      body: JSON.stringify({ action: 'translate-content', language, items }),
+    });
+    const payload = response.ok ? await response.json() : { translations: {} };
+    for (const item of items) {
+      const translated = payload.translations?.[item.id];
+      const job = jobs.find(candidate => candidate.product_id === item.id && candidate.language_code === language);
+      const body = translated
+        ? { status: 'completed', completed_at: new Date().toISOString(), locked_at: null, last_error: null, updated_at: new Date().toISOString() }
+        : { status: 'failed', available_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(), locked_at: null, last_error: 'Translation provider returned no result.', updated_at: new Date().toISOString() };
+      await fetch(`${config.url}/rest/v1/product_translation_jobs?product_id=eq.${item.id}&language_code=eq.${language}`, {
+        method: 'PATCH', headers: { apikey: config.key, Authorization: `Bearer ${config.key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(body),
+      });
+      if (translated && job) processed += 1;
+    }
+  }
+  return { processed, queued: jobs.length, languages: grouped.size };
+}
+
 async function researchProduct(input) {
   if (process.env.RELIABLE_AI_WEB_RESEARCH === 'false') return '';
 
@@ -166,6 +219,16 @@ async function researchProduct(input) {
 module.exports = async (req, res) => {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method === 'GET' && req.query?.mode === 'translation-worker') {
+    const supplied = req.headers.authorization?.replace(/^Bearer\s+/i, '') || req.headers['x-cron-secret'] || '';
+    if (!process.env.CRON_SECRET || supplied !== process.env.CRON_SECRET) return res.status(401).json({ error: 'Unauthorized worker request.' });
+    try {
+      return res.status(200).json(await runTranslationWorker(req));
+    } catch (error) {
+      console.error('[RELIABLE_TRANSLATION_WORKER]', error?.message || error);
+      return res.status(500).json({ error: 'Translation worker failed.' });
+    }
+  }
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   // Cache-first batched translation path. A page can submit many cards in one
