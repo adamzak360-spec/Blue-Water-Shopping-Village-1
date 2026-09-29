@@ -31,8 +31,8 @@
 }
 
 .whatsapp-icon {
-  width: 39px;
-  height: 39px;
+  width: 44px;
+  height: 44px;
   color: #fff;
   display: block;
   position: relative;
@@ -52,7 +52,9 @@
 }
 
 .whatsapp-logo-phone {
-  stroke-width: 1.8;
+  stroke-width: 2.05;
+  transform: translate(-0.1px, 0.15px) scale(1.2);
+  transform-origin: 16px 16px;
 }
 
 /* Soft expanding rounded-square radiation behind the button. */
@@ -116,8 +118,8 @@
   }
 
   .whatsapp-icon {
-    width: 36px;
-    height: 36px;
+    width: 41px;
+    height: 41px;
   }
 }
 
@@ -138,7 +140,7 @@
   }
 
   .whatsapp-icon {
-    width: 33px;
-    height: 33px;
+    width: 38px;
+    height: 38px;
   }
 }
