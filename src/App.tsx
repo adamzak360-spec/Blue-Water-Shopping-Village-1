@@ -86,7 +86,6 @@ const prefetchContact = () => import('./pages/Contact')
 const prefetchFAQ = () => import('./pages/FAQ')
 const prefetchArticles = () => import('./pages/Articles')
 const prefetchLogin = () => import('./pages/Login')
-import TermsPopup from './components/TermsPopup'
 import WhatsAppButton from './components/WhatsAppButton'
 import InstallAppPrompt from './components/InstallAppPrompt'
 import { MARKETPLACE_CATEGORY_LABELS } from './utils/marketplaceCategories'
@@ -342,7 +341,6 @@ function AppShell() {
       </aside>
       <div className={`drawer-overlay ${isMenuOpen ? 'show' : ''}`} onClick={toggleMenu}></div>
 
-      <TermsPopup />
       <InstallAppPrompt />
       <AuthOutageNotice />
       <main className="app-main">
