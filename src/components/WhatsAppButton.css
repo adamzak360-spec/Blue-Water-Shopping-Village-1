@@ -1,11 +1,11 @@
-/* Floating WhatsApp button: standard green WhatsApp-style control with a subtle beep/pulse. */
+/* Floating WhatsApp button: rounded-square app icon with a subtle beep/radiation effect. */
 .whatsapp-float {
   position: fixed;
   bottom: 30px;
   right: 30px;
   width: 60px;
   height: 60px;
-  border-radius: 50%;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -20,7 +20,7 @@
   height: 60px;
   background: #25d366;
   border: 0;
-  border-radius: 50%;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -31,21 +31,36 @@
 }
 
 .whatsapp-icon {
-  width: 36px;
-  height: 36px;
+  width: 39px;
+  height: 39px;
   color: #fff;
   display: block;
   position: relative;
   z-index: 3;
 }
 
-/* Soft notification ring keeps the requested beeping signal without changing
-   the familiar WhatsApp button shape or making it look like a custom widget. */
+.whatsapp-logo-ring,
+.whatsapp-logo-phone {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.whatsapp-logo-ring {
+  stroke-width: 2.15;
+}
+
+.whatsapp-logo-phone {
+  stroke-width: 1.8;
+}
+
+/* Soft expanding rounded-square radiation behind the button. */
 .whatsapp-pulse {
   position: absolute;
   width: 60px;
   height: 60px;
-  border-radius: 50%;
+  border-radius: 18px;
   background: #25d366;
   opacity: 0;
   animation: whatsapp-pulse-animation 2.8s ease-out infinite;
@@ -90,17 +105,19 @@
     right: 20px;
     width: 56px;
     height: 56px;
+    border-radius: 17px;
   }
 
   .whatsapp-button-inner,
   .whatsapp-pulse {
     width: 56px;
     height: 56px;
+    border-radius: 17px;
   }
 
   .whatsapp-icon {
-    width: 33px;
-    height: 33px;
+    width: 36px;
+    height: 36px;
   }
 }
 
@@ -110,16 +127,18 @@
     right: 16px;
     width: 52px;
     height: 52px;
+    border-radius: 16px;
   }
 
   .whatsapp-button-inner,
   .whatsapp-pulse {
     width: 52px;
     height: 52px;
+    border-radius: 16px;
   }
 
   .whatsapp-icon {
-    width: 30px;
-    height: 30px;
+    width: 33px;
+    height: 33px;
   }
 }
