@@ -91,7 +91,24 @@ export default function ProductDetails() {
   }, [product, mainMediaIndex])
 
   useEffect(() => {
+    let cancelled = false
+
     const loadProductAndReviews = async () => {
+      // A detail component remains mounted when only :productId changes.
+      // Clear the previous product immediately so a new click never appears
+      // to leave the visitor on the old product while the new record loads.
+      setIsLoading(true)
+      setError('')
+      setProduct(null)
+      setSellerBusiness(null)
+      setVariants([])
+      setRelatedProducts([])
+      setReviews([])
+      setRatingStats({ averageRating: 0, totalReviews: 0 })
+      setSelectedSizes([])
+      setQuantity(1)
+      setMainMediaIndex(0)
+
       try {
         if (!productId) {
           setError(t('productNotFound'))
@@ -100,6 +117,7 @@ export default function ProductDetails() {
         }
 
         const productData = await getProductById(productId)
+        if (cancelled) return
         if (!productData) {
           setError(t('productNotFound'))
           setIsLoading(false)
@@ -162,6 +180,7 @@ export default function ProductDetails() {
 
         getBoundedPublicCatalogProducts('PRODUCTS', { category: productData.category, limit: 8 })
           .then(categoryProducts => {
+            if (cancelled) return
             const related = categoryProducts
               .filter(p => p.id !== productId)
               .slice(0, 4)
@@ -170,21 +189,32 @@ export default function ProductDetails() {
           .catch(err => console.error('Failed to load related products:', err))
 
         getApprovedReviewsByProductId(productId)
-          .then(setReviews)
+          .then(nextReviews => {
+            if (!cancelled) setReviews(nextReviews)
+          })
           .catch(err => console.error('Failed to load reviews:', err))
 
         getProductRatingStats(productId)
-          .then(setRatingStats)
+          .then(nextRatingStats => {
+            if (!cancelled) setRatingStats(nextRatingStats)
+          })
           .catch(err => console.error('Failed to load rating stats:', err))
 
       } catch (err) {
         console.error('Unexpected error in loadProductAndReviews:', err)
+        if (!cancelled) setError(t('productNotFound'))
       } finally {
-        setIsLoading(false)
+        if (!cancelled) setIsLoading(false)
       }
     }
 
     loadProductAndReviews()
+    return () => {
+      // Ignore late responses from the previous product when a visitor clicks
+      // another product before the first detail request has completed.
+      // The request itself is handled by Supabase; only state updates stop.
+      cancelled = true
+    }
   }, [productId])
 
   useEffect(() => {
