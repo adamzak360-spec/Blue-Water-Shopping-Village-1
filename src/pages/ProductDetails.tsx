@@ -124,6 +124,10 @@ export default function ProductDetails() {
           return
         }
         setProduct(productData)
+        // Render the destination as soon as the product itself is available.
+        // Seller, variant, review, and related-product data are enhancements;
+        // none should make a valid product link appear unresponsive.
+        setIsLoading(false)
 
         if (productData.business_id && supabase) {
           const { data: businessData } = await supabase

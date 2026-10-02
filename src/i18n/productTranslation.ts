@@ -61,16 +61,34 @@ async function flushBatch(language: LanguageCode) {
 }
 
 export function useTranslatedProduct(product: Product | null, language: LanguageCode) {
-  const input = product ? { id: product.id, name: product.name, description: product.description || '', category: product.category || '' } : null
+  // Keep the input reference stable. Product cards render frequently (wishlist,
+  // cart and stock updates), and a fresh object here used to retrigger this
+  // effect on every render, creating needless translation work and rerenders.
+  const input = useMemo(() => product ? {
+    id: product.id,
+    name: product.name,
+    description: product.description || '',
+    category: product.category || '',
+  } : null, [product?.id, product?.name, product?.description, product?.category])
   const key = input ? keyFor(language, input) : `loading:${language}`
   const [translated, setTranslated] = useState<TranslatedFields>(() => input ? (memoryCache.get(key) || { name: input.name, description: input.description, category: translateCategory(input.category, language) }) : { name: '', description: '', category: '' })
   useEffect(() => {
     let active = true
     if (!product || !input) return () => { active = false }
     const cached = memoryCache.get(key)
-    setTranslated(cached || { name: input.name, description: input.description, category: translateCategory(input.category, language) })
-    queueBatch(language, input).then(() => { if (active) { const next = memoryCache.get(key); if (next) setTranslated(next) } })
+    const fallback = cached || { name: input.name, description: input.description, category: translateCategory(input.category, language) }
+    setTranslated(previous => previous.name === fallback.name && previous.description === fallback.description && previous.category === fallback.category ? previous : fallback)
+    // English is already the source language. Avoid sending every English card
+    // through the translation endpoint while still translating its category
+    // through the local static resource above.
+    if (language === 'en') return () => { active = false }
+    queueBatch(language, input).then(() => {
+      if (active) {
+        const next = memoryCache.get(key)
+        if (next) setTranslated(previous => previous.name === next.name && previous.description === next.description && previous.category === next.category ? previous : next)
+      }
+    })
     return () => { active = false }
-  }, [key, language, product, input])
+  }, [key, language, input])
   return useMemo(() => product ? ({ ...product, name: translated.name, description: translated.description, category: translated.category }) : null, [product, translated])
 }
