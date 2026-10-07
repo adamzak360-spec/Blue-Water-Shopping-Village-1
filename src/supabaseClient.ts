@@ -25,10 +25,13 @@ export const supabase = isSupabaseConfigured
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        // AuthContext performs the PKCE callback exchange exactly once. Keeping
-        // Supabase's automatic detector enabled as well caused both paths to
-        // consume the same OAuth code and could return visitors to /login.
-        detectSessionInUrl: false,
+        // Google OAuth returns an authorization code. PKCE makes the browser
+        // store a verifier before leaving the site and lets AuthContext safely
+        // exchange that code for the new user's session on return.
+        flowType: 'pkce',
+        // Let Supabase perform the single PKCE callback exchange and persist the
+        // resulting session before React route guards render.
+        detectSessionInUrl: true,
       },
     })
   : null
