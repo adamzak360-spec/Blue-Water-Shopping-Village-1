@@ -301,11 +301,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  color: #4285f4;
-  font-family: Arial, sans-serif;
-  font-size: 1.15rem;
-  font-weight: 700;
+  flex: 0 0 24px;
 }
 .auth-divider {
   display: flex;
