@@ -131,15 +131,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const initializeAuth = async () => {
       try {
-        // Supabase normally exchanges the OAuth code automatically. Explicitly
-        // handle it as well so mobile browsers and installed PWAs do not render
-        // Login before the callback session has been established.
+        // Supabase URL detection is disabled in supabaseClient.ts so this is the
+        // single owner of the PKCE callback exchange. This avoids a race where
+        // automatic detection and this handler both consume the same code.
         const callbackUrl = new URL(window.location.href)
         const code = callbackUrl.searchParams.get('code')
         if (code) {
           const { error } = await supabase!.auth.exchangeCodeForSession(code)
           if (error) {
             console.error('Google OAuth callback exchange failed:', error)
+            // Do not overwrite an already-restored session if another Supabase
+            // auth event completed the exchange first.
+            const { data: existingSession } = await supabase!.auth.getSession()
+            if (!existingSession.session) throw error
           } else {
             callbackUrl.searchParams.delete('code')
             callbackUrl.searchParams.delete('state')

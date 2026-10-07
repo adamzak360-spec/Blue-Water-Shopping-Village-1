@@ -25,7 +25,10 @@ export const supabase = isSupabaseConfigured
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true,
+        // AuthContext performs the PKCE callback exchange exactly once. Keeping
+        // Supabase's automatic detector enabled as well caused both paths to
+        // consume the same OAuth code and could return visitors to /login.
+        detectSessionInUrl: false,
       },
     })
   : null
