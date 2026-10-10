@@ -37,6 +37,25 @@ function imageType(value) {
   return 'image/jpeg';
 }
 
+function getArticleFallbackImage(article, origin) {
+  const categoryImages = {
+    'Shopping Guides': '/article-images/online-shopping.jpg',
+    'Seller Guides': '/article-images/african-seller.jpg',
+    Business: '/article-images/business-team.jpg',
+    'Product Advice': '/article-images/digital-shopping-payment.jpg',
+    'Ghana Marketplace': '/article-images/courier-delivery.jpg',
+    'Reliable Guides': '/article-images/digital-payment.jpg',
+    'News & Insights': '/article-images/package-delivery.jpg',
+  };
+  const title = `${article.title || ''} ${article.category || ''}`.toLowerCase();
+  const fallback = categoryImages[article.category]
+    || (/payment|pay|checkout|transfer|card/.test(title) ? '/article-images/digital-payment.jpg'
+      : /deliver|delivery|order|shipping|package|track/.test(title) ? '/article-images/package-delivery.jpg'
+        : /sell|seller|business|store|entrepreneur/.test(title) ? '/article-images/african-seller.jpg'
+          : '/article-images/entrepreneur.jpg');
+  return `${origin}${fallback}`;
+}
+
 async function renderArticleShare(req, res, supabaseUrl, anonKey, slug) {
   const now = new Date().toISOString();
   const endpoint = `${supabaseUrl}/rest/v1/articles?slug=eq.${encodeURIComponent(slug)}&status=eq.published&published_at=lte.${encodeURIComponent(now)}&select=id,title,slug,excerpt,featured_image,category,author_name,published_at,updated_at,reading_time_minutes&limit=1`;
@@ -46,7 +65,7 @@ async function renderArticleShare(req, res, supabaseUrl, anonKey, slug) {
 
   const origin = `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}`;
   const articleUrl = `${origin}/articles/${encodeURIComponent(article.slug)}`;
-  const image = absoluteUrl(article.featured_image, origin) || `${origin}/logo512.png`;
+  const image = absoluteUrl(article.featured_image, origin) || getArticleFallbackImage(article, origin);
   const title = escapeHtml(article.title);
   const category = escapeHtml(article.category || 'Reliable Guide');
   const author = escapeHtml(article.author_name || 'Reliable Premium Marketplace');
