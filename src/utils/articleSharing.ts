@@ -6,7 +6,7 @@ export function getArticlePageUrl(slug: string) {
 
 /** Social crawlers read the article image and excerpt from this endpoint before redirecting to the article. */
 export function getArticleShareUrl(slug: string) {
-  return new URL(`/api/share-article?slug=${encodeURIComponent(slug)}`, window.location.origin).toString()
+  return new URL(`/api/share-product?article=${encodeURIComponent(slug)}`, window.location.origin).toString()
 }
 
 export function getArticleShareText(article: Pick<ArticleCard, 'title' | 'excerpt'>) {
