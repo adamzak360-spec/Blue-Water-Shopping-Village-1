@@ -4,13 +4,28 @@ export function getProductPageUrl(productId: string) {
   return new URL(`/product/${encodeURIComponent(productId)}`, window.location.origin).toString()
 }
 
+/**
+ * This endpoint returns crawler-friendly Open Graph metadata before redirecting
+ * people to the real product page. Social platforms use it to build the image
+ * card shown beside the caption.
+ */
 export function getProductShareUrl(productId: string) {
   return new URL(`/api/share-product?id=${encodeURIComponent(productId)}`, window.location.origin).toString()
 }
 
+function cleanShareDescription(description: string | undefined) {
+  const cleaned = (description || '').replace(/\s+/g, ' ').trim()
+  return cleaned.length > 180 ? `${cleaned.slice(0, 177).trim()}…` : cleaned
+}
+
 export function getProductShareText(product: Product) {
-  const description = product.description?.replace(/\s+/g, ' ').trim()
-  return `${product.name} — ${product.price.toLocaleString('en-GH', { style: 'currency', currency: 'GHS' })}\n${description ? `${description.slice(0, 180)}${description.length > 180 ? '…' : ''}\n` : ''}Shop on Reliable: ${getProductPageUrl(product.id)}`
+  const description = cleanShareDescription(product.description)
+  const price = product.price.toLocaleString('en-GH', { style: 'currency', currency: product.currency || 'GHS' })
+  return [
+    `🛍️ ${product.name}`,
+    `${price} on Reliable Premium Marketplace`,
+    description,
+  ].filter(Boolean).join('\n')
 }
 
 export async function shareProduct(product: Product) {
@@ -53,7 +68,9 @@ export function getSocialShareLinks(product: Product) {
   const encodedText = encodeURIComponent(text)
   const encodedUrl = encodeURIComponent(shareUrl)
   return {
-    whatsapp: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
+    // Keep the caption and preview URL separate so WhatsApp renders one clean
+    // image card instead of showing duplicate product links in the message.
+    whatsapp: `https://wa.me/?text=${encodedText}%0A${encodedUrl}`,
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
     x: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
     telegram: `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`,

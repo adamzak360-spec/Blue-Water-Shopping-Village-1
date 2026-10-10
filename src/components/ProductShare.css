@@ -7,6 +7,13 @@
 .product-share-close { display: grid; place-items: center; border: 0; background: transparent; color: #667085; cursor: pointer; }
 .product-share-native { display: flex; align-items: center; justify-content: center; gap: .5rem; width: 100%; margin-bottom: .7rem; padding: .75rem; border: 0; border-radius: .55rem; background: #163b66; color: #fff; cursor: pointer; font-weight: 700; }
 .product-share-native:disabled { opacity: .65; cursor: wait; }
+.product-share-preview { display: grid; grid-template-columns: 4.3rem minmax(0, 1fr); gap: .7rem; margin: 0 0 .8rem; overflow: hidden; border: 1px solid #e7ecef; border-radius: .65rem; background: #f8fafc; }
+.product-share-preview img { width: 4.3rem; height: 4.3rem; object-fit: cover; background: #eef3f5; }
+.product-share-preview > div { min-width: 0; display: grid; align-content: center; gap: .18rem; padding: .5rem .55rem .5rem 0; }
+.product-share-preview span, .product-share-preview strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.product-share-preview__eyebrow { color: #059669; font-size: .58rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.product-share-preview strong { color: #163b66; font-size: .77rem; }
+.product-share-preview > div > span:last-child { color: #667085; font-size: .68rem; }
 .product-share-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
 .product-share-option { display: flex; align-items: center; justify-content: center; gap: .4rem; min-height: 2.6rem; padding: .45rem .55rem; border: 1px solid #e5e7eb; border-radius: .5rem; color: #344054; background: #fff; font-size: .8rem; font-weight: 700; text-decoration: none; cursor: pointer; }
 .product-share-option:hover { border-color: #98a2b3; background: #f8fafc; }

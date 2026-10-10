@@ -54,6 +54,14 @@ export default function ProductShare({ product }: ProductShareProps) {
           <button className="product-share-native" onClick={() => void handleNativeShare()} disabled={isSharing}>
             <Share2 size={18} /> {isSharing ? 'Preparing share…' : 'Share from your phone'}
           </button>
+          <div className="product-share-preview" aria-label="Share preview">
+            <img src={product.image_url} alt="" />
+            <div>
+              <span className="product-share-preview__eyebrow">Reliable Premium Marketplace</span>
+              <strong>{product.name}</strong>
+              <span>{product.description?.replace(/\s+/g, ' ').trim().slice(0, 105)}{product.description && product.description.trim().length > 105 ? '…' : ''}</span>
+            </div>
+          </div>
           <div className="product-share-grid">
             <a className="product-share-option whatsapp" href={links.whatsapp} target="_blank" rel="noreferrer" role="menuitem"><MessageCircle size={19} /> WhatsApp</a>
             <a className="product-share-option facebook" href={links.facebook} target="_blank" rel="noreferrer" role="menuitem"><span className="brand-letter">f</span> Facebook</a>
