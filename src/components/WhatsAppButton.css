@@ -10,7 +10,8 @@
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  z-index: 9999;
+  /* Cookie consent intentionally sits above this control until a choice is made. */
+  z-index: 1190;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
