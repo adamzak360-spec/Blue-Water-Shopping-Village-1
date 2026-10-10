@@ -8,6 +8,7 @@ import { getOptimizedImageUrl } from '../utils/imageDelivery'
 import { applyArticleSeo, resetArticleSeo } from '../utils/seo'
 import { sanitizeArticleHtml } from '../utils/articleContent'
 import { getArticleImage } from '../utils/articleImages'
+import { getArticleShareText, getArticleShareUrl, getArticleWhatsAppUrl } from '../utils/articleSharing'
 import './Articles.css'
 
 function slugifyHeading(value: string) {
@@ -73,7 +74,10 @@ export default function ArticleDetails() {
 
   const shareArticle = async () => {
     if (navigator.share && article) {
-      try { await navigator.share({ title: article.title, text: article.excerpt, url: articleUrl }); return } catch { /* user cancelled */ }
+      try {
+        await navigator.share({ title: article.title, text: getArticleShareText(article), url: getArticleShareUrl(article.slug) })
+        return
+      } catch { /* user cancelled */ }
     }
     await copyLink()
   }
@@ -100,7 +104,7 @@ export default function ArticleDetails() {
           </aside>
           <div className="article-body-column">
             <div className="article-body" dangerouslySetInnerHTML={{ __html: preparedBody.html }} />
-            <div className="article-inline-share"><strong>Found this useful?</strong><span>Share it with someone who may need it.</span><div><button type="button" onClick={() => void shareArticle()}><Share2 size={16} /> Share</button><a href={`https://wa.me/?text=${encodeURIComponent(`${article.title} ${articleUrl}`)}`} target="_blank" rel="noreferrer"><MessageCircle size={16} /> WhatsApp</a><button type="button" onClick={() => void copyLink()}>{copied ? <Check size={16} /> : <Copy size={16} />} {copied ? 'Copied' : 'Copy link'}</button></div></div>
+            <div className="article-inline-share"><strong>Found this useful?</strong><span>Share it with someone who may need it.</span><div><button type="button" onClick={() => void shareArticle()}><Share2 size={16} /> Share</button><a href={getArticleWhatsAppUrl(article)} target="_blank" rel="noreferrer"><MessageCircle size={16} /> WhatsApp</a><button type="button" onClick={() => void copyLink()}>{copied ? <Check size={16} /> : <Copy size={16} />} {copied ? 'Copied' : 'Copy link'}</button></div></div>
           </div>
         </div>
 
