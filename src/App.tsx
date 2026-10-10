@@ -88,6 +88,7 @@ const prefetchArticles = () => import('./pages/Articles')
 const prefetchLogin = () => import('./pages/Login')
 import WhatsAppButton from './components/WhatsAppButton'
 import InstallAppPrompt from './components/InstallAppPrompt'
+import CookieConsent from './components/CookieConsent'
 import { MARKETPLACE_CATEGORY_LABELS } from './utils/marketplaceCategories'
 import { translateCategory, useI18n } from './i18n'
 import LanguageSelector from './components/LanguageSelector'
@@ -455,6 +456,7 @@ function AppShell() {
       <CartSidebar />
       {!isAdminRoute && !isCustomerRoute && <Footer />}
       <WhatsAppButton />
+      <CookieConsent />
     </div>
   )
 }
