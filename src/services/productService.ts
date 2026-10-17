@@ -21,7 +21,9 @@ function stripNullCharacters<T>(value: T): T {
   if (Array.isArray(value)) return value.map(item => stripNullCharacters(item)) as T
   if (value && typeof value === 'object') {
     return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>).map(([key, item]) => [key, stripNullCharacters(item)]),
+      Object.entries(value as Record<string, unknown>)
+        .filter(([, item]) => item !== undefined)
+        .map(([key, item]) => [key.replace(/\u0000/g, ''), stripNullCharacters(item)]),
     ) as T
   }
   return value
@@ -324,6 +326,11 @@ export async function uploadProductImage(file: File): Promise<string> {
   }
 
   const uploadFile = cloneWithSafeName(await compressProductImage(file), `product-image.${getSafeImageExtension(file)}`)
+  // Pass a Blob rather than the browser File object. Android file providers
+  // can attach invalid control characters to File metadata even when the
+  // generated storage path is safe; the Blob keeps only the image bytes and
+  // MIME type that Supabase needs.
+  const uploadBody = new Blob([uploadFile], { type: uploadFile.type || file.type || 'application/octet-stream' })
   // Do not use the device-provided filename as the storage path. Some mobile
   // file providers expose control characters in File.name, which Supabase
   // rejects as "null character not permitted" even when the visible name is
@@ -332,7 +339,7 @@ export async function uploadProductImage(file: File): Promise<string> {
 
   const { data, error } = await supabase.storage
     .from(STORAGE_BUCKET)
-    .upload(fileName, uploadFile, {
+    .upload(fileName, uploadBody, {
       cacheControl: '31536000',
       upsert: false,
     })
