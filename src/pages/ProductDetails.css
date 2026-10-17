@@ -905,7 +905,6 @@
    card_style (standard, marketplace-list, or compact-grid). */
 .related-products-grid > .product-card {
   min-width: 0;
-  height: 100%;
 }
 
 .related-products-grid .product-card--marketplace-list {
@@ -920,6 +919,8 @@
 
 .related-products-grid .product-card--compact-grid {
   min-height: 0;
+  align-self: start;
+  height: max-content;
 }
 
 @media (max-width: 640px) {
