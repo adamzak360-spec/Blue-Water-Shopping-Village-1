@@ -13,6 +13,25 @@ const PUBLIC_CATALOG_CACHE_DURATION = 60 * 1000 // 1 minute
 const publicCatalogCache = new Map<string, { data: Product[]; timestamp: number }>()
 const publicCatalogRequests = new Map<string, Promise<Product[]>>()
 
+// PostgreSQL/Supabase rejects U+0000 in text and JSON strings. Mobile keyboards,
+// copied rich text, and some generated drafts can occasionally introduce it, so
+// clean payloads at the service boundary before any insert, update, or upload.
+function stripNullCharacters<T>(value: T): T {
+  if (typeof value === 'string') return value.replace(/\u0000/g, '') as T
+  if (Array.isArray(value)) return value.map(item => stripNullCharacters(item)) as T
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, item]) => [key, stripNullCharacters(item)]),
+    ) as T
+  }
+  return value
+}
+
+function safeStorageFileName(fileName: string, fallback: string) {
+  const cleaned = fileName.replace(/\u0000/g, '').trim()
+  return cleaned || fallback
+}
+
 // Fields required by ProductCard and cart/delivery calculations; intentionally excludes
 // detail-only specifications, galleries, and other large product payloads.
 const PUBLIC_CARD_SELECT = [
@@ -233,7 +252,7 @@ export async function createProduct(
 
   const { data, error } = await supabase
     .from('products')
-    .insert(productData)
+    .insert(stripNullCharacters(productData))
     .select()
     .single()
 
@@ -255,7 +274,7 @@ export async function updateProduct(
 
   const { data, error } = await supabase
     .from('products')
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(stripNullCharacters({ ...updates, updated_at: new Date().toISOString() }))
     .eq('id', id)
     .select()
     .single()
@@ -291,7 +310,7 @@ export async function uploadProductImage(file: File): Promise<string> {
   }
 
   const uploadFile = await compressProductImage(file)
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${uploadFile.name}`
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${safeStorageFileName(uploadFile.name, 'product-image')}`
 
   const { data, error } = await supabase.storage
     .from(STORAGE_BUCKET)
@@ -330,7 +349,7 @@ async function compressProductImage(file: File): Promise<File> {
 
     const compressed = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/webp', 0.82))
     if (!compressed || compressed.size >= file.size) return file
-    const baseName = file.name.replace(/\.[^.]+$/, '') || 'product-image'
+    const baseName = safeStorageFileName(file.name.replace(/\.[^.]+$/, ''), 'product-image')
     return new File([compressed], `${baseName}.webp`, { type: 'image/webp', lastModified: Date.now() })
   } catch {
     return file
@@ -396,7 +415,7 @@ export async function uploadProductVideo(file: File): Promise<string> {
     throw new Error(validation.error || 'Invalid video file')
   }
 
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${file.name}`
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${safeStorageFileName(file.name, 'product-video')}`
 
   try {
     const { data, error } = await supabase.storage
@@ -466,7 +485,7 @@ export async function createProductVariant(
 
   const { data, error } = await supabase
     .from('product_variants')
-    .insert(variant)
+    .insert(stripNullCharacters(variant))
     .select()
     .single()
 
@@ -487,7 +506,7 @@ export async function updateProductVariant(
 
   const { data, error } = await supabase
     .from('product_variants')
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(stripNullCharacters({ ...updates, updated_at: new Date().toISOString() }))
     .eq('id', id)
     .select()
     .single()
@@ -533,7 +552,7 @@ export async function syncProductVariants(productId: string, variants: Omit<Prod
   if (variants.length > 0) {
     const { error: insertError } = await supabase
       .from('product_variants')
-      .insert(variants.map(v => ({ ...v, product_id: productId })))
+    .insert(stripNullCharacters(variants.map(v => ({ ...v, product_id: productId }))))
 
     if (insertError) {
       throw new Error(insertError.message)
