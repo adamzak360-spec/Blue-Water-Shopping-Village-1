@@ -28,8 +28,22 @@ function stripNullCharacters<T>(value: T): T {
 }
 
 function safeStorageFileName(fileName: string, fallback: string) {
-  const cleaned = fileName.replace(/\u0000/g, '').trim()
+  const cleaned = fileName
+    .replace(/[\u0000-\u001f\u007f]/g, '')
+    .replace(/[\\/]+/g, '-')
+    .trim()
   return cleaned || fallback
+}
+
+function getSafeImageExtension(file: File) {
+  const extension = file.type.split('/')[1]?.toLowerCase().replace(/[^a-z0-9]/g, '')
+  return extension && extension !== 'svg+xml' ? extension : 'bin'
+}
+
+function cloneWithSafeName(file: File, fallback: string) {
+  const safeName = safeStorageFileName(file.name, fallback)
+  if (safeName === file.name) return file
+  return new File([file], safeName, { type: file.type, lastModified: file.lastModified })
 }
 
 // Fields required by ProductCard and cart/delivery calculations; intentionally excludes
@@ -309,8 +323,12 @@ export async function uploadProductImage(file: File): Promise<string> {
     throw new Error('Supabase not configured')
   }
 
-  const uploadFile = await compressProductImage(file)
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${safeStorageFileName(uploadFile.name, 'product-image')}`
+  const uploadFile = cloneWithSafeName(await compressProductImage(file), `product-image.${getSafeImageExtension(file)}`)
+  // Do not use the device-provided filename as the storage path. Some mobile
+  // file providers expose control characters in File.name, which Supabase
+  // rejects as "null character not permitted" even when the visible name is
+  // otherwise normal.
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-product-image.${getSafeImageExtension(uploadFile)}`
 
   const { data, error } = await supabase.storage
     .from(STORAGE_BUCKET)
