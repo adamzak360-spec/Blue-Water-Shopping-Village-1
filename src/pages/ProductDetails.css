@@ -894,9 +894,76 @@
 
 .related-products-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-lg);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  align-items: stretch;
+  gap: clamp(0.65rem, 1.6vw, 1rem);
   margin-top: var(--space-lg);
+}
+
+/* Related products use the same card renderer as Home and Products. Do not
+   apply the generic products-grid rules here: each product keeps its saved
+   card_style (standard, marketplace-list, or compact-grid). */
+.related-products-grid > .product-card {
+  min-width: 0;
+  height: 100%;
+}
+
+.related-products-grid .product-card--marketplace-list {
+  grid-column: auto;
+  min-height: 0;
+}
+
+.related-products-grid .product-card--marketplace-list .product-image-container {
+  min-height: 0;
+  aspect-ratio: auto;
+}
+
+.related-products-grid .product-card--compact-grid {
+  min-height: 0;
+}
+
+@media (max-width: 640px) {
+  .related-products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .related-products-grid .product-card--marketplace-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .related-products-grid .product-card--marketplace-list .product-image-container {
+    min-height: 0;
+    aspect-ratio: 1 / 1;
+  }
+
+  .related-products-grid .product-card--marketplace-list .product-list-content {
+    min-height: 0;
+    padding: 0.7rem;
+  }
+
+  .related-products-grid .product-list-description,
+  .related-products-grid .product-list-delivery,
+  .related-products-grid .product-list-meta,
+  .related-products-grid .product-list-rating {
+    display: none;
+  }
+
+  .related-products-grid .product-list-name {
+    font-size: 0.9rem;
+  }
+
+  .related-products-grid .product-list-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 360px) {
+  .related-products-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .related-product-card {

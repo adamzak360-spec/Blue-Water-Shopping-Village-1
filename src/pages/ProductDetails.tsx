@@ -798,7 +798,7 @@ export default function ProductDetails() {
       {relatedProducts.length > 0 && (
         <div className="related-products-section">
           <h2>Related Products</h2>
-          <div className="products-grid">
+          <div className="related-products-grid">
             {relatedProducts.map((relProduct) => (
               <ProductCard key={relProduct.id} product={relProduct} />
             ))}
