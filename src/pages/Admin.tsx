@@ -683,13 +683,20 @@ export default function Admin() {
     try {
       let imageUrl = formData.existingImageUrl
       if (formData.image) {
-        imageUrl = await uploadProductImage(formData.image)
+        try {
+          imageUrl = await uploadProductImage(formData.image)
+        } catch (uploadError) {
+          throw new Error(`Cover image upload failed: ${uploadError instanceof Error ? uploadError.message : 'Unknown upload error'}`)
+        }
       }
 
       // Upload gallery images
-      const newGalleryUrls = await Promise.all(
-        formData.galleryImages.map(file => uploadProductImage(file))
-      )
+      let newGalleryUrls: string[] = []
+      try {
+        newGalleryUrls = await Promise.all(formData.galleryImages.map(file => uploadProductImage(file)))
+      } catch (uploadError) {
+        throw new Error(`Gallery image upload failed: ${uploadError instanceof Error ? uploadError.message : 'Unknown upload error'}`)
+      }
       
       const gallery_urls = [...formData.existingGalleryUrls, ...newGalleryUrls]
 
@@ -734,13 +741,21 @@ export default function Admin() {
 
       let savedProduct: Product
       if (view === 'edit' && editProduct) {
-        savedProduct = await updateProduct(editProduct.id, productData)
+        try {
+          savedProduct = await updateProduct(editProduct.id, productData)
+        } catch (saveError) {
+          throw new Error(`Product update failed: ${saveError instanceof Error ? saveError.message : 'Unknown save error'}`)
+        }
         if (formData.has_sizes) {
           await syncProductVariants(editProduct.id, formData.variants)
         }
         showNotification('Product updated successfully!')
       } else {
-        savedProduct = await createProduct(productData)
+        try {
+          savedProduct = await createProduct(productData)
+        } catch (saveError) {
+          throw new Error(`Product creation failed: ${saveError instanceof Error ? saveError.message : 'Unknown save error'}`)
+        }
         if (formData.has_sizes) {
           await syncProductVariants(savedProduct.id, formData.variants)
         }
