@@ -808,7 +808,13 @@
 .home-products-grid > .product-card,
 .public-store-products-grid > .product-card {
   min-width: 0;
-  height: 100%;
+}
+
+.products-grid .product-card--compact-grid,
+.home-products-grid .product-card--compact-grid,
+.public-store-products-grid .product-card--compact-grid {
+  align-self: start;
+  height: max-content;
 }
 
 .products-grid .product-image-container,
@@ -825,13 +831,21 @@
   height: 100%;
 }
 
-/* Keep list cards from creating oversized blank rows inside mixed grids. */
+/* Preserve the marketplace-list presentation inside every catalog grid. */
 .products-grid .product-card--marketplace-list,
 .home-products-grid .product-card--marketplace-list,
 .public-store-products-grid .product-card--marketplace-list {
-  grid-column: auto;
-  display: flex;
-  min-height: 0;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(190px, 30%) minmax(0, 1fr);
+  min-height: 246px;
+}
+
+.products-grid .product-card--marketplace-list .product-image-container,
+.home-products-grid .product-card--marketplace-list .product-image-container,
+.public-store-products-grid .product-card--marketplace-list .product-image-container {
+  min-height: 246px;
+  aspect-ratio: auto;
 }
 
 @media (max-width: 768px) {
