@@ -908,12 +908,14 @@
 }
 
 .related-products-grid .product-card--marketplace-list {
-  grid-column: auto;
-  min-height: 0;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(190px, 30%) minmax(0, 1fr);
+  min-height: 246px;
 }
 
 .related-products-grid .product-card--marketplace-list .product-image-container {
-  min-height: 0;
+  min-height: 246px;
   aspect-ratio: auto;
 }
 
@@ -929,19 +931,13 @@
     gap: 0.65rem;
   }
 
-  .related-products-grid .product-card--marketplace-list {
-    display: flex;
-    flex-direction: column;
-  }
-
   .related-products-grid .product-card--marketplace-list .product-image-container {
-    min-height: 0;
-    aspect-ratio: 1 / 1;
+    min-height: 190px;
   }
 
   .related-products-grid .product-card--marketplace-list .product-list-content {
     min-height: 0;
-    padding: 0.7rem;
+    padding: 0.85rem 1rem;
   }
 
   .related-products-grid .product-list-description,
