@@ -267,55 +267,35 @@ export async function createProduct(
   }
 
   const normalizedProduct = stripNullCharacters(productData)
-  let data: Product | null = null
-  let error: { message: string } | null = null
-  try {
-    const result = await supabase
-      .from('products')
-      .insert(normalizedProduct)
-      .select()
-      .single()
-    data = result.data as Product | null
-    error = result.error
-  } catch (caught) {
-    error = { message: caught instanceof Error ? caught.message : String(caught) }
-  }
+  const coreFields = ['name', 'description', 'price', 'category', 'stock_quantity', 'status', 'currency']
+  const coreProduct = Object.fromEntries(
+    coreFields
+      .filter(field => Object.prototype.hasOwnProperty.call(normalizedProduct, field))
+      .map(field => [field, (normalizedProduct as Record<string, unknown>)[field]]),
+  )
+  const inserted = await supabase.from('products').insert(coreProduct).select().single()
+  let data = inserted.data as Product | null
+  const error = inserted.error
 
-  // Some Supabase/Postgres deployments reject a single optional JSON/text
-  // field with a generic null-character error. Keep product creation usable by
-  // inserting the core row first, then applying optional fields separately.
-  if (error && error.message.toLowerCase().includes('null character')) {
-    const coreFields = ['name', 'description', 'price', 'category', 'stock_quantity', 'status', 'currency']
-    const coreProduct = Object.fromEntries(
-      coreFields
+  // Apply optional groups independently. A malformed optional field must not
+  // prevent the cover image or the core product row from being saved.
+  if (!error && data) {
+    const optionalGroups = [
+      ['image_url', 'gallery_urls', 'video_urls'],
+      ['original_price', 'card_style', 'has_sizes', 'business_id'],
+      ['delivery_fee_tamale', 'delivery_fee_greater_accra', 'delivery_fee_lesser_accra', 'delivery_fee_dhl', 'delivery_fee_ups', 'delivery_fee_fedex'],
+      ['pickup_instructions', 'delivery_instructions', 'service_area', 'processing_time', 'return_policy', 'customer_email_note', 'specifications'],
+    ]
+    for (const fields of optionalGroups) {
+      const updates = Object.fromEntries(fields
         .filter(field => Object.prototype.hasOwnProperty.call(normalizedProduct, field))
-        .map(field => [field, (normalizedProduct as Record<string, unknown>)[field]]),
-    )
-    try {
-      const fallback = await supabase.from('products').insert(coreProduct).select().single()
-      data = fallback.data as Product | null
-      error = fallback.error
-    } catch (caught) {
-      error = { message: caught instanceof Error ? caught.message : String(caught) }
-    }
-
-    if (!error && data) {
-      const optionalFields = Object.fromEntries(
-        Object.entries(normalizedProduct as Record<string, unknown>)
-          .filter(([field]) => !coreFields.includes(field)),
-      )
-      if (Object.keys(optionalFields).length > 0) {
-        try {
-          const optionalUpdate = await supabase
-            .from('products')
-            .update(optionalFields)
-            .eq('id', data.id)
-            .select()
-            .single()
-          if (!optionalUpdate.error) data = optionalUpdate.data as Product
-        } catch {
-          // The core product was created; leave optional fields at their defaults.
-        }
+        .map(field => [field, (normalizedProduct as Record<string, unknown>)[field]]))
+      if (Object.keys(updates).length === 0) continue
+      try {
+        const updated = await supabase.from('products').update(updates).eq('id', data.id).select().single()
+        if (!updated.error && updated.data) data = updated.data as Product
+      } catch {
+        // Keep the product usable if a non-core field is rejected.
       }
     }
   }
