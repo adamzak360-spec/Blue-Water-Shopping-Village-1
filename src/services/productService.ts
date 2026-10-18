@@ -277,13 +277,7 @@ export async function createProduct(
   // field with a generic null-character error. Keep product creation usable by
   // inserting the core row first, then applying optional fields separately.
   if (error && error.message.toLowerCase().includes('null character')) {
-    const coreFields = [
-      'name', 'description', 'price', 'original_price', 'category',
-      'stock_quantity', 'status', 'currency', 'business_id', 'card_style',
-      'has_sizes', 'delivery_fee_tamale', 'delivery_fee_greater_accra',
-      'delivery_fee_lesser_accra', 'delivery_fee_dhl', 'delivery_fee_ups',
-      'delivery_fee_fedex',
-    ]
+    const coreFields = ['name', 'description', 'price', 'category', 'stock_quantity', 'status', 'currency']
     const coreProduct = Object.fromEntries(
       coreFields
         .filter(field => Object.prototype.hasOwnProperty.call(normalizedProduct, field))
