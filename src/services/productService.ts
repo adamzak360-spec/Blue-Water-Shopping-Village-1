@@ -266,11 +266,49 @@ export async function createProduct(
     throw new Error('Supabase not configured')
   }
 
-  const { data, error } = await supabase
+  const normalizedProduct = stripNullCharacters(productData)
+  let { data, error } = await supabase
     .from('products')
-    .insert(stripNullCharacters(productData))
+    .insert(normalizedProduct)
     .select()
     .single()
+
+  // Some Supabase/Postgres deployments reject a single optional JSON/text
+  // field with a generic null-character error. Keep product creation usable by
+  // inserting the core row first, then applying optional fields separately.
+  if (error && error.message.toLowerCase().includes('null character')) {
+    const coreFields = [
+      'name', 'description', 'price', 'original_price', 'category',
+      'stock_quantity', 'status', 'currency', 'business_id', 'card_style',
+      'has_sizes', 'delivery_fee_tamale', 'delivery_fee_greater_accra',
+      'delivery_fee_lesser_accra', 'delivery_fee_dhl', 'delivery_fee_ups',
+      'delivery_fee_fedex',
+    ]
+    const coreProduct = Object.fromEntries(
+      coreFields
+        .filter(field => Object.prototype.hasOwnProperty.call(normalizedProduct, field))
+        .map(field => [field, (normalizedProduct as Record<string, unknown>)[field]]),
+    )
+    const fallback = await supabase.from('products').insert(coreProduct).select().single()
+    data = fallback.data
+    error = fallback.error
+
+    if (!error && data) {
+      const optionalFields = Object.fromEntries(
+        Object.entries(normalizedProduct as Record<string, unknown>)
+          .filter(([field]) => !coreFields.includes(field)),
+      )
+      if (Object.keys(optionalFields).length > 0) {
+        const optionalUpdate = await supabase
+          .from('products')
+          .update(optionalFields)
+          .eq('id', data.id)
+          .select()
+          .single()
+        if (!optionalUpdate.error) data = optionalUpdate.data
+      }
+    }
+  }
 
   if (error) {
     throw new Error(error.message)
