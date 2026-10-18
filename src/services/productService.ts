@@ -267,11 +267,19 @@ export async function createProduct(
   }
 
   const normalizedProduct = stripNullCharacters(productData)
-  let { data, error } = await supabase
-    .from('products')
-    .insert(normalizedProduct)
-    .select()
-    .single()
+  let data: Product | null = null
+  let error: { message: string } | null = null
+  try {
+    const result = await supabase
+      .from('products')
+      .insert(normalizedProduct)
+      .select()
+      .single()
+    data = result.data as Product | null
+    error = result.error
+  } catch (caught) {
+    error = { message: caught instanceof Error ? caught.message : String(caught) }
+  }
 
   // Some Supabase/Postgres deployments reject a single optional JSON/text
   // field with a generic null-character error. Keep product creation usable by
@@ -283,9 +291,13 @@ export async function createProduct(
         .filter(field => Object.prototype.hasOwnProperty.call(normalizedProduct, field))
         .map(field => [field, (normalizedProduct as Record<string, unknown>)[field]]),
     )
-    const fallback = await supabase.from('products').insert(coreProduct).select().single()
-    data = fallback.data
-    error = fallback.error
+    try {
+      const fallback = await supabase.from('products').insert(coreProduct).select().single()
+      data = fallback.data as Product | null
+      error = fallback.error
+    } catch (caught) {
+      error = { message: caught instanceof Error ? caught.message : String(caught) }
+    }
 
     if (!error && data) {
       const optionalFields = Object.fromEntries(
@@ -293,13 +305,17 @@ export async function createProduct(
           .filter(([field]) => !coreFields.includes(field)),
       )
       if (Object.keys(optionalFields).length > 0) {
-        const optionalUpdate = await supabase
-          .from('products')
-          .update(optionalFields)
-          .eq('id', data.id)
-          .select()
-          .single()
-        if (!optionalUpdate.error) data = optionalUpdate.data
+        try {
+          const optionalUpdate = await supabase
+            .from('products')
+            .update(optionalFields)
+            .eq('id', data.id)
+            .select()
+            .single()
+          if (!optionalUpdate.error) data = optionalUpdate.data as Product
+        } catch {
+          // The core product was created; leave optional fields at their defaults.
+        }
       }
     }
   }
