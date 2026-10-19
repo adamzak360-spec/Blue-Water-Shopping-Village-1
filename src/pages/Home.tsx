@@ -20,12 +20,12 @@ type NewsUpdate = {
 }
 
 const homeCategoryTiles = [
-  { name: 'Fashion', href: '/products?category=Fashion', icon: Shirt, tone: 'rose' },
-  { name: 'Electronics', href: '/products?category=Electronics', icon: Laptop, tone: 'blue' },
-  { name: 'Beauty', href: '/products?category=Beauty', icon: Sparkles, tone: 'pink' },
-  { name: 'Home & Living', href: '/products?category=Home%20%26%20Living', icon: House, tone: 'amber' },
-  { name: 'Food & Groceries', href: '/products?category=Food%20%26%20Groceries', icon: ShoppingBasket, tone: 'green' },
-  { name: 'Automotive', href: '/products?category=Automotive', icon: Car, tone: 'slate' },
+  { name: 'Fashion', href: '/products?category=Fashion', icon: Shirt, tone: 'rose', image: '/category-assets/fashion.webp' },
+  { name: 'Electronics', href: '/products?category=Electronics', icon: Laptop, tone: 'blue', image: '/category-assets/electronics.webp' },
+  { name: 'Beauty', href: '/products?category=Beauty', icon: Sparkles, tone: 'pink', image: '/category-assets/beauty.webp' },
+  { name: 'Home & Living', href: '/products?category=Home%20%26%20Living', icon: House, tone: 'amber', image: '/category-assets/home-living.webp' },
+  { name: 'Food & Groceries', href: '/products?category=Food%20%26%20Groceries', icon: ShoppingBasket, tone: 'green', image: '/category-assets/food-groceries.webp' },
+  { name: 'Automotive', href: '/products?category=Automotive', icon: Car, tone: 'slate', image: '/category-assets/automotive.webp' },
 ] as const
 
 function getProductIdentity(product: Product): string {
@@ -436,15 +436,12 @@ export default function Home() {
                 <p>Jump straight to the products you want to discover.</p>
               </div>
               <div className="home-category-tiles-grid">
-                {homeCategoryTiles.map(({ name, href, icon: Icon, tone }) => (
+                {homeCategoryTiles.map(({ name, href, icon: Icon, tone, image }) => (
                   <Link
                     key={name}
                     to={href}
-                    className={`home-category-tile home-category-tile--${tone}${allProducts.some(product => product.category === name && product.image_url) ? ' home-category-tile--image' : ''}`}
-                    style={(() => {
-                      const imageUrl = allProducts.find(product => product.category === name)?.image_url
-                      return imageUrl ? { backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, 0.04) 35%, rgba(15, 23, 42, 0.72) 100%), url(${imageUrl})` } : undefined
-                    })()}
+                    className={`home-category-tile home-category-tile--${tone} home-category-tile--image`}
+                    style={{ backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, 0.04) 35%, rgba(15, 23, 42, 0.72) 100%), url(${image})` }}
                   >
                     <span className="home-category-tile-icon" aria-hidden="true"><Icon size={23} strokeWidth={2.2} /></span>
                     <span className="home-category-tile-label"><span className="home-category-tile-name">{name}</span><ArrowRight size={16} aria-hidden="true" /></span>
