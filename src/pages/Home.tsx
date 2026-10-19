@@ -441,8 +441,8 @@ export default function Home() {
                     key={name}
                     to={href}
                     className={`home-category-tile home-category-tile--${tone} home-category-tile--image`}
-                    style={{ backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, 0.04) 35%, rgba(15, 23, 42, 0.72) 100%), url(${image})` }}
                   >
+                    <img className="home-category-tile-photo" src={image} alt="" loading="lazy" decoding="async" />
                     <span className="home-category-tile-icon" aria-hidden="true"><Icon size={23} strokeWidth={2.2} /></span>
                     <span className="home-category-tile-label"><span className="home-category-tile-name">{name}</span><ArrowRight size={16} aria-hidden="true" /></span>
                   </Link>

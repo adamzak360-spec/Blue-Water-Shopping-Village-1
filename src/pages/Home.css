@@ -428,6 +428,7 @@
 .home-category-tile {
   display: flex;
   min-height: 166px;
+  position: relative;
   flex-direction: column;
   align-items: flex-start;
   justify-content: space-between;
@@ -441,6 +442,7 @@
   background-size: cover;
   box-shadow: 0 5px 14px rgba(15, 23, 42, 0.06);
   transition: transform 160ms ease, box-shadow 160ms ease;
+  isolation: isolate;
 }
 
 .home-category-tile:hover,
@@ -462,6 +464,28 @@
   border-radius: 0.75rem;
   background: rgba(255, 255, 255, 0.78);
   color: #0f766e;
+}
+
+.home-category-tile-photo {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.home-category-tile--image::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.03) 30%, rgba(15, 23, 42, 0.38) 100%);
+  content: '';
+}
+
+.home-category-tile > :not(.home-category-tile-photo) {
+  position: relative;
+  z-index: 2;
 }
 
 .home-category-tile-name {
