@@ -270,7 +270,7 @@ export async function createProduct(
   const productId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-  const coreFields = ['name', 'description', 'price', 'category', 'stock_quantity', 'status', 'currency']
+  const coreFields = ['name', 'price', 'category', 'stock_quantity', 'status', 'currency']
   const coreProduct = Object.fromEntries(
     coreFields
       .filter(field => Object.prototype.hasOwnProperty.call(normalizedProduct, field))
@@ -286,7 +286,7 @@ export async function createProduct(
       ['image_url', 'gallery_urls', 'video_urls'],
       ['original_price', 'card_style', 'has_sizes', 'business_id'],
       ['delivery_fee_tamale', 'delivery_fee_greater_accra', 'delivery_fee_lesser_accra', 'delivery_fee_dhl', 'delivery_fee_ups', 'delivery_fee_fedex'],
-      ['pickup_instructions', 'delivery_instructions', 'service_area', 'processing_time', 'return_policy', 'customer_email_note', 'specifications'],
+      ['description', 'pickup_instructions', 'delivery_instructions', 'service_area', 'processing_time', 'return_policy', 'customer_email_note', 'specifications'],
     ]
     for (const fields of optionalGroups) {
       const updates = Object.fromEntries(fields
