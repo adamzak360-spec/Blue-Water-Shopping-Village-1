@@ -1085,7 +1085,7 @@
 }
 
 
-/* Dedicated downward section for Amazon-style marketplace-list products. */
+/* Dedicated horizontal rail for Amazon-style marketplace-list products. */
 .marketplace-list-section {
   padding: var(--space-xl) 0;
   background: linear-gradient(180deg, #fffdf8 0%, #ffffff 100%);
@@ -1096,13 +1096,22 @@
 }
 
 .marketplace-list-grid {
-  display: grid;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
   gap: 0.9rem;
   margin-top: 0.9rem;
+  padding: 0.1rem 0.1rem 0.85rem;
 }
 
 .marketplace-list-grid .product-card--marketplace-list {
-  width: 100%;
+  flex: 0 0 min(88vw, 720px);
+  width: min(88vw, 720px);
+  scroll-snap-align: start;
 }
 
 @media (max-width: 560px) {
@@ -1112,6 +1121,7 @@
 
   .marketplace-list-grid {
     gap: 0.7rem;
+    padding-bottom: 0.7rem;
   }
 }
 
@@ -1177,12 +1187,10 @@
 }
 
 .marketplace-list-grid {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   align-items: stretch;
 }
 
 .marketplace-list-grid .product-card--marketplace-list {
-  grid-column: auto;
   min-height: 0;
 }
 
@@ -1204,10 +1212,6 @@
 
   .home-products-grid .product-image-container {
     aspect-ratio: 1;
-  }
-
-  .marketplace-list-grid {
-    grid-template-columns: 1fr;
   }
 
   .home-compact-products-grid {
