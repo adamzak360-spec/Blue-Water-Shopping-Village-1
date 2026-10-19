@@ -10,6 +10,9 @@ import {
   deleteProduct,
   uploadProductImage,
   uploadProductVideo,
+  deleteProductImage,
+  deleteProductVideo,
+  getProductStoragePath,
   validateVideoFile,
   getDashboardStats,
   getProductVariants,
@@ -679,12 +682,16 @@ export default function Admin() {
 
     setIsSubmitting(true)
     setError('')
+    const uploadedImageUrls: string[] = []
+    const uploadedVideoUrls: string[] = []
+    let mediaPersisted = false
 
     try {
       let imageUrl = formData.existingImageUrl
       if (formData.image) {
         try {
           imageUrl = await uploadProductImage(formData.image)
+          uploadedImageUrls.push(imageUrl)
         } catch (uploadError) {
           throw new Error(`Cover image upload failed: ${uploadError instanceof Error ? uploadError.message : 'Unknown upload error'}`)
         }
@@ -694,6 +701,7 @@ export default function Admin() {
       let newGalleryUrls: string[] = []
       try {
         newGalleryUrls = await Promise.all(formData.galleryImages.map(file => uploadProductImage(file)))
+        uploadedImageUrls.push(...newGalleryUrls)
       } catch (uploadError) {
         throw new Error(`Gallery image upload failed: ${uploadError instanceof Error ? uploadError.message : 'Unknown upload error'}`)
       }
@@ -704,6 +712,7 @@ export default function Admin() {
       const newVideoUrls = await Promise.all(
         formData.videos.map(file => uploadProductVideo(file))
       )
+      uploadedVideoUrls.push(...newVideoUrls)
       
       const video_urls = [...formData.existingVideoUrls, ...newVideoUrls]
 
@@ -749,6 +758,7 @@ export default function Admin() {
         if (formData.has_sizes) {
           await syncProductVariants(editProduct.id, formData.variants)
         }
+        mediaPersisted = true
         showNotification('Product updated successfully!')
       } else {
         try {
@@ -759,6 +769,7 @@ export default function Admin() {
         if (formData.has_sizes) {
           await syncProductVariants(savedProduct.id, formData.variants)
         }
+        mediaPersisted = true
         showNotification('Product added successfully!')
       }
 
@@ -766,6 +777,18 @@ export default function Admin() {
       setView('products')
       await loadData()
     } catch (err) {
+      if (!mediaPersisted) {
+        await Promise.allSettled([
+          ...uploadedImageUrls.map(url => {
+            const path = getProductStoragePath(url)
+            return path ? deleteProductImage(path) : Promise.resolve()
+          }),
+          ...uploadedVideoUrls.map(url => {
+            const path = getProductStoragePath(url, 'product-videos')
+            return path ? deleteProductVideo(path) : Promise.resolve()
+          }),
+        ])
+      }
       setError(err instanceof Error ? err.message : 'Operation failed')
     } finally {
       setIsSubmitting(false)

@@ -3,6 +3,7 @@ import type { Product, DashboardStats, ProductVariant } from '../types'
 
 const STORAGE_BUCKET = 'product-images'
 const VIDEO_STORAGE_BUCKET = 'product-videos'
+const MAX_PRODUCT_IMAGE_SIZE = 10 * 1024 * 1024
 
 // In-memory cache for products to speed up page transitions
 let productsCache: Product[] | null = null
@@ -38,8 +39,10 @@ function safeStorageFileName(fileName: string, fallback: string) {
 }
 
 function getSafeImageExtension(file: File) {
-  const extension = file.type.split('/')[1]?.toLowerCase().replace(/[^a-z0-9]/g, '')
-  return extension && extension !== 'svg+xml' ? extension : 'bin'
+  const mimeExtension = file.type.split('/')[1]?.toLowerCase().replace(/[^a-z0-9]/g, '')
+  if (mimeExtension) return mimeExtension === 'svgxml' ? 'svg' : mimeExtension
+  const nameExtension = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '')
+  return nameExtension || 'bin'
 }
 
 function cloneWithSafeName(file: File, fallback: string) {
@@ -294,9 +297,16 @@ export async function createProduct(
         .map(field => [field, (normalizedProduct as Record<string, unknown>)[field]]))
       if (Object.keys(updates).length === 0) continue
       try {
-        await supabase.from('products').update(updates).eq('id', productId)
-      } catch {
-        // Keep the product usable if a non-core field is rejected.
+        const updated = await supabase.from('products').update(updates).eq('id', productId)
+        if (updated.error && fields[0] === 'image_url') {
+          await supabase.from('products').delete().eq('id', productId)
+          throw new Error(`Product media could not be saved: ${updated.error.message}`)
+        }
+      } catch (updateError) {
+        if (fields[0] === 'image_url') {
+          throw updateError instanceof Error ? updateError : new Error('Product media could not be saved.')
+        }
+        // Keep the product usable if a non-media optional field is rejected.
       }
     }
   }
@@ -354,6 +364,13 @@ export async function uploadProductImage(file: File): Promise<string> {
     throw new Error('Supabase not configured')
   }
 
+  if (file.size > MAX_PRODUCT_IMAGE_SIZE) {
+    throw new Error('Product image is too large. Maximum size is 10 MB.')
+  }
+  if (file.type && !file.type.startsWith('image/')) {
+    throw new Error('Unsupported product image format. Choose an image file.')
+  }
+
   const uploadFile = cloneWithSafeName(await compressProductImage(file), `product-image.${getSafeImageExtension(file)}`)
   // Pass a Blob rather than the browser File object. Android file providers
   // can attach invalid control characters to File metadata even when the
@@ -370,6 +387,7 @@ export async function uploadProductImage(file: File): Promise<string> {
     .from(STORAGE_BUCKET)
     .upload(fileName, uploadBody, {
       cacheControl: '31536000',
+      contentType: uploadBody.type,
       upsert: false,
     })
 
@@ -422,6 +440,13 @@ export async function deleteProductImage(storagePath: string): Promise<void> {
   if (error) {
     throw new Error(error.message)
   }
+}
+
+export function getProductStoragePath(publicUrl: string, bucket = STORAGE_BUCKET): string | null {
+  const marker = `/storage/v1/object/public/${bucket}/`
+  const index = publicUrl.indexOf(marker)
+  if (index === -1) return null
+  return decodeURIComponent(publicUrl.slice(index + marker.length))
 }
 
 export async function getDashboardStats(businessId?: string): Promise<DashboardStats> {
