@@ -643,6 +643,12 @@ export default function Admin() {
     }
     if (!formData.stock_quantity || parseInt(formData.stock_quantity) < 0) errors.stock_quantity = 'Valid stock quantity is required'
     setFormErrors(errors)
+    if (Object.keys(errors).length > 0) {
+      const message = Object.values(errors).filter(Boolean).join(' ')
+      setError(message)
+      showNotification(message, 'error')
+      console.warn('[Admin product] validation blocked submit', errors)
+    }
     return Object.keys(errors).length === 0
   }
 
@@ -678,6 +684,14 @@ export default function Admin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.info('[Admin product] submit started', {
+      mode: view,
+      name: formData.name.trim(),
+      category: formData.category,
+      hasCoverImage: Boolean(formData.image),
+      galleryCount: formData.galleryImages.length,
+      videoCount: formData.videos.length,
+    })
     if (!validateForm()) return
 
     setIsSubmitting(true)
@@ -690,9 +704,12 @@ export default function Admin() {
       let imageUrl = formData.existingImageUrl
       if (formData.image) {
         try {
+          console.info('[Admin product] uploading cover image')
           imageUrl = await uploadProductImage(formData.image)
           uploadedImageUrls.push(imageUrl)
+          console.info('[Admin product] cover image uploaded')
         } catch (uploadError) {
+          console.error('[Admin product] cover image upload failed', uploadError)
           throw new Error(`Cover image upload failed: ${uploadError instanceof Error ? uploadError.message : 'Unknown upload error'}`)
         }
       }
@@ -703,6 +720,7 @@ export default function Admin() {
         newGalleryUrls = await Promise.all(formData.galleryImages.map(file => uploadProductImage(file)))
         uploadedImageUrls.push(...newGalleryUrls)
       } catch (uploadError) {
+        console.error('[Admin product] gallery image upload failed', uploadError)
         throw new Error(`Gallery image upload failed: ${uploadError instanceof Error ? uploadError.message : 'Unknown upload error'}`)
       }
       
@@ -751,8 +769,10 @@ export default function Admin() {
       let savedProduct: Product
       if (view === 'edit' && editProduct) {
         try {
+          console.info('[Admin product] updating product row')
           savedProduct = await updateProduct(editProduct.id, productData)
         } catch (saveError) {
+          console.error('[Admin product] product update failed', saveError)
           throw new Error(`Product update failed: ${saveError instanceof Error ? saveError.message : 'Unknown save error'}`)
         }
         if (formData.has_sizes) {
@@ -762,8 +782,11 @@ export default function Admin() {
         showNotification('Product updated successfully!')
       } else {
         try {
+          console.info('[Admin product] inserting product row')
           savedProduct = await createProduct(productData)
+          console.info('[Admin product] product row inserted', { id: savedProduct.id })
         } catch (saveError) {
+          console.error('[Admin product] product creation failed', saveError)
           throw new Error(`Product creation failed: ${saveError instanceof Error ? saveError.message : 'Unknown save error'}`)
         }
         if (formData.has_sizes) {
@@ -777,6 +800,7 @@ export default function Admin() {
       setView('products')
       await loadData()
     } catch (err) {
+      console.error('[Admin product] submit failed', err)
       if (!mediaPersisted) {
         await Promise.allSettled([
           ...uploadedImageUrls.map(url => {
@@ -789,7 +813,9 @@ export default function Admin() {
           }),
         ])
       }
-      setError(err instanceof Error ? err.message : 'Operation failed')
+      const message = err instanceof Error ? err.message : 'Operation failed'
+      setError(message)
+      showNotification(message, 'error')
     } finally {
       setIsSubmitting(false)
     }

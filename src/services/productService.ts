@@ -273,46 +273,11 @@ export async function createProduct(
   const productId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-  const coreFields = ['name', 'price', 'category', 'stock_quantity', 'status', 'currency']
-  const coreProduct = Object.fromEntries(
-    coreFields
-      .filter(field => Object.prototype.hasOwnProperty.call(normalizedProduct, field))
-      .map(field => [field, (normalizedProduct as Record<string, unknown>)[field]]),
-  )
-  const inserted = await supabase.from('products').insert({ id: productId, ...coreProduct })
-  const error = inserted.error
-
-  // Apply optional groups independently. A malformed optional field must not
-  // prevent the cover image or the core product row from being saved.
-  if (!error) {
-    const optionalGroups = [
-      ['image_url', 'gallery_urls', 'video_urls'],
-      ['original_price', 'card_style', 'has_sizes', 'business_id'],
-      ['delivery_fee_tamale', 'delivery_fee_greater_accra', 'delivery_fee_lesser_accra', 'delivery_fee_dhl', 'delivery_fee_ups', 'delivery_fee_fedex'],
-      ['description', 'pickup_instructions', 'delivery_instructions', 'service_area', 'processing_time', 'return_policy', 'customer_email_note', 'specifications'],
-    ]
-    for (const fields of optionalGroups) {
-      const updates = Object.fromEntries(fields
-        .filter(field => Object.prototype.hasOwnProperty.call(normalizedProduct, field))
-        .map(field => [field, (normalizedProduct as Record<string, unknown>)[field]]))
-      if (Object.keys(updates).length === 0) continue
-      try {
-        const updated = await supabase.from('products').update(updates).eq('id', productId)
-        if (updated.error && fields[0] === 'image_url') {
-          await supabase.from('products').delete().eq('id', productId)
-          throw new Error(`Product media could not be saved: ${updated.error.message}`)
-        }
-      } catch (updateError) {
-        if (fields[0] === 'image_url') {
-          throw updateError instanceof Error ? updateError : new Error('Product media could not be saved.')
-        }
-        // Keep the product usable if a non-media optional field is rejected.
-      }
-    }
-  }
-
+  const payload = stripNullCharacters({ id: productId, ...normalizedProduct })
+  const { error } = await supabase.from('products').insert(payload)
   if (error) {
-    throw new Error(error.message)
+    const detail = [error.message, error.details, error.hint].filter(Boolean).join(' — ')
+    throw new Error(detail || 'Product could not be saved.')
   }
 
   clearCache()
