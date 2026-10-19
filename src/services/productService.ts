@@ -267,19 +267,21 @@ export async function createProduct(
   }
 
   const normalizedProduct = stripNullCharacters(productData)
+  const productId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`
   const coreFields = ['name', 'description', 'price', 'category', 'stock_quantity', 'status', 'currency']
   const coreProduct = Object.fromEntries(
     coreFields
       .filter(field => Object.prototype.hasOwnProperty.call(normalizedProduct, field))
       .map(field => [field, (normalizedProduct as Record<string, unknown>)[field]]),
   )
-  const inserted = await supabase.from('products').insert(coreProduct).select().single()
-  let data = inserted.data as Product | null
+  const inserted = await supabase.from('products').insert({ id: productId, ...coreProduct })
   const error = inserted.error
 
   // Apply optional groups independently. A malformed optional field must not
   // prevent the cover image or the core product row from being saved.
-  if (!error && data) {
+  if (!error) {
     const optionalGroups = [
       ['image_url', 'gallery_urls', 'video_urls'],
       ['original_price', 'card_style', 'has_sizes', 'business_id'],
@@ -292,8 +294,7 @@ export async function createProduct(
         .map(field => [field, (normalizedProduct as Record<string, unknown>)[field]]))
       if (Object.keys(updates).length === 0) continue
       try {
-        const updated = await supabase.from('products').update(updates).eq('id', data.id).select().single()
-        if (!updated.error && updated.data) data = updated.data as Product
+        await supabase.from('products').update(updates).eq('id', productId)
       } catch {
         // Keep the product usable if a non-core field is rejected.
       }
@@ -305,7 +306,7 @@ export async function createProduct(
   }
 
   clearCache()
-  return data as Product
+  return { id: productId, ...normalizedProduct } as Product
 }
 
 export async function updateProduct(
