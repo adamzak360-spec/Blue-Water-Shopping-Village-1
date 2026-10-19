@@ -1194,6 +1194,15 @@
   min-height: 0;
 }
 
+/* Keep the reference-sized product media inside the horizontal rail. */
+.marketplace-list-grid .product-card--marketplace-list {
+  grid-template-columns: minmax(190px, 34%) minmax(0, 1fr);
+}
+
+.marketplace-list-grid .product-card--marketplace-list .product-image-container {
+  min-height: 246px;
+}
+
 .home-compact-products-grid {
   grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
   max-width: none;
@@ -1212,6 +1221,14 @@
 
   .home-products-grid .product-image-container {
     aspect-ratio: 1;
+  }
+
+  .marketplace-list-grid .product-card--marketplace-list {
+    grid-template-columns: minmax(132px, 38%) minmax(0, 1fr);
+  }
+
+  .marketplace-list-grid .product-card--marketplace-list .product-image-container {
+    min-height: 246px;
   }
 
   .home-compact-products-grid {
