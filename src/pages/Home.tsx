@@ -9,7 +9,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import CallToOrderBanner from '../components/CallToOrderBanner'
 import AdSlot from '../components/AdSlot'
-import { ChevronLeft, ChevronRight, ArrowRight, Zap, TrendingUp, Star, Package, Award, Heart, Search, ShoppingCart, Tag } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ArrowRight, Zap, TrendingUp, Star, Package, Award, Heart, Search, ShoppingCart, Tag, Shirt, Laptop, Sparkles, House, ShoppingBasket, Car } from 'lucide-react'
 import { useI18n } from '../i18n'
 import './Home.css'
 
@@ -18,6 +18,15 @@ type NewsUpdate = {
   title: string
   message: string
 }
+
+const homeCategoryTiles = [
+  { name: 'Fashion', href: '/products?category=Fashion', icon: Shirt, tone: 'rose' },
+  { name: 'Electronics', href: '/products?category=Electronics', icon: Laptop, tone: 'blue' },
+  { name: 'Beauty', href: '/products?category=Beauty', icon: Sparkles, tone: 'pink' },
+  { name: 'Home & Living', href: '/products?category=Home%20%26%20Living', icon: House, tone: 'amber' },
+  { name: 'Food & Groceries', href: '/products?category=Food%20%26%20Groceries', icon: ShoppingBasket, tone: 'green' },
+  { name: 'Automotive', href: '/products?category=Automotive', icon: Car, tone: 'slate' },
+] as const
 
 function getProductIdentity(product: Product): string {
   const normalizedName = (product.name || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
@@ -419,6 +428,22 @@ export default function Home() {
               <div className="why-icon"><TrendingUp /></div>
               <h4>{t('premiumQuality')}</h4>
               <p>{t('handpickedProducts')}</p>
+            </div>
+            <div className="home-category-tiles" aria-labelledby="home-category-tiles-title">
+              <div className="home-category-tiles-heading">
+                <span className="home-category-tiles-kicker">Reliable shopping</span>
+                <h3 id="home-category-tiles-title">Colorful shopping categories</h3>
+                <p>Jump straight to the products you want to discover.</p>
+              </div>
+              <div className="home-category-tiles-grid">
+                {homeCategoryTiles.map(({ name, href, icon: Icon, tone }) => (
+                  <Link key={name} to={href} className={`home-category-tile home-category-tile--${tone}`}>
+                    <span className="home-category-tile-icon" aria-hidden="true"><Icon size={23} strokeWidth={2.2} /></span>
+                    <span className="home-category-tile-name">{name}</span>
+                    <ArrowRight size={16} aria-hidden="true" />
+                  </Link>
+                ))}
+              </div>
             </div>
             <div className="why-card">
               <div className="why-icon"><Zap /></div>
