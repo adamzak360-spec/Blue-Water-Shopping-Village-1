@@ -437,10 +437,17 @@ export default function Home() {
               </div>
               <div className="home-category-tiles-grid">
                 {homeCategoryTiles.map(({ name, href, icon: Icon, tone }) => (
-                  <Link key={name} to={href} className={`home-category-tile home-category-tile--${tone}`}>
+                  <Link
+                    key={name}
+                    to={href}
+                    className={`home-category-tile home-category-tile--${tone}${allProducts.some(product => product.category === name && product.image_url) ? ' home-category-tile--image' : ''}`}
+                    style={(() => {
+                      const imageUrl = allProducts.find(product => product.category === name)?.image_url
+                      return imageUrl ? { backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, 0.04) 35%, rgba(15, 23, 42, 0.72) 100%), url(${imageUrl})` } : undefined
+                    })()}
+                  >
                     <span className="home-category-tile-icon" aria-hidden="true"><Icon size={23} strokeWidth={2.2} /></span>
-                    <span className="home-category-tile-name">{name}</span>
-                    <ArrowRight size={16} aria-hidden="true" />
+                    <span className="home-category-tile-label"><span className="home-category-tile-name">{name}</span><ArrowRight size={16} aria-hidden="true" /></span>
                   </Link>
                 ))}
               </div>

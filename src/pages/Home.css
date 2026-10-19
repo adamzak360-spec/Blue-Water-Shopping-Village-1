@@ -421,13 +421,13 @@
 
 .home-category-tiles-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.7rem;
 }
 
 .home-category-tile {
   display: flex;
-  min-height: 104px;
+  min-height: 166px;
   flex-direction: column;
   align-items: flex-start;
   justify-content: space-between;
@@ -437,6 +437,8 @@
   border-radius: 1rem;
   color: #172033;
   text-decoration: none;
+  background-position: center;
+  background-size: cover;
   box-shadow: 0 5px 14px rgba(15, 23, 42, 0.06);
   transition: transform 160ms ease, box-shadow 160ms ease;
 }
@@ -468,9 +470,26 @@
   line-height: 1.2;
 }
 
-.home-category-tile > svg {
-  align-self: flex-end;
+.home-category-tile-label {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.65rem 0.7rem;
+  border-radius: 0.7rem;
+  background: rgba(255, 255, 255, 0.82);
+  color: #172033;
+  backdrop-filter: blur(6px);
+}
+
+.home-category-tile-label > svg {
+  flex: 0 0 auto;
   color: rgba(15, 23, 42, 0.55);
+}
+
+.home-category-tile--image .home-category-tile-icon {
+  background: rgba(255, 255, 255, 0.86);
 }
 
 .home-category-tile--rose { background: linear-gradient(145deg, #ffe4e6, #fff1f2); }
@@ -482,7 +501,7 @@
 
 @media (max-width: 900px) {
   .home-category-tiles-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -496,7 +515,7 @@
   }
 
   .home-category-tile {
-    min-height: 94px;
+    min-height: 142px;
   }
 }
 
