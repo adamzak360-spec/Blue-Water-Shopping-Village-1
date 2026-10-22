@@ -425,8 +425,8 @@
 }
 
 .product-list-style-label {
-  background: #fff3cd;
-  color: #73510b;
+  background: transparent;
+  color: var(--color-accent);
 }
 
 .product-list-name-link {
