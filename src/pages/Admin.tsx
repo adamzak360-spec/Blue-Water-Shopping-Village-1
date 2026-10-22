@@ -159,6 +159,48 @@ const defaultFormState = {
   specifications: [] as { label: string; value: string }[],
 }
 
+const PRODUCT_FORM_DRAFT_KEY = 'reliable_admin_new_product_draft_v1'
+
+function loadNewProductDraft() {
+  try {
+    const rawDraft = window.localStorage.getItem(PRODUCT_FORM_DRAFT_KEY)
+    if (!rawDraft) return defaultFormState
+    const savedDraft = JSON.parse(rawDraft)
+    return {
+      ...defaultFormState,
+      ...savedDraft,
+      image: null,
+      galleryImages: [],
+      videos: [],
+      videoUploadErrors: {},
+      existingImageUrl: '',
+      existingGalleryUrls: [],
+      existingVideoUrls: [],
+    }
+  } catch (draftError) {
+    console.warn('[Admin product] could not restore saved draft', draftError)
+    return defaultFormState
+  }
+}
+
+function saveNewProductDraft(formData: typeof defaultFormState) {
+  try {
+    const {
+      image: _image,
+      galleryImages: _galleryImages,
+      videos: _videos,
+      videoUploadErrors: _videoUploadErrors,
+      existingImageUrl: _existingImageUrl,
+      existingGalleryUrls: _existingGalleryUrls,
+      existingVideoUrls: _existingVideoUrls,
+      ...draft
+    } = formData
+    window.localStorage.setItem(PRODUCT_FORM_DRAFT_KEY, JSON.stringify(draft))
+  } catch (draftError) {
+    console.warn('[Admin product] could not save draft', draftError)
+  }
+}
+
 export default function Admin() {
   const { user, signOut, role } = useAuth()
   const navigate = useNavigate()
@@ -192,6 +234,17 @@ export default function Admin() {
   const [businesses, setBusinesses] = useState<Business[]>([])
   const [sellerBusinessIds, setSellerBusinessIds] = useState<string[]>([])
   const [deliveryBusinessId, setDeliveryBusinessId] = useState('')
+
+  useEffect(() => {
+    if (view === 'add') saveNewProductDraft(formData)
+  }, [formData, view])
+
+  const openAddProduct = () => {
+    setView('add')
+    setEditProduct(null)
+    setFormData(loadNewProductDraft())
+    setFormErrors({})
+  }
   const [productsLoading, setProductsLoading] = useState(false)
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [reviewsLoading, setReviewsLoading] = useState(false)
@@ -796,6 +849,7 @@ export default function Admin() {
         showNotification('Product added successfully!')
       }
 
+      window.localStorage.removeItem(PRODUCT_FORM_DRAFT_KEY)
       setFormData(defaultFormState)
       setView('products')
       await loadData()
@@ -1118,7 +1172,7 @@ export default function Admin() {
         </button>
         <button
           className={`tab ${view === 'add' ? 'active' : ''}`}
-          onClick={() => { setView('add'); setFormData(defaultFormState); setFormErrors({}); }}
+          onClick={openAddProduct}
         >
           + Add Product
         </button>
@@ -1915,7 +1969,7 @@ export default function Admin() {
                     <strong>Add your first Product</strong>
                     <p>Start listing your items for the world to see.</p>
                     {products.length === 0 && (
-                      <button onClick={() => setView('add')} className="btn-sm btn-secondary">Add Product</button>
+                      <button onClick={openAddProduct} className="btn-sm btn-secondary">Add Product</button>
                     )}
                   </div>
                 </div>
@@ -1979,7 +2033,7 @@ export default function Admin() {
               <div className="empty-state">
                 <h3>No products yet</h3>
                 <p>Start by adding your first product.</p>
-                <button onClick={() => setView('add')} className="btn-primary">
+                <button onClick={openAddProduct} className="btn-primary">
                   Add Product
                 </button>
               </div>
