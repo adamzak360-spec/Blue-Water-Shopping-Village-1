@@ -421,7 +421,7 @@
 
 .product-list-label {
   background: #f1f3f5;
-  color: #5f6368;
+  color: var(--color-accent);
 }
 
 .product-list-style-label {
@@ -432,7 +432,7 @@
 .product-list-name-link {
   display: block;
   margin: 0.18rem 0 0;
-  color: #15191e;
+  color: var(--color-text);
   text-decoration: none;
 }
 
@@ -440,7 +440,7 @@
   display: -webkit-box;
   margin: 0;
   overflow: hidden;
-  color: #15191e;
+  color: var(--color-text);
   font-size: clamp(1rem, 1.45vw, 1.26rem);
   font-weight: 600;
   line-height: 1.28;
@@ -449,14 +449,14 @@
 }
 
 .product-list-name-link:hover .product-list-name {
-  color: #0b6e69;
+  color: var(--color-accent-hover);
 }
 
 .product-list-description {
   display: -webkit-box;
   margin: 0.32rem 0 0;
   overflow: hidden;
-  color: #5f6368;
+  color: var(--color-text-secondary);
   font-size: 0.88rem;
   line-height: 1.35;
   -webkit-box-orient: vertical;
@@ -473,7 +473,7 @@
 }
 
 .product-list-rating-number {
-  color: #252a31;
+  color: var(--color-text);
   font-weight: 700;
 }
 
@@ -485,7 +485,7 @@
 }
 
 .product-list-review-count {
-  color: #5f6368;
+  color: var(--color-text-secondary);
 }
 
 .product-list-price-row {
@@ -497,14 +497,14 @@
 }
 
 .product-list-price {
-  color: #15191e;
+  color: var(--color-accent);
   font-size: clamp(1.35rem, 2vw, 1.8rem);
   font-weight: 700;
   letter-spacing: -0.025em;
 }
 
 .product-list-original-price {
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-size: 0.84rem;
   text-decoration: line-through;
 }
@@ -512,7 +512,7 @@
 .product-list-delivery,
 .product-list-meta {
   margin: 0.22rem 0 0;
-  color: #4b5563;
+  color: var(--color-text-secondary);
   font-size: 0.83rem;
   line-height: 1.32;
 }
@@ -552,15 +552,15 @@
 }
 
 .product-list-details-btn {
-  border: 1px solid #0b6e69;
+  border: 1px solid var(--color-accent);
   background: #fff;
-  color: #0b6e69;
+  color: var(--color-accent);
 }
 
 .product-list-cart-btn {
-  border: 1px solid #f4c430;
-  background: #ffd814;
-  color: #161616;
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: #fff;
   cursor: pointer;
 }
 
@@ -571,7 +571,7 @@
 }
 
 .product-list-cart-btn:hover:not(:disabled) {
-  background: #f7ca00;
+  background: var(--color-accent-hover);
 }
 
 .product-list-cart-btn:disabled {
@@ -584,7 +584,7 @@
   align-items: center;
   gap: 0.25rem;
   margin-top: 0.58rem;
-  color: #087f5b;
+  color: var(--color-accent);
   font-size: 0.77rem;
 }
 
