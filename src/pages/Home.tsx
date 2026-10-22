@@ -9,7 +9,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import CallToOrderBanner from '../components/CallToOrderBanner'
 import AdSlot from '../components/AdSlot'
-import { ChevronLeft, ChevronRight, ArrowRight, Zap, TrendingUp, Star, Package, Award, Heart, Search, ShoppingCart, Tag, Shirt, Laptop, Sparkles, House, ShoppingBasket, Car } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronDown, ArrowRight, Zap, TrendingUp, Star, Package, Award, Heart, Search, ShoppingCart, Tag, Shirt, Laptop, Sparkles, House, ShoppingBasket, Car } from 'lucide-react'
 import { useI18n } from '../i18n'
 import './Home.css'
 
@@ -58,6 +58,7 @@ export default function Home() {
   const [freeShowcaseProductIds, setFreeShowcaseProductIds] = useState<string[]>([])
   const [freeShowcaseProductsOverride, setFreeShowcaseProductsOverride] = useState<Product[]>([])
   const [searchValue, setSearchValue] = useState('')
+  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false)
   const navigate = useNavigate()
   const rotationSeedRef = useRef(createRotationSeed())
 
@@ -435,19 +436,28 @@ export default function Home() {
                 <h3 id="home-category-tiles-title">Colorful shopping categories</h3>
                 <p>Jump straight to the products you want to discover.</p>
               </div>
-              <div className="home-category-tiles-grid">
-                {homeCategoryTiles.map(({ name, href, icon: Icon, tone, image }) => (
-                  <Link
-                    key={name}
-                    to={href}
-                    className={`home-category-tile home-category-tile--${tone} home-category-tile--image`}
-                  >
-                    <img className="home-category-tile-photo" src={image} alt="" loading="lazy" decoding="async" />
-                    <span className="home-category-tile-icon" aria-hidden="true"><Icon size={23} strokeWidth={2.2} /></span>
-                    <span className="home-category-tile-label"><span className="home-category-tile-name">{name}</span><ArrowRight size={16} aria-hidden="true" /></span>
-                  </Link>
-                ))}
-              </div>
+              <button
+                type="button"
+                className="home-category-dropdown-trigger"
+                aria-expanded={isCategoryMenuOpen}
+                aria-controls="home-category-dropdown-options"
+                onClick={() => setIsCategoryMenuOpen((open) => !open)}
+              >
+                <span>Choose a category</span>
+                <ChevronDown size={20} aria-hidden="true" />
+              </button>
+              {isCategoryMenuOpen && (
+                <div id="home-category-dropdown-options" className="home-category-dropdown-options">
+                  {homeCategoryTiles.map(({ name, href, icon: Icon, tone, image }) => (
+                    <Link key={name} to={href} className={`home-category-dropdown-option home-category-dropdown-option--${tone}`}>
+                      <img src={image} alt="" loading="lazy" decoding="async" />
+                      <span className="home-category-dropdown-option-icon" aria-hidden="true"><Icon size={20} strokeWidth={2.2} /></span>
+                      <span>{name}</span>
+                      <ArrowRight size={17} aria-hidden="true" />
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="why-card">
               <div className="why-icon"><Zap /></div>

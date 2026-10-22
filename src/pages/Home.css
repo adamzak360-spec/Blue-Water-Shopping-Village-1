@@ -425,6 +425,104 @@
   gap: 0.7rem;
 }
 
+.home-category-dropdown-trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid rgba(15, 118, 110, 0.2);
+  border-radius: 0.85rem;
+  background: #ffffff;
+  color: #172033;
+  font: inherit;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.home-category-dropdown-trigger:hover,
+.home-category-dropdown-trigger:focus-visible {
+  border-color: #0f766e;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
+}
+
+.home-category-dropdown-trigger svg {
+  color: #0f766e;
+  transition: transform 160ms ease;
+}
+
+.home-category-dropdown-trigger[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
+.home-category-dropdown-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.65rem;
+  padding: 0.65rem;
+  border: 1px solid rgba(15, 118, 110, 0.12);
+  border-radius: 0.95rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.home-category-dropdown-option {
+  position: relative;
+  display: flex;
+  min-height: 4.2rem;
+  align-items: center;
+  gap: 0.65rem;
+  overflow: hidden;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 0.75rem;
+  background: #ffffff;
+  color: #172033;
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.05);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.home-category-dropdown-option:hover,
+.home-category-dropdown-option:focus-visible {
+  transform: translateY(-2px);
+  outline: none;
+  box-shadow: 0 7px 16px rgba(15, 23, 42, 0.12);
+}
+
+.home-category-dropdown-option img {
+  width: 3.1rem;
+  height: 3.1rem;
+  flex: 0 0 auto;
+  border-radius: 0.55rem;
+  object-fit: cover;
+}
+
+.home-category-dropdown-option-icon {
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  margin-left: -1.35rem;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f766e;
+}
+
+.home-category-dropdown-option > svg {
+  margin-left: auto;
+  flex: 0 0 auto;
+  color: #64748b;
+}
+
 .home-category-tile {
   display: flex;
   min-height: 166px;
@@ -532,6 +630,10 @@
 @media (max-width: 480px) {
   .home-category-tiles {
     padding: 1rem;
+  }
+
+  .home-category-dropdown-options {
+    grid-template-columns: 1fr;
   }
 
   .home-category-tiles-grid {
