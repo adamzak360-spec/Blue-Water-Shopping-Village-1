@@ -433,7 +433,7 @@ export default function Home() {
             <div className="home-category-tiles" aria-labelledby="home-category-tiles-title">
               <div className="home-category-tiles-heading">
                 <span className="home-category-tiles-kicker">Reliable shopping</span>
-                <h3 id="home-category-tiles-title">Colorful shopping categories</h3>
+                <h3 id="home-category-tiles-title">Shopping categories</h3>
                 <p>Jump straight to the products you want to discover.</p>
               </div>
               <button
