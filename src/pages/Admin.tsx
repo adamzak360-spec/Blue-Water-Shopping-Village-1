@@ -977,10 +977,11 @@ export default function Admin() {
     setSelectedOrder(order)
     setShowOrderModal(true)
   }
-  const getShopName = (businessId?: string) => {
-    if (!businessId) return 'Marketplace shop'
-    const store = businesses.find((candidate) => candidate.id === businessId)
-    return store?.name || store?.business_name || (business?.id === businessId ? business.name || business.business_name : null) || 'Marketplace shop'
+  const getShopName = (businessId?: string, productId?: string, orderBusinessId?: string, sellerStoreName?: string) => {
+    const productBusinessId = productId ? products.find((product) => product.id === productId)?.business_id : undefined
+    const resolvedBusinessId = businessId || productBusinessId || orderBusinessId
+    const store = resolvedBusinessId ? businesses.find((candidate) => candidate.id === resolvedBusinessId) : undefined
+    return store?.name || store?.business_name || (business?.id === resolvedBusinessId ? business?.name || business?.business_name : null) || sellerStoreName || 'Marketplace shop'
   }
   const handlePrintOrder = () => {
     const modal = document.querySelector('.order-details-modal')
@@ -1007,7 +1008,7 @@ export default function Admin() {
   }
   const handleShareOrder = async () => {
     if (!selectedOrder) return
-    const items = selectedOrder.items.map((item) => `- ${item.name} x${item.quantity} (${getShopName(item.business_id || selectedOrder.business_id)})`).join('\\n')
+    const items = selectedOrder.items.map((item) => `- ${item.name} x${item.quantity} (${getShopName(item.business_id, item.id, selectedOrder.business_id, selectedOrder.seller_context?.storeName)})`).join('\\n')
     const text = `Reliable order ${selectedOrder.id?.substring(0, 8) || ''}\\nCustomer: ${selectedOrder.customer_name}\\nItems:\\n${items}\\nTotal: ${formatCurrency(selectedOrder.total, selectedOrder.payout_currency || 'GHS')}\\nStatus: ${selectedOrder.status.replace('-', ' ')}`
     try {
       if (navigator.share) {
@@ -2450,7 +2451,7 @@ export default function Admin() {
                           )}
                           <div className="product-id-small">{item.id}</div>
                         </td>
-                        <td className="order-shop-cell">{getShopName(item.business_id || selectedOrder.business_id)}</td>
+                        <td className="order-shop-cell">{getShopName(item.business_id, item.id, selectedOrder.business_id, selectedOrder.seller_context?.storeName)}</td>
                         <td>{item.quantity}</td>
                         <td>{formatCurrency(item.price, selectedOrder.payout_currency || 'GHS')}</td>
                         <td>{formatCurrency(item.quantity * item.price, selectedOrder.payout_currency || 'GHS')}</td>
