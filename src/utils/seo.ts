@@ -311,6 +311,62 @@ export function resetArticleSeo() {
   removeJsonLd('reliable-breadcrumb-jsonld')
 }
 
+export function applySoftwareServicesSeo() {
+  const origin = window.location.origin
+  const url = `${origin}/software-services`
+  const title = 'RPM Software Services | Reliable Premium Marketplace'
+  const description = 'RPM Software Services by Reliable Premium Marketplace builds mobile apps, marketplaces, websites, POS, inventory, school, healthcare, and custom business software in Ghana.'
+  const image = `${origin}/software-services-poster.webp`
+
+  document.title = title
+  setMeta('meta[name="description"]', { name: 'description' }, description)
+  setMeta('meta[name="keywords"]', { name: 'keywords' }, 'RPM Software, RPM Software Services, Reliable Premium Marketplace software, business software Ghana, mobile apps Ghana, POS software Ghana, custom software Tamale')
+  setLink('canonical', url)
+  setMeta('meta[property="og:title"]', { property: 'og:title' }, title)
+  setMeta('meta[property="og:description"]', { property: 'og:description' }, description)
+  setMeta('meta[property="og:url"]', { property: 'og:url' }, url)
+  setMeta('meta[property="og:type"]', { property: 'og:type' }, 'website')
+  setMeta('meta[property="og:site_name"]', { property: 'og:site_name' }, 'Reliable Premium Marketplace')
+  setMeta('meta[property="og:image"]', { property: 'og:image' }, image)
+  setMeta('meta[property="og:image:alt"]', { property: 'og:image:alt' }, 'RPM Software Services by Reliable Premium Marketplace')
+  setMeta('meta[name="twitter:card"]', { name: 'twitter:card' }, 'summary_large_image')
+  setMeta('meta[name="twitter:title"]', { name: 'twitter:title' }, title)
+  setMeta('meta[name="twitter:description"]', { name: 'twitter:description' }, description)
+  setMeta('meta[name="twitter:image"]', { name: 'twitter:image' }, image)
+  setJsonLd('reliable-software-services-jsonld', {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: 'RPM Software Services',
+    alternateName: 'Reliable Premium Marketplace Software Services',
+    description,
+    url,
+    image,
+    areaServed: [{ '@type': 'Country', name: 'Ghana' }, { '@type': 'Place', name: 'Tamale' }],
+    provider: {
+      '@type': 'Organization',
+      name: 'Reliable Premium Marketplace',
+      url: origin,
+      telephone: '+233595609966',
+    },
+    serviceType: [
+      'Mobile application development',
+      'SaaS and marketplace development',
+      'Point-of-sale software',
+      'Inventory management software',
+      'Website and e-commerce development',
+      'Custom business software',
+    ],
+  })
+  setJsonLd('reliable-software-services-breadcrumb-jsonld', {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: origin },
+      { '@type': 'ListItem', position: 2, name: 'RPM Software Services', item: url },
+    ],
+  })
+}
+
 export function resetProductSeo() {
   document.title = 'Reliable Premium Marketplace'
   setMeta('meta[name="description"]', { name: 'description' }, DEFAULT_DESCRIPTION)

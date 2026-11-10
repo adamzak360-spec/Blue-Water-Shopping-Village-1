@@ -32,7 +32,8 @@ import {
   Car,
   Baby,
   Utensils,
-  BriefcaseBusiness
+  BriefcaseBusiness,
+  Code2
 } from 'lucide-react'
 import './App.css'
 import { lazy, Suspense, useLayoutEffect } from 'react'
@@ -75,6 +76,7 @@ const Wishlist = lazy(() => import('./pages/Wishlist'))
 const ProductChat = lazy(() => import('./pages/ProductChat'))
 const SellerRegister = lazy(() => import('./pages/SellerRegister'))
 const AdvertiserOnboarding = lazy(() => import('./pages/AdvertiserOnboarding'))
+const SoftwareServices = lazy(() => import('./pages/SoftwareServices'))
 
 // Prefetch functions for near-instant transitions
 const prefetchHome = () => import('./pages/Home')
@@ -86,6 +88,7 @@ const prefetchContact = () => import('./pages/Contact')
 const prefetchFAQ = () => import('./pages/FAQ')
 const prefetchArticles = () => import('./pages/Articles')
 const prefetchLogin = () => import('./pages/Login')
+const prefetchSoftwareServices = () => import('./pages/SoftwareServices')
 import WhatsAppButton from './components/WhatsAppButton'
 import InstallAppPrompt from './components/InstallAppPrompt'
 import CookieConsent from './components/CookieConsent'
@@ -327,6 +330,7 @@ function AppShell() {
           <Link to="/about" className="drawer-item" onMouseEnter={prefetchAbout}><Info size={20} /> {t('about')}</Link>
           <Link to="/contact" className="drawer-item" onMouseEnter={prefetchContact}><Phone size={20} /> {t('contact')}</Link>
           <Link to="/faq" className="drawer-item" onMouseEnter={prefetchFAQ}><HelpCircle size={20} /> {t('support')}</Link>
+          <Link to="/software-services" className="drawer-item" onMouseEnter={prefetchSoftwareServices}><Code2 size={20} /> RPM Software Services</Link>
           <Link to="/customer/settings" className="drawer-item"><Settings size={20} /> {t('settings')}</Link>
           {user ? (
             <div className="drawer-footer">
@@ -393,6 +397,7 @@ function AppShell() {
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/returns" element={<Returns />} />
+            <Route path="/software-services" element={<SoftwareServices />} />
             <Route
               path="/admin/*"
               element={

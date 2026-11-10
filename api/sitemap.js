@@ -92,6 +92,7 @@ module.exports = async (req, res) => {
         `<url><loc>${escapeXml(origin)}/products</loc></url>`,
         `<url><loc>${escapeXml(origin)}/stores</loc></url>`,
         `<url><loc>${escapeXml(origin)}/articles</loc></url>`,
+        `<url><loc>${escapeXml(origin)}/software-services</loc></url>`,
         ...(Array.isArray(articles) ? articles.map(article => {
           const lastmod = article.updated_at || article.published_at ? `<lastmod>${escapeXml(new Date(article.updated_at || article.published_at).toISOString())}</lastmod>` : '';
           return `<url><loc>${escapeXml(`${origin}/articles/${encodeURIComponent(article.slug)}`)}</loc>${lastmod}<changefreq>weekly</changefreq></url>`;

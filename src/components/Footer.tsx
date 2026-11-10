@@ -33,6 +33,7 @@ export default function Footer() {
             <li><Link to="/articles">{t('articles')}</Link></li>
             <li><Link to="/about">{t('aboutUs')}</Link></li>
             <li><Link to="/contact">{t('contactUs')}</Link></li>
+            <li><Link to="/software-services">RPM Software Services</Link></li>
             <li><Link to="/faq">FAQ</Link></li>
             <li><Link to="/delivery">{t('deliveryInformation')}</Link></li>
           </ul>
