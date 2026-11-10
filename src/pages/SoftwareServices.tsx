@@ -33,10 +33,11 @@ export default function SoftwareServices() {
           <div className="software-services-actions">
             <a className="software-primary-cta" href="tel:+233595609966"><Phone size={18} /> Call +233 59 560 9966</a>
             <a className="software-secondary-cta" href="https://wa.me/233595609966?text=Hello%20RPM%20Software%20Services%2C%20I%20would%20like%20to%20discuss%20a%20software%20solution." target="_blank" rel="noreferrer"><MessageCircle size={18} /> Message on WhatsApp</a>
+            <a className="software-download-cta" href="/software-services-flyer-hd.png" download="RPM-Software-Services-HD.png"><ArrowRight size={18} /> Download HD flyer for WhatsApp</a>
           </div>
         </div>
         <div className="software-services-poster-wrap">
-          <img src="/software-services-poster.webp" alt="RPM Software Services: software platforms, mobile applications, marketplaces, POS, inventory, websites, and business software" loading="eager" />
+          <img src="/software-services-flyer-hd.png" alt="RPM Software Services: software platforms, mobile applications, marketplaces, POS, inventory, websites, and business software" loading="eager" />
         </div>
       </section>
 

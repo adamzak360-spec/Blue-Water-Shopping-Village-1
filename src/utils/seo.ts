@@ -316,7 +316,7 @@ export function applySoftwareServicesSeo() {
   const url = `${origin}/software-services`
   const title = 'RPM Software Services | Reliable Premium Marketplace'
   const description = 'RPM Software Services by Reliable Premium Marketplace builds mobile apps, marketplaces, websites, POS, inventory, school, healthcare, and custom business software in Ghana.'
-  const image = `${origin}/software-services-poster.webp`
+  const image = `${origin}/software-services-flyer-hd.png`
 
   document.title = title
   setMeta('meta[name="description"]', { name: 'description' }, description)
