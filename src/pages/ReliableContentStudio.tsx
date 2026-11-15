@@ -283,23 +283,37 @@ export default function ReliableContentStudio() {
     }
     const draw = (elapsed: number) => {
       const progress = Math.min(0.999, elapsed / 6000)
-      const sceneIndex = Math.min(contentPlan.length - 1, Math.floor(progress * contentPlan.length))
+      const scenePosition = progress * contentPlan.length
+      const sceneIndex = Math.min(contentPlan.length - 1, Math.floor(scenePosition))
       const scene = contentPlan[sceneIndex]
+      const sceneProgress = scenePosition - sceneIndex
+      const entrance = Math.min(1, sceneProgress * 5)
+      const easedEntrance = 1 - Math.pow(1 - entrance, 3)
       const width = canvas.width
       const height = canvas.height
+      const pulse = Math.sin(elapsed / 420)
       const gradient = context.createLinearGradient(0, 0, width, height)
-      gradient.addColorStop(0, '#062d50'); gradient.addColorStop(.65, '#075f87'); gradient.addColorStop(1, '#0aa6c2')
+      gradient.addColorStop(0, '#041f3b'); gradient.addColorStop(.52, '#075f87'); gradient.addColorStop(1, '#0aa6c2')
       context.fillStyle = gradient; context.fillRect(0, 0, width, height)
-      context.fillStyle = 'rgba(255,196,0,.85)'; context.beginPath(); context.arc(width * .82, height * .13, width * .2, 0, Math.PI * 2); context.fill()
+      context.fillStyle = 'rgba(255,196,0,.2)'; context.beginPath(); context.arc(width * (.86 + pulse * .025), height * .14, width * (.22 + pulse * .01), 0, Math.PI * 2); context.fill()
+      context.fillStyle = 'rgba(35,225,230,.17)'; context.beginPath(); context.arc(width * (.08 - pulse * .03), height * .76, width * .34, 0, Math.PI * 2); context.fill()
+      context.save(); context.translate(0, (1 - easedEntrance) * 34)
       context.fillStyle = '#ffc400'; context.font = `800 ${Math.max(18, width * .035)}px Arial`; context.fillText('RELIABLE', width * .09, height * .13)
-      context.fillStyle = '#fff'; context.font = `900 ${Math.max(28, width * .065)}px Arial`
-      const words = scene.title.split(' '); let line = ''; let y = height * .36
-      words.forEach(word => { const test = `${line} ${word}`.trim(); if (context.measureText(test).width > width * .75 && line) { context.fillText(line, width * .09, y); y += width * .085; line = word } else line = test }); context.fillText(line, width * .09, y)
-      context.fillStyle = '#d9f6fb'; context.font = `500 ${Math.max(18, width * .033)}px Arial`
-      const captionWords = scene.caption.split(' '); line = ''; y += width * .16
-      captionWords.forEach(word => { const test = `${line} ${word}`.trim(); if (context.measureText(test).width > width * .75 && line) { context.fillText(line, width * .09, y); y += width * .05; line = word } else line = test }); context.fillText(line, width * .09, y)
-      context.fillStyle = '#ffc400'; context.fillRect(width * .09, height * .77, width * .48, Math.max(42, width * .08)); context.fillStyle = '#123957'; context.font = `800 ${Math.max(16, width * .027)}px Arial`; context.fillText(graphicCta.slice(0, 27), width * .12, height * .82)
-      context.fillStyle = 'rgba(255,255,255,.35)'; context.fillRect(width * .09, height * .91, width * .82, 5); context.fillStyle = '#ffc400'; context.fillRect(width * .09, height * .91, width * .82 * progress, 5)
+      context.fillStyle = 'rgba(255,255,255,.16)'; context.fillRect(width * .09, height * .19, width * .82, 2)
+      context.fillStyle = 'rgba(255,255,255,.12)'; context.beginPath(); context.roundRect(width * .08, height * .24, width * .84, height * .43, width * .045); context.fill()
+      context.strokeStyle = 'rgba(255,255,255,.2)'; context.lineWidth = 2; context.stroke()
+      context.fillStyle = '#ffc400'; context.beginPath(); context.arc(width * .17, height * .32, width * .045, 0, Math.PI * 2); context.fill()
+      context.fillStyle = '#123957'; context.font = `900 ${Math.max(16, width * .022)}px Arial`; context.textAlign = 'center'; context.fillText(String(sceneIndex + 1).padStart(2, '0'), width * .17, height * .328); context.textAlign = 'left'
+      context.globalAlpha = .55 + easedEntrance * .45; context.fillStyle = '#fff'; context.font = `900 ${Math.max(28, width * .065)}px Arial`
+      const words = scene.title.split(' '); let line = ''; let y = height * .43
+      words.forEach(word => { const test = `${line} ${word}`.trim(); if (context.measureText(test).width > width * .7 && line) { context.fillText(line, width * .13, y); y += width * .085; line = word } else line = test }); context.fillText(line, width * .13, y)
+      context.globalAlpha = .78 + easedEntrance * .22; context.fillStyle = '#d9f6fb'; context.font = `500 ${Math.max(18, width * .033)}px Arial`
+      const captionWords = scene.caption.split(' '); line = ''; y += width * .14
+      captionWords.forEach(word => { const test = `${line} ${word}`.trim(); if (context.measureText(test).width > width * .7 && line) { context.fillText(line, width * .13, y); y += width * .05; line = word } else line = test }); context.fillText(line, width * .13, y)
+      context.restore()
+      context.fillStyle = '#ffc400'; context.beginPath(); context.roundRect(width * .09, height * .77, width * .48, Math.max(42, width * .08), 12); context.fill(); context.fillStyle = '#123957'; context.font = `800 ${Math.max(16, width * .027)}px Arial`; context.fillText(graphicCta.slice(0, 27), width * .12, height * .82)
+      context.fillStyle = 'rgba(255,255,255,.3)'; context.fillRect(width * .09, height * .91, width * .82, 5); context.fillStyle = '#ffc400'; context.fillRect(width * .09, height * .91, width * .82 * progress, 5)
+      context.fillStyle = 'rgba(255,255,255,.7)'; context.font = `700 ${Math.max(13, width * .018)}px Arial`; context.fillText('RELIABLE PREMIUM MARKETPLACE', width * .09, height * .95)
     }
     recorder.start()
     const startedAt = performance.now()
