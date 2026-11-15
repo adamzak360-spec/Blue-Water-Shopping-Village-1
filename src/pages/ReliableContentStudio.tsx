@@ -8,7 +8,7 @@ import './ReliableContentStudio.css'
 type ProjectType = 'video' | 'advertisement' | 'graphic' | 'voiceover'
 type ProjectStatus = 'draft' | 'rendering' | 'completed' | 'archived'
 type AspectRatio = '9:16' | '1:1' | '4:5' | '16:9'
-type ContentScene = { title: string; caption: string }
+type ContentScene = { title: string; caption: string; dialogue?: string; visualPrompt?: string }
 
 type ContentProject = {
   id: string
@@ -53,17 +53,19 @@ const buildGraphicSvg = (title: string, subtitle: string, cta: string, aspectRat
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><defs><linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#062d50"/><stop offset=".62" stop-color="#075f87"/><stop offset="1" stop-color="#0aa6c2"/></linearGradient><radialGradient id="glow"><stop stop-color="#ffc400" stop-opacity=".9"/><stop offset="1" stop-color="#ffc400" stop-opacity="0"/></radialGradient></defs><rect width="${width}" height="${height}" fill="url(#bg)"/><circle cx="${width * .88}" cy="${height * .1}" r="${Math.min(width, height) * .24}" fill="url(#glow)" opacity=".72"/><circle cx="${width * .06}" cy="${height * .94}" r="${Math.min(width, height) * .3}" fill="#10b8cf" opacity=".18"/><path d="M0 ${height * .78} C${width * .3} ${height * .68},${width * .55} ${height * .9},${width} ${height * .72} L${width} ${height} L0 ${height}Z" fill="#041f3b" opacity=".72"/><text x="${width * .09}" y="${height * .13}" fill="#ffc400" font-family="Arial,sans-serif" font-size="${Math.max(34, width * .032)}" font-weight="800" letter-spacing="5">RELIABLE</text><text x="${width * .09}" y="${height * .39}" fill="#ffffff" font-family="Arial,sans-serif" font-size="${titleSize}" font-weight="900"><tspan x="${width * .09}" dy="0">${safeTitle.slice(0, 30)}</tspan><tspan x="${width * .09}" dy="${titleSize * 1.18}">${safeTitle.slice(30, 60)}</tspan></text><text x="${width * .09}" y="${height * .57}" fill="#d9f6fb" font-family="Arial,sans-serif" font-size="${Math.max(28, width * .026)}" font-weight="500"><tspan x="${width * .09}" dy="0">${safeSubtitle.slice(0, 48)}</tspan><tspan x="${width * .09}" dy="${Math.max(40, width * .04)}">${safeSubtitle.slice(48, 96)}</tspan></text><rect x="${width * .09}" y="${height * .78}" width="${width * .48}" height="${Math.max(70, width * .07)}" rx="${Math.max(18, width * .018)}" fill="#ffc400"/><text x="${width * .33}" y="${height * .825}" text-anchor="middle" fill="#123957" font-family="Arial,sans-serif" font-size="${Math.max(25, width * .024)}" font-weight="800">${safeCta.slice(0, 28)}</text><text x="${width * .09}" y="${height * .94}" fill="#ffffff" font-family="Arial,sans-serif" font-size="${Math.max(22, width * .02)}" font-weight="700">RPM SOFTWARE SERVICES  ·  RELIABLE PREMIUM MARKETPLACE</text></svg>`
 }
 
-const createContentPlan = (prompt: string): { title: string; subtitle: string; cta: string; scenes: ContentScene[] } => {
+const createContentPlan = (prompt: string, visualStyle: string, setting: string, characters: string, mood: string, dialogue: string): { title: string; subtitle: string; cta: string; scenes: ContentScene[] } => {
   const cleanPrompt = prompt.trim() || 'a practical way to grow your business online'
   const subject = cleanPrompt.length > 62 ? `${cleanPrompt.slice(0, 59)}…` : cleanPrompt
+  const visualPrompt = `${visualStyle} scene in a ${setting}, featuring ${characters}, ${mood} mood, no text, no logos`
+  const conversation = dialogue.trim() || 'A natural conversation that makes the idea easy to understand.'
   return {
     title: subject.charAt(0).toUpperCase() + subject.slice(1),
-    subtitle: 'A simple idea, explained clearly and made ready to share.',
+    subtitle: `${visualStyle} storytelling in a ${setting}.`,
     cta: 'Follow for more practical ideas',
     scenes: [
-      { title: 'The opportunity', caption: subject },
-      { title: 'The simple answer', caption: 'Make the first step clear, useful, and easy to remember.' },
-      { title: 'Your next move', caption: 'Start today. Share consistently. Let people discover your value.' },
+      { title: 'The situation', caption: subject, dialogue: conversation, visualPrompt },
+      { title: 'The conversation', caption: 'A relatable moment turns the idea into a story people remember.', dialogue: conversation, visualPrompt },
+      { title: 'The takeaway', caption: 'End with a clear, useful next step that invites people to respond.', dialogue: conversation, visualPrompt },
     ],
   }
 }
@@ -82,6 +84,12 @@ export default function ReliableContentStudio() {
   const [graphicCta, setGraphicCta] = useState('Message Reliable today')
   const [videoPrompt, setVideoPrompt] = useState('Create a short video explaining how Reliable Premium Marketplace helps local businesses sell online.')
   const [contentTone, setContentTone] = useState('Clear and confident')
+  const [visualStyle, setVisualStyle] = useState('Cartoon illustration')
+  const [sceneSetting, setSceneSetting] = useState('a lively neighborhood street')
+  const [sceneCharacters, setSceneCharacters] = useState('two friendly young adults')
+  const [sceneMood, setSceneMood] = useState('warm, funny, and relatable')
+  const [sceneDialogue, setSceneDialogue] = useState('Person A: How will I pay the school fees? Person B: Let us find a simple way forward.')
+  const [sceneImageUrl, setSceneImageUrl] = useState('/content-studio-cartoon-school-fees.jpg')
   const [contentPlan, setContentPlan] = useState<ContentScene[]>([])
   const [renderingVideo, setRenderingVideo] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -145,6 +153,12 @@ export default function ReliableContentStudio() {
     setGraphicCta('Message Reliable today')
     setVideoPrompt('Create a short video explaining how Reliable Premium Marketplace helps local businesses sell online.')
     setContentTone('Clear and confident')
+    setVisualStyle('Cartoon illustration')
+    setSceneSetting('a lively neighborhood street')
+    setSceneCharacters('two friendly young adults')
+    setSceneMood('warm, funny, and relatable')
+    setSceneDialogue('Person A: How will I pay the school fees? Person B: Let us find a simple way forward.')
+    setSceneImageUrl('/content-studio-cartoon-school-fees.jpg')
     setContentPlan([])
     setMessage('New project ready. Save it when you are ready.')
     setError('')
@@ -161,6 +175,12 @@ export default function ReliableContentStudio() {
     setGraphicCta(String(project.settings?.graphicCta || 'Message Reliable today'))
     setVideoPrompt(String(project.settings?.videoPrompt || 'Create a short video explaining how Reliable Premium Marketplace helps local businesses sell online.'))
     setContentTone(String(project.settings?.contentTone || 'Clear and confident'))
+    setVisualStyle(String(project.settings?.visualStyle || 'Cartoon illustration'))
+    setSceneSetting(String(project.settings?.sceneSetting || 'a lively neighborhood street'))
+    setSceneCharacters(String(project.settings?.sceneCharacters || 'two friendly young adults'))
+    setSceneMood(String(project.settings?.sceneMood || 'warm, funny, and relatable'))
+    setSceneDialogue(String(project.settings?.sceneDialogue || 'Person A: How will I pay the school fees? Person B: Let us find a simple way forward.'))
+    setSceneImageUrl(String(project.settings?.sceneImageUrl || '/content-studio-cartoon-school-fees.jpg'))
     setContentPlan(Array.isArray(project.settings?.contentPlan) ? project.settings.contentPlan as ContentScene[] : [])
     setMessage(`Opened ${project.name}.`)
     setError('')
@@ -183,7 +203,7 @@ export default function ReliableContentStudio() {
         description: description.trim(),
         project_type: projectType,
         aspect_ratio: aspectRatio,
-        settings: { ...(selectedProject?.settings || {}), graphicTitle, graphicSubtitle, graphicCta, videoPrompt, contentTone, contentPlan },
+        settings: { ...(selectedProject?.settings || {}), graphicTitle, graphicSubtitle, graphicCta, videoPrompt, contentTone, visualStyle, sceneSetting, sceneCharacters, sceneMood, sceneDialogue, sceneImageUrl, contentPlan },
       }
       const query = selectedProject
         ? supabase.from('content_projects').update(payload).eq('id', selectedProject.id).select('id, owner_id, name, description, project_type, status, aspect_ratio, settings, created_at, updated_at').single()
@@ -241,7 +261,7 @@ export default function ReliableContentStudio() {
   }
 
   const generatePlan = () => {
-    const plan = createContentPlan(videoPrompt)
+    const plan = createContentPlan(videoPrompt, visualStyle, sceneSetting, sceneCharacters, sceneMood, sceneDialogue)
     setContentPlan(plan.scenes)
     setGraphicTitle(plan.title)
     setGraphicSubtitle(`${plan.subtitle} Tone: ${contentTone.toLowerCase()}.`)
@@ -268,6 +288,8 @@ export default function ReliableContentStudio() {
     canvas.height = Math.round(dimensions.height * scale)
     const context = canvas.getContext('2d')
     if (!context) { setRenderingVideo(false); setError('Video canvas could not be created.'); return }
+    const sceneImage = new Image()
+    sceneImage.src = sceneImageUrl
     const stream = canvas.captureStream(30)
     const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm'
     const recorder = new MediaRecorder(stream, { mimeType })
@@ -292,6 +314,15 @@ export default function ReliableContentStudio() {
       const width = canvas.width
       const height = canvas.height
       const pulse = Math.sin(elapsed / 420)
+      if (sceneImage.complete && sceneImage.naturalWidth > 0) {
+        const imageScale = Math.max(width / sceneImage.naturalWidth, height / sceneImage.naturalHeight)
+        const imageWidth = sceneImage.naturalWidth * imageScale
+        const imageHeight = sceneImage.naturalHeight * imageScale
+        context.save()
+        context.globalAlpha = 0.36
+        context.drawImage(sceneImage, (width - imageWidth) / 2, (height - imageHeight) / 2, imageWidth, imageHeight)
+        context.restore()
+      }
       const gradient = context.createLinearGradient(0, 0, width, height)
       gradient.addColorStop(0, '#041f3b'); gradient.addColorStop(.52, '#075f87'); gradient.addColorStop(1, '#0aa6c2')
       context.fillStyle = gradient; context.fillRect(0, 0, width, height)
@@ -352,9 +383,20 @@ export default function ReliableContentStudio() {
       {(message || error) && <div className={error ? 'content-studio-notice error' : 'content-studio-notice'} role="status">{error || message}</div>}
       <section className="prompt-creator panel">
         <div className="prompt-creator-heading"><div><span className="panel-kicker">Create from an idea</span><h2>What do you want to make today?</h2><p>Describe the video in one sentence. Reliable turns it into a hook, three scenes, captions, and a shareable browser-rendered video.</p></div><div className="prompt-creator-badge"><Film size={17} /> No paid provider required</div></div>
+        <div className="visual-scene-builder">
+          <div className="visual-scene-builder-heading"><div><span className="panel-kicker">Visual scene builder</span><h3>Give the story a place, people, and personality</h3><p>Create cartoon or realistic scene directions for conversations about life, school fees, comedy, business, and everyday moments.</p></div><WandSparkles size={24} /></div>
+          <div className="visual-scene-grid">
+            <label>Visual style<select value={visualStyle} onChange={event => { setVisualStyle(event.target.value); setSceneImageUrl(event.target.value === 'Realistic human scene' ? '/content-studio-realistic-office.jpg' : '/content-studio-cartoon-school-fees.jpg') }}><option>Cartoon illustration</option><option>Realistic human scene</option><option>3D animated film</option><option>Comic-book style</option></select></label>
+            <label>Location<select value={sceneSetting} onChange={event => setSceneSetting(event.target.value)}><option>a lively neighborhood street</option><option>a cozy family room</option><option>a bright modern office</option><option>a school compound</option><option>a roadside shop</option></select></label>
+            <label>Characters<input value={sceneCharacters} onChange={event => setSceneCharacters(event.target.value)} placeholder="e.g. two friends and a shop owner" /></label>
+            <label>Mood<select value={sceneMood} onChange={event => setSceneMood(event.target.value)}><option>warm, funny, and relatable</option><option>emotional and thoughtful</option><option>bold and energetic</option><option>calm and educational</option></select></label>
+          </div>
+          <label className="visual-dialogue-field">Dialogue or conversation<textarea value={sceneDialogue} onChange={event => setSceneDialogue(event.target.value)} rows={2} placeholder="Person A: ... Person B: ..." /></label>
+          <div className="visual-sample-picker"><span>Scene reference</span><button type="button" className={sceneImageUrl.includes('cartoon') ? 'selected' : ''} onClick={() => { setVisualStyle('Cartoon illustration'); setSceneImageUrl('/content-studio-cartoon-school-fees.jpg') }}><img src="/content-studio-cartoon-school-fees.jpg" alt="Cartoon neighborhood conversation sample" /><b>Cartoon conversation</b></button><button type="button" className={sceneImageUrl.includes('realistic') ? 'selected' : ''} onClick={() => { setVisualStyle('Realistic human scene'); setSceneImageUrl('/content-studio-realistic-office.jpg') }}><img src="/content-studio-realistic-office.jpg" alt="Realistic office conversation sample" /><b>Realistic people</b></button></div>
+        </div>
         <div className="prompt-creator-form"><textarea value={videoPrompt} onChange={event => setVideoPrompt(event.target.value)} rows={3} placeholder="Example: Create a 30-second video showing why local shops should start selling online." /><div className="prompt-creator-controls"><label>Tone<select value={contentTone} onChange={event => setContentTone(event.target.value)}><option>Clear and confident</option><option>Warm and inspiring</option><option>Bold and energetic</option><option>Simple and educational</option></select></label><button className="content-studio-button primary" onClick={generatePlan}><Sparkles size={17} /> Create content plan</button></div></div>
         <div className="creator-steps"><span className="active"><b>1</b> Idea</span><span className={contentPlan.length ? 'active' : ''}><b>2</b> Scenes & captions</span><span className={renderingVideo ? 'active' : ''}><b>3</b> Export video</span></div>
-        {contentPlan.length > 0 && <div className="scene-plan"><div className="scene-plan-header"><div><span className="panel-kicker">Your generated structure</span><h3>Ready-to-share short video</h3></div><button className="content-studio-button primary" onClick={renderBrowserVideo} disabled={renderingVideo}>{renderingVideo ? <Loader2 className="content-studio-spinner" size={17} /> : <Download size={17} />} {renderingVideo ? 'Rendering…' : 'Render WebM video'}</button></div><div className="scene-cards">{contentPlan.map((scene, index) => <article className="scene-card" key={`${scene.title}-${index}`}><span>Scene {index + 1}</span><strong>{scene.title}</strong><p>{scene.caption}</p><small><Captions size={13} /> Caption ready</small></article>)}</div><div className="scene-plan-note"><Mic2 size={15} /> Voiceover is not connected yet. You can add narration in the next provider stage, or upload this video to a platform with built-in audio tools.</div></div>}
+        {contentPlan.length > 0 && <div className="scene-plan"><div className="scene-plan-header"><div><span className="panel-kicker">Your generated structure</span><h3>Ready-to-share short video</h3></div><button className="content-studio-button primary" onClick={renderBrowserVideo} disabled={renderingVideo}>{renderingVideo ? <Loader2 className="content-studio-spinner" size={17} /> : <Download size={17} />} {renderingVideo ? 'Rendering…' : 'Render WebM video'}</button></div><div className="scene-cards">{contentPlan.map((scene, index) => <article className="scene-card" key={`${scene.title}-${index}`}><span>Scene {index + 1}</span><strong>{scene.title}</strong><p>{scene.caption}</p>{scene.dialogue && <small><Mic2 size={13} /> {scene.dialogue}</small>}<small><Captions size={13} /> Caption and visual direction ready</small></article>)}</div><div className="scene-plan-note"><Mic2 size={15} /> Voiceover is not connected yet. You can add narration in the next provider stage, or upload this video to a platform with built-in audio tools.</div></div>}
       </section>
 
       <div className="content-studio-workspace">
