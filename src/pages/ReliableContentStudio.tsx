@@ -34,6 +34,24 @@ const formatDate = (value: string) => new Intl.DateTimeFormat(undefined, {
   timeStyle: 'short',
 }).format(new Date(value))
 
+const escapeSvgText = (value: string) => value.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[character] || character))
+
+const graphicDimensions: Record<AspectRatio, { width: number; height: number }> = {
+  '9:16': { width: 1080, height: 1920 },
+  '1:1': { width: 1080, height: 1080 },
+  '4:5': { width: 1080, height: 1350 },
+  '16:9': { width: 1920, height: 1080 },
+}
+
+const buildGraphicSvg = (title: string, subtitle: string, cta: string, aspectRatio: AspectRatio) => {
+  const { width, height } = graphicDimensions[aspectRatio]
+  const safeTitle = escapeSvgText(title || 'Your next big idea starts here')
+  const safeSubtitle = escapeSvgText(subtitle || 'Professional digital solutions for ambitious businesses.')
+  const safeCta = escapeSvgText(cta || 'Message Reliable today')
+  const titleSize = aspectRatio === '16:9' ? 76 : aspectRatio === '1:1' ? 70 : 66
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><defs><linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#062d50"/><stop offset=".62" stop-color="#075f87"/><stop offset="1" stop-color="#0aa6c2"/></linearGradient><radialGradient id="glow"><stop stop-color="#ffc400" stop-opacity=".9"/><stop offset="1" stop-color="#ffc400" stop-opacity="0"/></radialGradient></defs><rect width="${width}" height="${height}" fill="url(#bg)"/><circle cx="${width * .88}" cy="${height * .1}" r="${Math.min(width, height) * .24}" fill="url(#glow)" opacity=".72"/><circle cx="${width * .06}" cy="${height * .94}" r="${Math.min(width, height) * .3}" fill="#10b8cf" opacity=".18"/><path d="M0 ${height * .78} C${width * .3} ${height * .68},${width * .55} ${height * .9},${width} ${height * .72} L${width} ${height} L0 ${height}Z" fill="#041f3b" opacity=".72"/><text x="${width * .09}" y="${height * .13}" fill="#ffc400" font-family="Arial,sans-serif" font-size="${Math.max(34, width * .032)}" font-weight="800" letter-spacing="5">RELIABLE</text><text x="${width * .09}" y="${height * .39}" fill="#ffffff" font-family="Arial,sans-serif" font-size="${titleSize}" font-weight="900"><tspan x="${width * .09}" dy="0">${safeTitle.slice(0, 30)}</tspan><tspan x="${width * .09}" dy="${titleSize * 1.18}">${safeTitle.slice(30, 60)}</tspan></text><text x="${width * .09}" y="${height * .57}" fill="#d9f6fb" font-family="Arial,sans-serif" font-size="${Math.max(28, width * .026)}" font-weight="500"><tspan x="${width * .09}" dy="0">${safeSubtitle.slice(0, 48)}</tspan><tspan x="${width * .09}" dy="${Math.max(40, width * .04)}">${safeSubtitle.slice(48, 96)}</tspan></text><rect x="${width * .09}" y="${height * .78}" width="${width * .48}" height="${Math.max(70, width * .07)}" rx="${Math.max(18, width * .018)}" fill="#ffc400"/><text x="${width * .33}" y="${height * .825}" text-anchor="middle" fill="#123957" font-family="Arial,sans-serif" font-size="${Math.max(25, width * .024)}" font-weight="800">${safeCta.slice(0, 28)}</text><text x="${width * .09}" y="${height * .94}" fill="#ffffff" font-family="Arial,sans-serif" font-size="${Math.max(22, width * .02)}" font-weight="700">RPM SOFTWARE SERVICES  ·  RELIABLE PREMIUM MARKETPLACE</text></svg>`
+}
+
 export default function ReliableContentStudio() {
   const { user, role, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
@@ -43,6 +61,9 @@ export default function ReliableContentStudio() {
   const [description, setDescription] = useState('')
   const [projectType, setProjectType] = useState<ProjectType>('video')
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('9:16')
+  const [graphicTitle, setGraphicTitle] = useState('Build better. Grow faster.')
+  const [graphicSubtitle, setGraphicSubtitle] = useState('Professional digital solutions for ambitious businesses.')
+  const [graphicCta, setGraphicCta] = useState('Message Reliable today')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [authorized, setAuthorized] = useState(false)
@@ -55,6 +76,8 @@ export default function ReliableContentStudio() {
     completed: projects.filter(project => project.status === 'completed').length,
     rendering: projects.filter(project => project.status === 'rendering').length,
   }), [projects])
+
+  const graphicPreviewUrl = useMemo(() => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(buildGraphicSvg(graphicTitle, graphicSubtitle, graphicCta, aspectRatio))}`, [aspectRatio, graphicCta, graphicSubtitle, graphicTitle])
 
   const loadProjects = useCallback(async () => {
     if (!supabase || !user) return
@@ -97,6 +120,9 @@ export default function ReliableContentStudio() {
     setDescription('')
     setProjectType('video')
     setAspectRatio('9:16')
+    setGraphicTitle('Build better. Grow faster.')
+    setGraphicSubtitle('Professional digital solutions for ambitious businesses.')
+    setGraphicCta('Message Reliable today')
     setMessage('New project ready. Save it when you are ready.')
     setError('')
   }
@@ -107,6 +133,9 @@ export default function ReliableContentStudio() {
     setDescription(project.description)
     setProjectType(project.project_type)
     setAspectRatio(project.aspect_ratio)
+    setGraphicTitle(String(project.settings?.graphicTitle || 'Build better. Grow faster.'))
+    setGraphicSubtitle(String(project.settings?.graphicSubtitle || 'Professional digital solutions for ambitious businesses.'))
+    setGraphicCta(String(project.settings?.graphicCta || 'Message Reliable today'))
     setMessage(`Opened ${project.name}.`)
     setError('')
   }
@@ -128,7 +157,7 @@ export default function ReliableContentStudio() {
         description: description.trim(),
         project_type: projectType,
         aspect_ratio: aspectRatio,
-        settings: selectedProject?.settings || {},
+        settings: { ...(selectedProject?.settings || {}), graphicTitle, graphicSubtitle, graphicCta },
       }
       const query = selectedProject
         ? supabase.from('content_projects').update(payload).eq('id', selectedProject.id).select('id, owner_id, name, description, project_type, status, aspect_ratio, settings, created_at, updated_at').single()
@@ -160,6 +189,29 @@ export default function ReliableContentStudio() {
     } catch (deleteErrorValue) {
       setError(deleteErrorValue instanceof Error ? deleteErrorValue.message : 'Unable to delete this project.')
     }
+  }
+
+  const downloadGraphic = async () => {
+    const svg = buildGraphicSvg(graphicTitle, graphicSubtitle, graphicCta, aspectRatio)
+    const svgUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }))
+    const image = new Image()
+    image.onload = () => {
+      const { width, height } = graphicDimensions[aspectRatio]
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const context = canvas.getContext('2d')
+      if (!context) return
+      context.drawImage(image, 0, 0, width, height)
+      URL.revokeObjectURL(svgUrl)
+      const link = document.createElement('a')
+      link.download = `reliable-content-${aspectRatio.replace(':', 'x')}.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+      setMessage('High-definition PNG downloaded. Share it as a document when maximum clarity matters.')
+    }
+    image.onerror = () => { URL.revokeObjectURL(svgUrl); setError('The graphic preview could not be exported.') }
+    image.src = svgUrl
   }
 
   if (authLoading || loading) {
@@ -201,7 +253,8 @@ export default function ReliableContentStudio() {
 
         <main className="content-studio-editor panel">
           <div className="panel-heading"><div><span className="panel-kicker">Project setup</span><h2>{selectedProject ? 'Edit project' : 'Create a new project'}</h2></div><Settings2 size={22} className="panel-heading-icon" /></div>
-          <div className="content-studio-preview"><div className="preview-glow" /><WandSparkles size={34} /><h3>Creative workspace ready</h3><p>Template previews, animation, voiceover, and rendering will be added in the next stages.</p><span className="preview-badge"><Sparkles size={14} /> Stage 2 project foundation</span></div>
+          <div className="content-studio-preview"><div className="preview-glow" /><WandSparkles size={34} /><h3>Creative workspace ready</h3><p>Start with a clean social graphic, then save its copy inside this project for future video and animation stages.</p><span className="preview-badge"><Sparkles size={14} /> Free HD graphic creator</span></div>
+          <section className="content-studio-graphic-tool"><div><span className="panel-kicker">Shareable content</span><h3>Social graphic creator</h3><p>Make a crisp branded visual for WhatsApp, LinkedIn, Facebook, Reels, or Shorts.</p></div><div className="graphic-tool-grid"><div className="graphic-tool-fields"><label>Headline<input value={graphicTitle} onChange={event => setGraphicTitle(event.target.value)} maxLength={60} /></label><label>Supporting message<textarea value={graphicSubtitle} onChange={event => setGraphicSubtitle(event.target.value)} rows={3} maxLength={120} /></label><label>Call to action<input value={graphicCta} onChange={event => setGraphicCta(event.target.value)} maxLength={32} /></label><button className="content-studio-button primary" onClick={() => void downloadGraphic()}><Save size={17} /> Download HD PNG</button></div><div className="graphic-preview-frame"><img src={graphicPreviewUrl} alt="Live social graphic preview" /></div></div></section>
           <div className="content-studio-form"><label>Project name<input value={name} onChange={event => setName(event.target.value)} placeholder="e.g. Christmas marketplace campaign" maxLength={160} /></label><label>Description<textarea value={description} onChange={event => setDescription(event.target.value)} placeholder="Describe the content you want to create…" rows={4} maxLength={2000} /></label><div className="content-studio-form-grid"><label>Project type<select value={projectType} onChange={event => setProjectType(event.target.value as ProjectType)}>{Object.entries(projectTypeLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label><label>Aspect ratio<select value={aspectRatio} onChange={event => setAspectRatio(event.target.value as AspectRatio)}><option value="9:16">9:16 · Reels / Shorts / TikTok</option><option value="1:1">1:1 · Square feed</option><option value="4:5">4:5 · Social feed</option><option value="16:9">16:9 · YouTube</option></select></label></div><div className="content-studio-actions"><button className="content-studio-button primary" onClick={() => void saveProject()} disabled={saving}>{saving ? <Loader2 className="content-studio-spinner" size={17} /> : <Save size={17} />} {saving ? 'Saving…' : 'Save project'}</button>{selectedProject && <button className="content-studio-button secondary" onClick={startNewProject}>Start another project</button>}</div></div>
         </main>
       </div>
