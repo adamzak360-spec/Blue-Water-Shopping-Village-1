@@ -311,7 +311,7 @@ export default function ReliableContentStudio() {
       const captionWords = scene.caption.split(' '); line = ''; y += width * .14
       captionWords.forEach(word => { const test = `${line} ${word}`.trim(); if (context.measureText(test).width > width * .7 && line) { context.fillText(line, width * .13, y); y += width * .05; line = word } else line = test }); context.fillText(line, width * .13, y)
       context.restore()
-      context.fillStyle = '#ffc400'; context.beginPath(); context.roundRect(width * .09, height * .77, width * .48, Math.max(42, width * .08), 12); context.fill(); context.fillStyle = '#123957'; context.font = `800 ${Math.max(16, width * .027)}px Arial`; context.fillText(graphicCta.slice(0, 27), width * .12, height * .82)
+      context.fillStyle = '#ffc400'; context.beginPath(); context.roundRect(width * .09, height * .77, width * .48, Math.max(42, width * .08), 12); context.fill(); context.fillStyle = '#123957'; context.font = `800 ${Math.max(14, width * .023)}px Arial`; context.textAlign = 'center'; context.fillText(graphicCta.slice(0, 24), width * .33, height * .82); context.textAlign = 'left'
       context.fillStyle = 'rgba(255,255,255,.3)'; context.fillRect(width * .09, height * .91, width * .82, 5); context.fillStyle = '#ffc400'; context.fillRect(width * .09, height * .91, width * .82 * progress, 5)
       context.fillStyle = 'rgba(255,255,255,.7)'; context.font = `700 ${Math.max(13, width * .018)}px Arial`; context.fillText('RELIABLE PREMIUM MARKETPLACE', width * .09, height * .95)
     }
