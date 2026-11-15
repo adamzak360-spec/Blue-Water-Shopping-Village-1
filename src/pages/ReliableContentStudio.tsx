@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Archive, Clapperboard, FilePlus2, FolderOpen, LayoutDashboard, Loader2, Plus, Save, Settings2, Sparkles, Trash2, Video, WandSparkles } from 'lucide-react'
+import { Archive, Captions, Clapperboard, Download, FilePlus2, Film, FolderOpen, LayoutDashboard, Loader2, Mic2, Plus, Save, Settings2, Sparkles, Trash2, Video, WandSparkles } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import './ReliableContentStudio.css'
@@ -8,6 +8,7 @@ import './ReliableContentStudio.css'
 type ProjectType = 'video' | 'advertisement' | 'graphic' | 'voiceover'
 type ProjectStatus = 'draft' | 'rendering' | 'completed' | 'archived'
 type AspectRatio = '9:16' | '1:1' | '4:5' | '16:9'
+type ContentScene = { title: string; caption: string }
 
 type ContentProject = {
   id: string
@@ -52,6 +53,21 @@ const buildGraphicSvg = (title: string, subtitle: string, cta: string, aspectRat
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><defs><linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#062d50"/><stop offset=".62" stop-color="#075f87"/><stop offset="1" stop-color="#0aa6c2"/></linearGradient><radialGradient id="glow"><stop stop-color="#ffc400" stop-opacity=".9"/><stop offset="1" stop-color="#ffc400" stop-opacity="0"/></radialGradient></defs><rect width="${width}" height="${height}" fill="url(#bg)"/><circle cx="${width * .88}" cy="${height * .1}" r="${Math.min(width, height) * .24}" fill="url(#glow)" opacity=".72"/><circle cx="${width * .06}" cy="${height * .94}" r="${Math.min(width, height) * .3}" fill="#10b8cf" opacity=".18"/><path d="M0 ${height * .78} C${width * .3} ${height * .68},${width * .55} ${height * .9},${width} ${height * .72} L${width} ${height} L0 ${height}Z" fill="#041f3b" opacity=".72"/><text x="${width * .09}" y="${height * .13}" fill="#ffc400" font-family="Arial,sans-serif" font-size="${Math.max(34, width * .032)}" font-weight="800" letter-spacing="5">RELIABLE</text><text x="${width * .09}" y="${height * .39}" fill="#ffffff" font-family="Arial,sans-serif" font-size="${titleSize}" font-weight="900"><tspan x="${width * .09}" dy="0">${safeTitle.slice(0, 30)}</tspan><tspan x="${width * .09}" dy="${titleSize * 1.18}">${safeTitle.slice(30, 60)}</tspan></text><text x="${width * .09}" y="${height * .57}" fill="#d9f6fb" font-family="Arial,sans-serif" font-size="${Math.max(28, width * .026)}" font-weight="500"><tspan x="${width * .09}" dy="0">${safeSubtitle.slice(0, 48)}</tspan><tspan x="${width * .09}" dy="${Math.max(40, width * .04)}">${safeSubtitle.slice(48, 96)}</tspan></text><rect x="${width * .09}" y="${height * .78}" width="${width * .48}" height="${Math.max(70, width * .07)}" rx="${Math.max(18, width * .018)}" fill="#ffc400"/><text x="${width * .33}" y="${height * .825}" text-anchor="middle" fill="#123957" font-family="Arial,sans-serif" font-size="${Math.max(25, width * .024)}" font-weight="800">${safeCta.slice(0, 28)}</text><text x="${width * .09}" y="${height * .94}" fill="#ffffff" font-family="Arial,sans-serif" font-size="${Math.max(22, width * .02)}" font-weight="700">RPM SOFTWARE SERVICES  ·  RELIABLE PREMIUM MARKETPLACE</text></svg>`
 }
 
+const createContentPlan = (prompt: string): { title: string; subtitle: string; cta: string; scenes: ContentScene[] } => {
+  const cleanPrompt = prompt.trim() || 'a practical way to grow your business online'
+  const subject = cleanPrompt.length > 62 ? `${cleanPrompt.slice(0, 59)}…` : cleanPrompt
+  return {
+    title: subject.charAt(0).toUpperCase() + subject.slice(1),
+    subtitle: 'A simple idea, explained clearly and made ready to share.',
+    cta: 'Follow for more practical ideas',
+    scenes: [
+      { title: 'The opportunity', caption: subject },
+      { title: 'The simple answer', caption: 'Make the first step clear, useful, and easy to remember.' },
+      { title: 'Your next move', caption: 'Start today. Share consistently. Let people discover your value.' },
+    ],
+  }
+}
+
 export default function ReliableContentStudio() {
   const { user, role, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
@@ -64,6 +80,10 @@ export default function ReliableContentStudio() {
   const [graphicTitle, setGraphicTitle] = useState('Build better. Grow faster.')
   const [graphicSubtitle, setGraphicSubtitle] = useState('Professional digital solutions for ambitious businesses.')
   const [graphicCta, setGraphicCta] = useState('Message Reliable today')
+  const [videoPrompt, setVideoPrompt] = useState('Create a short video explaining how Reliable Premium Marketplace helps local businesses sell online.')
+  const [contentTone, setContentTone] = useState('Clear and confident')
+  const [contentPlan, setContentPlan] = useState<ContentScene[]>([])
+  const [renderingVideo, setRenderingVideo] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [authorized, setAuthorized] = useState(false)
@@ -123,6 +143,9 @@ export default function ReliableContentStudio() {
     setGraphicTitle('Build better. Grow faster.')
     setGraphicSubtitle('Professional digital solutions for ambitious businesses.')
     setGraphicCta('Message Reliable today')
+    setVideoPrompt('Create a short video explaining how Reliable Premium Marketplace helps local businesses sell online.')
+    setContentTone('Clear and confident')
+    setContentPlan([])
     setMessage('New project ready. Save it when you are ready.')
     setError('')
   }
@@ -136,6 +159,9 @@ export default function ReliableContentStudio() {
     setGraphicTitle(String(project.settings?.graphicTitle || 'Build better. Grow faster.'))
     setGraphicSubtitle(String(project.settings?.graphicSubtitle || 'Professional digital solutions for ambitious businesses.'))
     setGraphicCta(String(project.settings?.graphicCta || 'Message Reliable today'))
+    setVideoPrompt(String(project.settings?.videoPrompt || 'Create a short video explaining how Reliable Premium Marketplace helps local businesses sell online.'))
+    setContentTone(String(project.settings?.contentTone || 'Clear and confident'))
+    setContentPlan(Array.isArray(project.settings?.contentPlan) ? project.settings.contentPlan as ContentScene[] : [])
     setMessage(`Opened ${project.name}.`)
     setError('')
   }
@@ -157,7 +183,7 @@ export default function ReliableContentStudio() {
         description: description.trim(),
         project_type: projectType,
         aspect_ratio: aspectRatio,
-        settings: { ...(selectedProject?.settings || {}), graphicTitle, graphicSubtitle, graphicCta },
+        settings: { ...(selectedProject?.settings || {}), graphicTitle, graphicSubtitle, graphicCta, videoPrompt, contentTone, contentPlan },
       }
       const query = selectedProject
         ? supabase.from('content_projects').update(payload).eq('id', selectedProject.id).select('id, owner_id, name, description, project_type, status, aspect_ratio, settings, created_at, updated_at').single()
@@ -214,6 +240,72 @@ export default function ReliableContentStudio() {
     image.src = svgUrl
   }
 
+  const generatePlan = () => {
+    const plan = createContentPlan(videoPrompt)
+    setContentPlan(plan.scenes)
+    setGraphicTitle(plan.title)
+    setGraphicSubtitle(`${plan.subtitle} Tone: ${contentTone.toLowerCase()}.`)
+    setGraphicCta(plan.cta)
+    setProjectType('video')
+    setMessage('Your content plan is ready. Review the scenes, then render a shareable browser video.')
+  }
+
+  const renderBrowserVideo = () => {
+    if (!contentPlan.length) {
+      setError('Create a content plan first so the video has scenes to render.')
+      return
+    }
+    if (!('MediaRecorder' in window)) {
+      setError('This browser does not support video export. Try the latest Chrome, Edge, or Firefox.')
+      return
+    }
+    setRenderingVideo(true)
+    setError('')
+    const dimensions = graphicDimensions[aspectRatio]
+    const scale = Math.min(1, 720 / dimensions.width)
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.round(dimensions.width * scale)
+    canvas.height = Math.round(dimensions.height * scale)
+    const context = canvas.getContext('2d')
+    if (!context) { setRenderingVideo(false); setError('Video canvas could not be created.'); return }
+    const stream = canvas.captureStream(30)
+    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm'
+    const recorder = new MediaRecorder(stream, { mimeType })
+    const chunks: BlobPart[] = []
+    recorder.ondataavailable = event => { if (event.data.size) chunks.push(event.data) }
+    recorder.onstop = () => {
+      const link = document.createElement('a')
+      link.download = `reliable-content-${Date.now()}.webm`
+      link.href = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }))
+      link.click()
+      setRenderingVideo(false)
+      setMessage('Your browser-rendered video is ready. Upload the WebM directly to supported platforms or convert it to MP4 later.')
+    }
+    const draw = (elapsed: number) => {
+      const progress = Math.min(0.999, elapsed / 6000)
+      const sceneIndex = Math.min(contentPlan.length - 1, Math.floor(progress * contentPlan.length))
+      const scene = contentPlan[sceneIndex]
+      const width = canvas.width
+      const height = canvas.height
+      const gradient = context.createLinearGradient(0, 0, width, height)
+      gradient.addColorStop(0, '#062d50'); gradient.addColorStop(.65, '#075f87'); gradient.addColorStop(1, '#0aa6c2')
+      context.fillStyle = gradient; context.fillRect(0, 0, width, height)
+      context.fillStyle = 'rgba(255,196,0,.85)'; context.beginPath(); context.arc(width * .82, height * .13, width * .2, 0, Math.PI * 2); context.fill()
+      context.fillStyle = '#ffc400'; context.font = `800 ${Math.max(18, width * .035)}px Arial`; context.fillText('RELIABLE', width * .09, height * .13)
+      context.fillStyle = '#fff'; context.font = `900 ${Math.max(28, width * .065)}px Arial`
+      const words = scene.title.split(' '); let line = ''; let y = height * .36
+      words.forEach(word => { const test = `${line} ${word}`.trim(); if (context.measureText(test).width > width * .75 && line) { context.fillText(line, width * .09, y); y += width * .085; line = word } else line = test }); context.fillText(line, width * .09, y)
+      context.fillStyle = '#d9f6fb'; context.font = `500 ${Math.max(18, width * .033)}px Arial`
+      const captionWords = scene.caption.split(' '); line = ''; y += width * .16
+      captionWords.forEach(word => { const test = `${line} ${word}`.trim(); if (context.measureText(test).width > width * .75 && line) { context.fillText(line, width * .09, y); y += width * .05; line = word } else line = test }); context.fillText(line, width * .09, y)
+      context.fillStyle = '#ffc400'; context.fillRect(width * .09, height * .77, width * .48, Math.max(42, width * .08)); context.fillStyle = '#123957'; context.font = `800 ${Math.max(16, width * .027)}px Arial`; context.fillText(graphicCta.slice(0, 27), width * .12, height * .82)
+      context.fillStyle = 'rgba(255,255,255,.35)'; context.fillRect(width * .09, height * .91, width * .82, 5); context.fillStyle = '#ffc400'; context.fillRect(width * .09, height * .91, width * .82 * progress, 5)
+    }
+    recorder.start()
+    const startedAt = performance.now()
+    const timer = window.setInterval(() => { const elapsed = performance.now() - startedAt; draw(elapsed); if (elapsed >= 6000) { window.clearInterval(timer); recorder.stop(); stream.getTracks().forEach(track => track.stop()) } }, 33)
+  }
+
   if (authLoading || loading) {
     return <div className="content-studio-state"><Loader2 className="content-studio-spinner" size={30} /><p>Loading Reliable Content Studio…</p></div>
   }
@@ -244,6 +336,12 @@ export default function ReliableContentStudio() {
       </div>
 
       {(message || error) && <div className={error ? 'content-studio-notice error' : 'content-studio-notice'} role="status">{error || message}</div>}
+      <section className="prompt-creator panel">
+        <div className="prompt-creator-heading"><div><span className="panel-kicker">Create from an idea</span><h2>What do you want to make today?</h2><p>Describe the video in one sentence. Reliable turns it into a hook, three scenes, captions, and a shareable browser-rendered video.</p></div><div className="prompt-creator-badge"><Film size={17} /> No paid provider required</div></div>
+        <div className="prompt-creator-form"><textarea value={videoPrompt} onChange={event => setVideoPrompt(event.target.value)} rows={3} placeholder="Example: Create a 30-second video showing why local shops should start selling online." /><div className="prompt-creator-controls"><label>Tone<select value={contentTone} onChange={event => setContentTone(event.target.value)}><option>Clear and confident</option><option>Warm and inspiring</option><option>Bold and energetic</option><option>Simple and educational</option></select></label><button className="content-studio-button primary" onClick={generatePlan}><Sparkles size={17} /> Create content plan</button></div></div>
+        <div className="creator-steps"><span className="active"><b>1</b> Idea</span><span className={contentPlan.length ? 'active' : ''}><b>2</b> Scenes & captions</span><span className={renderingVideo ? 'active' : ''}><b>3</b> Export video</span></div>
+        {contentPlan.length > 0 && <div className="scene-plan"><div className="scene-plan-header"><div><span className="panel-kicker">Your generated structure</span><h3>Ready-to-share short video</h3></div><button className="content-studio-button primary" onClick={renderBrowserVideo} disabled={renderingVideo}>{renderingVideo ? <Loader2 className="content-studio-spinner" size={17} /> : <Download size={17} />} {renderingVideo ? 'Rendering…' : 'Render WebM video'}</button></div><div className="scene-cards">{contentPlan.map((scene, index) => <article className="scene-card" key={`${scene.title}-${index}`}><span>Scene {index + 1}</span><strong>{scene.title}</strong><p>{scene.caption}</p><small><Captions size={13} /> Caption ready</small></article>)}</div><div className="scene-plan-note"><Mic2 size={15} /> Voiceover is not connected yet. You can add narration in the next provider stage, or upload this video to a platform with built-in audio tools.</div></div>}
+      </section>
 
       <div className="content-studio-workspace">
         <aside className="content-studio-projects panel">
