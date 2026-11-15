@@ -36,7 +36,7 @@ import type { Product, DashboardStats, Order, Review, ProductVariant, ProductCar
 import { formatCurrency } from '../utils/currency'
 import { generateProductDescriptionDraft } from '../services/aiDescriptionService'
 import { lazy, Suspense, type ChangeEvent } from 'react'
-import { Pencil, Trash2, Printer, Share2 } from 'lucide-react'
+import { Clapperboard, Pencil, Trash2, Printer, Share2 } from 'lucide-react'
 import { BusinessVerificationForm } from '../components/BusinessVerificationForm'
 import { PayoutProfileForm } from '../components/PayoutProfileForm'
 import DeliverySettings from '../components/DeliverySettings'
@@ -1219,6 +1219,12 @@ export default function Admin() {
         </button>
         {canManageNews && (
           <>
+            <button
+              className="tab content-studio-nav-tab"
+              onClick={() => navigate('/admin/content-studio')}
+            >
+              <Clapperboard size={16} /> Reliable Content Studio
+            </button>
             <button
               className={`tab ${view === 'registered-sellers' ? 'active' : ''}`}
               onClick={() => setView('registered-sellers')}

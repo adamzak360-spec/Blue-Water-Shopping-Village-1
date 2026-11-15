@@ -1268,3 +1268,5 @@ tr:hover td {
     align-self: center;
   }
 }
+
+.content-studio-nav-tab{display:inline-flex;align-items:center;gap:.4rem;color:#075e88!important;font-weight:850!important}.content-studio-nav-tab svg{color:#0b9bbd}

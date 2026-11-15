@@ -77,6 +77,7 @@ const ProductChat = lazy(() => import('./pages/ProductChat'))
 const SellerRegister = lazy(() => import('./pages/SellerRegister'))
 const AdvertiserOnboarding = lazy(() => import('./pages/AdvertiserOnboarding'))
 const SoftwareServices = lazy(() => import('./pages/SoftwareServices'))
+const ReliableContentStudio = lazy(() => import('./pages/ReliableContentStudio'))
 
 // Prefetch functions for near-instant transitions
 const prefetchHome = () => import('./pages/Home')
@@ -398,6 +399,14 @@ function AppShell() {
             <Route path="/terms" element={<Terms />} />
             <Route path="/returns" element={<Returns />} />
             <Route path="/software-services" element={<SoftwareServices />} />
+            <Route
+              path="/admin/content-studio"
+              element={
+                <ProtectedRoute adminOnly>
+                  <ReliableContentStudio />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/admin/*"
               element={
