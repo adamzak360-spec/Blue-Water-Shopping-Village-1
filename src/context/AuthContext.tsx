@@ -131,32 +131,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const initializeAuth = async () => {
       try {
-        // Google returns to /login with a one-time PKCE authorization code.
-        // Exchange it before reading the session so Login cannot render as a
-        // signed-out visitor and send a newly-created customer back to the
-        // registration form.
         const callbackUrl = new URL(window.location.href)
-        const code = callbackUrl.searchParams.get('code')
-        if (code) {
-          const { error: exchangeError } = await withTimeout(
-            supabase!.auth.exchangeCodeForSession(code),
-            15000,
-          )
-          if (exchangeError) {
-            console.error('Google OAuth callback exchange failed:', exchangeError)
-          } else {
-            callbackUrl.searchParams.delete('code')
-            callbackUrl.searchParams.delete('state')
-            window.history.replaceState({}, document.title, `${callbackUrl.pathname}${callbackUrl.search}${callbackUrl.hash}`)
-          }
-        }
-
-        const { data: { session }, error: sessionError } = await withTimeout(
+        const hasOAuthCallback = callbackUrl.hash.includes('access_token=') || callbackUrl.searchParams.has('code')
+        let { data: { session }, error: sessionError } = await withTimeout(
           supabase!.auth.getSession(),
           10000,
         )
         if (sessionError) {
           console.error('Unable to restore authentication session:', sessionError)
+        }
+        // On mobile, the browser can return from Google before Supabase's
+        // implicit-flow URL detector has finished persisting the session.
+        // Give that detector a brief settling window, then read the session
+        // again before allowing Login/Register to render as signed out.
+        if (hasOAuthCallback && !session) {
+          await new Promise(resolve => window.setTimeout(resolve, 1200))
+          const retry = await withTimeout(supabase!.auth.getSession(), 10000)
+          session = retry.data.session
+          sessionError = retry.error
         }
         await withTimeout(applySession(session ?? null), 10000)
       } catch (error) {

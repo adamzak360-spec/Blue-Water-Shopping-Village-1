@@ -25,12 +25,11 @@ export const supabase = isSupabaseConfigured
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        // Google OAuth returns an authorization code. AuthContext performs the
-        // single guarded PKCE exchange before route guards render.
-        flowType: 'pkce',
-        // Avoid a race between Supabase's detector and AuthContext's callback
-        // initialization, which can otherwise consume the code too early.
-        detectSessionInUrl: false,
+        // Use the browser implicit flow for Google sign-in. It returns the
+        // session tokens in the callback URL and does not depend on a PKCE
+        // verifier surviving a mobile browser/app hand-off.
+        flowType: 'implicit',
+        detectSessionInUrl: true,
       },
     })
   : null
