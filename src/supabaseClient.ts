@@ -25,13 +25,12 @@ export const supabase = isSupabaseConfigured
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        // Google OAuth returns an authorization code. PKCE makes the browser
-        // store a verifier before leaving the site and lets AuthContext safely
-        // exchange that code for the new user's session on return.
+        // Google OAuth returns an authorization code. AuthContext performs the
+        // single guarded PKCE exchange before route guards render.
         flowType: 'pkce',
-        // Let Supabase perform the single PKCE callback exchange and persist the
-        // resulting session before React route guards render.
-        detectSessionInUrl: true,
+        // Avoid a race between Supabase's detector and AuthContext's callback
+        // initialization, which can otherwise consume the code too early.
+        detectSessionInUrl: false,
       },
     })
   : null

@@ -131,6 +131,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const initializeAuth = async () => {
       try {
+        // Google returns to /login with a one-time PKCE authorization code.
+        // Exchange it before reading the session so Login cannot render as a
+        // signed-out visitor and send a newly-created customer back to the
+        // registration form.
+        const callbackUrl = new URL(window.location.href)
+        const code = callbackUrl.searchParams.get('code')
+        if (code) {
+          const { error: exchangeError } = await withTimeout(
+            supabase!.auth.exchangeCodeForSession(code),
+            15000,
+          )
+          if (exchangeError) {
+            console.error('Google OAuth callback exchange failed:', exchangeError)
+          } else {
+            callbackUrl.searchParams.delete('code')
+            callbackUrl.searchParams.delete('state')
+            window.history.replaceState({}, document.title, `${callbackUrl.pathname}${callbackUrl.search}${callbackUrl.hash}`)
+          }
+        }
+
         const { data: { session }, error: sessionError } = await withTimeout(
           supabase!.auth.getSession(),
           10000,
