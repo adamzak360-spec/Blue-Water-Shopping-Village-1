@@ -167,11 +167,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase!.auth.onAuthStateChange(async (event, nextSession) => {
-      await applySession(nextSession)
-      if (event === 'SIGNED_IN') {
-        void reportSuccessfulLogin(nextSession)
-      }
+    } = supabase!.auth.onAuthStateChange((event, nextSession) => {
+      // Supabase holds an internal auth lock while this callback runs. Defer
+      // profile queries and login reporting so OAuth's code exchange can finish
+      // without a database call waiting on that same lock.
+      window.setTimeout(() => {
+        void applySession(nextSession)
+        if (event === 'SIGNED_IN') {
+          void reportSuccessfulLogin(nextSession)
+        }
+      }, 0)
     })
 
     void initializeAuth()
